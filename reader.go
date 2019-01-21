@@ -22,10 +22,16 @@ func NewReader(r io.Reader) *Reader {
 // Read reads one record from r. The record is a slice of string.
 func (r *Reader) Read() ([]string, error) {
 	var ret []string
-	line, _, err := r.reader.ReadLine()
-	if err != nil {
-		return nil, err
+	for {
+		line, _, err := r.reader.ReadLine()
+		if err != nil {
+			return nil, err
+		}
+		str := string(line)
+		if strings.HasPrefix(str, "| ") {
+			str = str[2:]
+			ret = strings.Split(str, " | ")
+			return ret, nil
+		}
 	}
-	ret = strings.Split(string(line), " | ")
-	return ret, nil
 }

@@ -3,6 +3,7 @@ package tbln
 import (
 	"bufio"
 	"io"
+	"strings"
 )
 
 // A Writer wites records to a tbln encoded file.
@@ -20,10 +21,8 @@ func NewWriter(w io.Writer) *Writer {
 // Writer is writes a single LTSV record to w.
 func (w *Writer) Write(record []string) error {
 	w.writer.WriteString("| ")
-	for _, value := range record {
-		w.writer.WriteString(value)
-		w.writer.WriteString(" | ")
-	}
+	w.writer.WriteString(strings.Join(record, " | "))
+	w.writer.WriteString(" |")
 	w.writer.WriteByte('\n')
 	return w.writer.Flush()
 }
