@@ -23,3 +23,22 @@ func TestWrite(t *testing.T) {
 		t.Errorf("out=[\n%v] ,should=[\n%v]", b, string(dataw))
 	}
 }
+
+func TestEscapeWrite(t *testing.T) {
+	data := [][]string{
+		{"a|b", "a | b", "abc ||| def"},
+		{"|", " | ", " |"},
+	}
+	dataw := []byte("| a||b | a || b | abc |||| def |\n| || |  ||  |  || |\n")
+	b := &bytes.Buffer{}
+	writer := NewWriter(b)
+	for _, row := range data {
+		err := writer.Write(row)
+		if err != nil {
+			t.Errorf("Unexpected error: %s\n", err)
+		}
+	}
+	if bytes.Compare(b.Bytes(), dataw) != 0 {
+		t.Errorf("out=[\n%v] ,should=[\n%v]", b, string(dataw))
+	}
+}
