@@ -1,0 +1,10 @@
+code.cloudfoundry.org/bytefmt v0.0.0-20180906201452-2aa6f33b730c h1:VzwteSWGbW9mxXTEkH+kpnao5jbgLynw3hq742juQh8=
+code.cloudfoundry.org/bytefmt v0.0.0-20180906201452-2aa6f33b730c/go.mod h1:wN/zk7mhREp/oviagqUXY3EwuHhWyOvAdsn5Y4CzOrc=
+github.com/mattn/go-runewidth v0.0.4 h1:2BvfKmzob6Bmd4YsL0zygOqfdFnK7GR4QL06Do4/p7Y=
+github.com/mattn/go-runewidth v0.0.4/go.mod h1:LwmH8dsx7+W8Uxz3IHJYH5QSwggIsqBzpuz5H//U1FU=
+github.com/nsf/termbox-go v0.0.0-20190121233118-02980233997d h1:x3S6kxmy49zXVVyhcnrFqxvNVCBPb2KZ9hV2RBdS840=
+github.com/nsf/termbox-go v0.0.0-20190121233118-02980233997d/go.mod h1:IuKpRQcYE1Tfu+oAQqaLisqDeXgjyyltCfsaoYN18NQ=
+github.com/ogier/pflag v0.0.1 h1:RW6JSWSu/RkSatfcLtogGfFgpim5p7ARQ10ECk5O750=
+github.com/ogier/pflag v0.0.1/go.mod h1:zkFki7tvTa0tafRvTBIZTvzYyAu6kQhPZFnshFFPE+g=
+github.com/tigrawap/slit v0.0.0-20190116082518-4d4f92b0d16a h1:ou8ZrGIHxd1dHrA0fwgRhzg/w97BW77wKISUOyk6Mqk=
+github.com/tigrawap/slit v0.0.0-20190116082518-4d4f92b0d16a/go.mod h1:FUqhbkXp/ljnjmwAhAwZfRsDuGtsmpUgtxTg+TEJ2Rs=

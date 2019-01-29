@@ -5,38 +5,41 @@ import (
 	"testing"
 )
 
-func TestWrite(t *testing.T) {
+func TestEncode(t *testing.T) {
 	data := [][]string{
 		{"1", "Bob", "19"},
 		{"2", "Alice", "14"},
 	}
 	dataw := []byte("| 1 | Bob | 19 |\n| 2 | Alice | 14 |\n")
-	b := &bytes.Buffer{}
-	writer := NewWriter(b)
+
+	tbl := NewTbln(2)
 	for _, row := range data {
-		err := writer.Write(row)
-		if err != nil {
-			t.Errorf("Unexpected error: %s\n", err)
-		}
+		tbl.AddRow(row)
+	}
+	b := &bytes.Buffer{}
+	err := tbl.Encode(b)
+	if err != nil {
+		t.Errorf("Unexpected error: %s\n", err)
 	}
 	if bytes.Compare(b.Bytes(), dataw) != 0 {
 		t.Errorf("out=[\n%v] ,should=[\n%v]", b, string(dataw))
 	}
 }
 
-func TestEscapeWrite(t *testing.T) {
+func TestEscapeEncode(t *testing.T) {
 	data := [][]string{
 		{"a|b", "a | b", "abc ||| def"},
 		{"|", " | ", " |"},
 	}
 	dataw := []byte("| a||b | a || b | abc |||| def |\n| || |  ||  |  || |\n")
-	b := &bytes.Buffer{}
-	writer := NewWriter(b)
+	tbl := NewTbln(2)
 	for _, row := range data {
-		err := writer.Write(row)
-		if err != nil {
-			t.Errorf("Unexpected error: %s\n", err)
-		}
+		tbl.AddRow(row)
+	}
+	b := &bytes.Buffer{}
+	err := tbl.Encode(b)
+	if err != nil {
+		t.Errorf("Unexpected error: %s\n", err)
 	}
 	if bytes.Compare(b.Bytes(), dataw) != 0 {
 		t.Errorf("out=[\n%v] ,should=[\n%v]", b, string(dataw))

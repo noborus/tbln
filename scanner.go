@@ -12,8 +12,8 @@ import (
 type Scanner struct {
 	reader  *bufio.Reader
 	escrep  *regexp.Regexp
-	Comment []string          // comment
-	Extra   map[string]string // extra data
+	Comment string   // comment
+	Extra   []string // extra data
 	Record  []string
 	err     error
 }
@@ -21,11 +21,9 @@ type Scanner struct {
 // NewScanner returns a new Reader that reads from r.
 func NewScanner(r io.Reader) *Scanner {
 	return &Scanner{
-		reader:  bufio.NewReader(r),
-		escrep:  regexp.MustCompile(`\|(\|+)`),
-		Comment: make([]string, 0),
-		Extra:   make(map[string]string),
-		Record:  make([]string, 0),
+		reader: bufio.NewReader(r),
+		escrep: regexp.MustCompile(`\|(\|+)`),
+		Record: make([]string, 0),
 	}
 }
 
@@ -40,7 +38,7 @@ const (
 	Extra
 )
 
-// Scan reads one record from r. The record is a slice of string.
+// Scan reads one record from r.
 func (r *Scanner) Scan() (ScanType, error) {
 	line, _, err := r.reader.ReadLine()
 	if err != nil {
@@ -55,12 +53,12 @@ func (r *Scanner) Scan() (ScanType, error) {
 		r.err = fmt.Errorf("Error line: %s", str)
 		return Zero, r.err
 	}
-	h := str[:2]
 	body := str[2:]
-	switch h {
+	switch str[:2] {
 	case "| ":
 		body = strings.TrimRight(body, " |")
 		rec := strings.Split(body, " | ")
+		// Unescape vertical bars || -> |
 		for i, column := range rec {
 			if strings.Contains(column, "|") {
 				rec[i] = r.escrep.ReplaceAllString(column, "$1")
@@ -69,7 +67,7 @@ func (r *Scanner) Scan() (ScanType, error) {
 		r.Record = rec
 		return Record, nil
 	case "# ":
-		r.Comment = append(r.Comment, body)
+		r.Comment = body
 		return Comment, nil
 	case "; ":
 		ext := strings.Split(body, ":")
@@ -77,7 +75,8 @@ func (r *Scanner) Scan() (ScanType, error) {
 			r.err = fmt.Errorf("Error: Extra format error %s", ext)
 			return Extra, r.err
 		}
-		r.Extra[ext[0]] = ext[1]
+		r.Extra = ext
+		// r.Extra[ext[0]] = ext[1]
 		return Extra, nil
 	}
 	r.err = fmt.Errorf("Error: Unsupported line")

@@ -1,6 +1,6 @@
 # tbln
 
-Tbln(Table notation) format read/write library.
+TBLN(Table notation) format read/write library.
 
 ## Specification
 
@@ -21,5 +21,3 @@ Tbln(Table notation) format read/write library.
 | co || lumn | co ||| lumn | co |||| lumn |
 
 | co\nlumn1 | column2\n | column3\n\n |
-
-
