@@ -4,14 +4,12 @@ import (
 	"bufio"
 	"fmt"
 	"io"
-	"regexp"
 	"strings"
 )
 
 // A Scanner reads records from a TBLN-encoded file.
 type Scanner struct {
 	reader  *bufio.Reader
-	escrep  *regexp.Regexp
 	Comment string   // comment
 	Extra   []string // extra data
 	Record  []string
@@ -22,7 +20,6 @@ type Scanner struct {
 func NewScanner(r io.Reader) *Scanner {
 	return &Scanner{
 		reader: bufio.NewReader(r),
-		escrep: regexp.MustCompile(`\|(\|+)`),
 		Record: make([]string, 0),
 	}
 }
@@ -61,7 +58,7 @@ func (r *Scanner) Scan() (ScanType, error) {
 		// Unescape vertical bars || -> |
 		for i, column := range rec {
 			if strings.Contains(column, "|") {
-				rec[i] = r.escrep.ReplaceAllString(column, "$1")
+				rec[i] = ESCREP.ReplaceAllString(column, "$1")
 			}
 		}
 		r.Record = rec

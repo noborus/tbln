@@ -14,9 +14,13 @@ type Tbln struct {
 	Extra    []string
 	cap      int
 	colNum   int
-	escrep   *regexp.Regexp
-	unescrep *regexp.Regexp
 }
+
+// ESCREP is escape | -> ||
+var ESCREP = regexp.MustCompile(`(\|+)`)
+
+// UNESCREP is unescape || -> |
+var UNESCREP = regexp.MustCompile(`\|(\|+)`)
 
 // NewTbln makes a model of TBLN.
 func NewTbln(rowNum int) *Tbln {
@@ -28,8 +32,6 @@ func NewTbln(rowNum int) *Tbln {
 		Extra:    make([]string, 0),
 		cap:      rowNum,
 		colNum:   0,
-		escrep:   regexp.MustCompile(`(\|+)`),
-		unescrep: regexp.MustCompile(`\|(\|+)`),
 	}
 }
 
@@ -49,10 +51,9 @@ func (tbln *Tbln) setColNum(colNum int) error {
 	if tbln.colNum == 0 {
 		tbln.colNum = colNum
 		return nil
-	} else {
-		if colNum != tbln.colNum {
-			return fmt.Errorf("number of columns is different")
-		}
+	}
+	if colNum != tbln.colNum {
+		return fmt.Errorf("number of columns is different")
 	}
 	return nil
 }
