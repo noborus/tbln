@@ -3,7 +3,6 @@ package tbln
 import (
 	"fmt"
 	"io"
-	"strings"
 )
 
 // Decode is read TBLN record from io.Reader.
@@ -25,7 +24,7 @@ func (tbln *Tbln) Decode(reader io.Reader) error {
 			if tbln.colNum == len(scan.Record) {
 				tbln.AddRow(scan.Record)
 			} else {
-				return fmt.Errorf("number of column is invalid")
+				return fmt.Errorf("number of column is invalid %d != %v", tbln.colNum, scan.Record)
 			}
 		case Comment:
 			tbln.Comments = append(tbln.Comments, scan.Comment)
@@ -38,25 +37,9 @@ func (tbln *Tbln) Decode(reader io.Reader) error {
 func (tbln *Tbln) analyzeExt(ext []string) error {
 	switch ext[0] {
 	case "name":
-		body := strings.TrimRight(ext[1][2:], " |")
-		rec := strings.Split(body, " | ")
-		// Unescape vertical bars || -> |
-		for i, column := range rec {
-			if strings.Contains(column, "|") {
-				rec[i] = ESCREP.ReplaceAllString(column, "$1")
-			}
-		}
-		tbln.SetNames(rec)
+		tbln.SetNames(parseRecord(ext[1]))
 	case "type":
-		body := strings.TrimRight(ext[1][2:], " |")
-		rec := strings.Split(body, " | ")
-		// Unescape vertical bars || -> |
-		for i, column := range rec {
-			if strings.Contains(column, "|") {
-				rec[i] = ESCREP.ReplaceAllString(column, "$1")
-			}
-		}
-		tbln.SetTypes(rec)
+		tbln.SetTypes(parseRecord(ext[1]))
 	default:
 		tbln.Extra = append(tbln.Extra, ext[0]+" : "+ext[1])
 	}

@@ -50,34 +50,42 @@ func (r *Scanner) Scan() (ScanType, error) {
 		r.err = fmt.Errorf("Error line: %s", str)
 		return Zero, r.err
 	}
-	body := str[2:]
 	switch str[:2] {
 	case "| ":
-		body = strings.TrimRight(body, " |")
-		rec := strings.Split(body, " | ")
-		// Unescape vertical bars || -> |
-		for i, column := range rec {
-			if strings.Contains(column, "|") {
-				rec[i] = ESCREP.ReplaceAllString(column, "$1")
-			}
-		}
-		r.Record = rec
+		r.Record = parseRecord(str)
 		return Record, nil
 	case "# ":
-		r.Comment = body
+		r.Comment = str[2:]
 		return Comment, nil
 	case "; ":
-		ext := strings.Split(body, ":")
+		ext := strings.Split(str[2:], ":")
 		if len(ext) != 2 {
 			r.err = fmt.Errorf("Error: Extra format error %s", ext)
 			return Extra, r.err
 		}
+		ext[1] = strings.TrimLeft(ext[1], " ")
 		r.Extra = ext
-		// r.Extra[ext[0]] = ext[1]
 		return Extra, nil
 	}
 	r.err = fmt.Errorf("Error: Unsupported line")
 	return Zero, r.err
+}
+
+func parseRecord(body string) []string {
+	body = strings.TrimLeft(body, "| ")
+	body = strings.TrimRight(body, " |")
+	rec := strings.Split(body, " | ")
+	unescape(rec)
+	return rec
+}
+
+func unescape(rec []string) {
+	// Unescape vertical bars || -> |
+	for i, column := range rec {
+		if strings.Contains(column, "|") {
+			rec[i] = UNESCREP.ReplaceAllString(column, "$1")
+		}
+	}
 }
 
 // Err is Scanner error

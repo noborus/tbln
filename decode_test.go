@@ -57,6 +57,7 @@ func TestTbln_Decode(t *testing.T) {
 			}
 			err := tbln.Decode(tt.args.reader)
 			if (err != nil) != tt.wantErr {
+				t.Log(tbln)
 				t.Errorf("Tbln.Decode() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
@@ -97,6 +98,29 @@ func TestTbln_analyzeExt(t *testing.T) {
 			}
 			if err := tbln.analyzeExt(tt.args.ext); (err != nil) != tt.wantErr {
 				t.Errorf("Tbln.analyzeExt() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
+}
+
+func Test_unescape(t *testing.T) {
+	type args struct {
+		rec []string
+	}
+	tests := []struct {
+		name string
+		args args
+		want []string
+	}{
+		{name: "test1", args: args{[]string{"||"}}, want: []string{"|"}},
+		{name: "test1", args: args{[]string{"|||"}}, want: []string{"||"}},
+		{name: "test1", args: args{[]string{"ab||c"}}, want: []string{"ab|c"}},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			unescape(tt.args.rec)
+			if tt.args.rec[0] != tt.want[0] {
+				t.Errorf("Tbln.unescape() error = %v, want %v", tt.args.rec, tt.want)
 			}
 		})
 	}
