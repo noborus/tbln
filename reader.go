@@ -27,8 +27,12 @@ func (tr *Reader) ReadRow() ([]string, error) {
 	if err != nil {
 		return nil, err
 	}
-	if (tr.columnNum > 0) && (len(rec) != tr.columnNum) {
-		return nil, fmt.Errorf("Error: invalid column num (%d!=%d) %s", tr.columnNum, len(rec), rec)
+	if tr.columnNum == 0 {
+		tr.columnNum = len(rec)
+	} else {
+		if len(rec) != tr.columnNum {
+			return nil, fmt.Errorf("Error: invalid column num (%d!=%d) %s", tr.columnNum, len(rec), rec)
+		}
 	}
 	return rec, nil
 }
@@ -40,33 +44,29 @@ func (tr *Reader) scanLine() ([]string, error) {
 			return nil, err
 		}
 		str := string(line)
-		if len(str) == 0 {
-			return nil, nil
-		}
-		if len(str) < 3 {
-			return nil, fmt.Errorf("Error line: %s", str)
-		}
-		switch str[:2] {
-		case "| ":
+		switch {
+		case strings.HasPrefix(str, "| "):
 			return parseRecord(str), nil
-		case "# ":
+		case strings.HasPrefix(str, "# "):
 			tr.Comments = append(tr.Comments, str[2:])
-		case "; ":
-			extstr := str[2:]
-			keypos := strings.Index(extstr, ":")
-			if keypos <= 0 {
-				return nil, fmt.Errorf("Error: Extra format error %s", extstr)
-			}
-			key := extstr[:keypos]
-			value := extstr[keypos+2:]
-			tr.analyzeExt(key, value)
+		case strings.HasPrefix(str, "; "):
+			tr.analyzeExt(str)
+		case str == "":
+			return nil, nil
 		default:
 			return nil, fmt.Errorf("Error: Unsupported line")
 		}
 	}
 }
 
-func (tr *Reader) analyzeExt(key string, value string) error {
+func (tr *Reader) analyzeExt(extstr string) error {
+	extstr = strings.TrimLeft(extstr, "; ")
+	keypos := strings.Index(extstr, ":")
+	if keypos <= 0 {
+		return fmt.Errorf("Error: Extra format error %s", extstr)
+	}
+	key := extstr[:keypos]
+	value := extstr[keypos+2:]
 	switch key {
 	case "name":
 		tr.setNames(parseRecord(value))

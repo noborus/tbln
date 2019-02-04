@@ -3,14 +3,17 @@ package tbln
 import (
 	"database/sql"
 	"log"
+	"strings"
 )
 
 // DBReader is DB read struct.
 type DBReader struct {
 	Table
-	db   *sql.DB
-	tx   *sql.Tx
-	rows *sql.Rows
+	db       *sql.DB
+	tx       *sql.Tx
+	rows     *sql.Rows
+	scanArgs []interface{}
+	values   []string
 }
 
 // NewDBReader is creates a structure for reading from the DB table.
@@ -24,25 +27,32 @@ func NewDBReader(db *sql.DB, tableName string) *DBReader {
 // ReadRow is return one row.
 func (tr *DBReader) ReadRow() ([]string, error) {
 	if tr.rows == nil {
-		err := tr.readInfo()
+		err := tr.preparation()
 		if err != nil {
 			return nil, err
 		}
 	}
-	values := make([]string, tr.columnNum)
-	scanArgs := make([]interface{}, tr.columnNum)
-	for i := range values {
-		scanArgs[i] = &values[i]
+	if !tr.rows.Next() {
+		return nil, tr.rows.Err()
 	}
-	for tr.rows.Next() {
-		err := tr.rows.Scan(scanArgs...)
-		if err != nil {
-			log.Fatal(err)
-		}
-		return values, nil
+	err := tr.rows.Scan(tr.scanArgs...)
+	if err != nil {
+		log.Fatal(err)
 	}
-	err := tr.rows.Err()
-	return nil, err
+	return tr.values, nil
+}
+
+func (tr *DBReader) preparation() error {
+	err := tr.readInfo()
+	if err != nil {
+		return err
+	}
+	tr.values = make([]string, tr.columnNum)
+	tr.scanArgs = make([]interface{}, tr.columnNum)
+	for i := range tr.values {
+		tr.scanArgs[i] = &tr.values[i]
+	}
+	return nil
 }
 
 func (tr *DBReader) readInfo() error {
@@ -67,7 +77,7 @@ func (tr *DBReader) readInfo() error {
 	}
 	types := make([]string, len(columns))
 	for i, ct := range columntype {
-		types[i] = ct.DatabaseTypeName()
+		types[i] = convertType(ct.DatabaseTypeName())
 	}
 	tr.setTypes(types)
 	tr.rows = rows
@@ -96,4 +106,21 @@ func (tr *DBReader) begin() error {
 
 func (tr *DBReader) commit() error {
 	return tr.tx.Commit()
+}
+
+func convertType(dbtype string) string {
+	switch strings.ToLower(dbtype) {
+	case "smallint", "integer", "int", "int4", "smallserial", "serial":
+		return "int"
+	case "bigint", "int8", "bigserial":
+		return "bigint"
+	case "float", "decimal", "numeric", "real", "double precision":
+		return "numeric"
+	case "bool":
+		return "bool"
+	case "string", "text", "char", "varchar":
+		return "text"
+	default:
+		return "text"
+	}
 }

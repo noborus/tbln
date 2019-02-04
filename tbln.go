@@ -28,13 +28,13 @@ type Table struct {
 	Ext       map[string]string
 }
 
-// SetTableName is Set Table Name to Table.
+// SetTableName is set Table Name of the Table.
 func (t *Table) SetTableName(name string) error {
 	t.name = name
 	return nil
 }
 
-// setNames is Set Column Name to Table.
+// setNames is set Column Name to the Table.
 func (t *Table) setNames(names []string) error {
 	if err := t.setColNum(len(names)); err != nil {
 		return err
@@ -43,7 +43,7 @@ func (t *Table) setNames(names []string) error {
 	return nil
 }
 
-// setTypes is Set Column Type to Table.
+// setTypes is set Column Type to Table.
 func (t *Table) setTypes(types []string) error {
 	if err := t.setColNum(len(types)); err != nil {
 		return err
