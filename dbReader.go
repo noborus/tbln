@@ -2,7 +2,6 @@ package tbln
 
 import (
 	"database/sql"
-	"log"
 	"strings"
 )
 
@@ -17,47 +16,32 @@ type DBReader struct {
 }
 
 // NewDBReader is creates a structure for reading from the DB table.
-func NewDBReader(db *sql.DB, tableName string) *DBReader {
-	return &DBReader{
+func NewDBReader(db *sql.DB, tableName string) (*DBReader, error) {
+	tr := &DBReader{
 		Table: Table{Ext: make(map[string]string), name: tableName},
 		db:    db,
 	}
+	err := tr.preparation()
+	if err != nil {
+		return nil, err
+	}
+	return tr, nil
 }
 
 // ReadRow is return one row.
 func (tr *DBReader) ReadRow() ([]string, error) {
-	if tr.rows == nil {
-		err := tr.preparation()
-		if err != nil {
-			return nil, err
-		}
-	}
 	if !tr.rows.Next() {
 		return nil, tr.rows.Err()
 	}
 	err := tr.rows.Scan(tr.scanArgs...)
 	if err != nil {
-		log.Fatal(err)
+		return nil, err
 	}
 	return tr.values, nil
 }
 
 func (tr *DBReader) preparation() error {
-	err := tr.readInfo()
-	if err != nil {
-		return err
-	}
-	tr.values = make([]string, tr.columnNum)
-	tr.scanArgs = make([]interface{}, tr.columnNum)
-	for i := range tr.values {
-		tr.scanArgs[i] = &tr.values[i]
-	}
-	return nil
-}
-
-func (tr *DBReader) readInfo() error {
 	var err error
-	tr.Ext["TableName"] = tr.name
 	err = tr.begin()
 	if err != nil {
 		return err
@@ -66,6 +50,22 @@ func (tr *DBReader) readInfo() error {
 	if err != nil {
 		return err
 	}
+	err = tr.setInfo(rows)
+	if err != nil {
+		return err
+	}
+	tr.values = make([]string, tr.columnNum)
+	tr.scanArgs = make([]interface{}, tr.columnNum)
+	for i := range tr.values {
+		tr.scanArgs[i] = &tr.values[i]
+	}
+	tr.rows = rows
+	return nil
+}
+
+func (tr *DBReader) setInfo(rows *sql.Rows) error {
+	var err error
+	tr.Ext["TableName"] = tr.name
 	columns, err := rows.Columns()
 	if err != nil {
 		return err
@@ -80,7 +80,6 @@ func (tr *DBReader) readInfo() error {
 		types[i] = convertType(ct.DatabaseTypeName())
 	}
 	tr.setTypes(types)
-	tr.rows = rows
 	return nil
 }
 

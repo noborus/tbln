@@ -37,6 +37,7 @@ func (tr *Reader) ReadRow() ([]string, error) {
 	return rec, nil
 }
 
+// Return on one line or blank line.
 func (tr *Reader) scanLine() ([]string, error) {
 	for {
 		line, _, err := tr.Reader.ReadLine()

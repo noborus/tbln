@@ -16,8 +16,8 @@ type Writer struct {
 // NewWriter is Writer
 func NewWriter(writer io.Writer, tbl Table) *Writer {
 	return &Writer{
-		Writer: bufio.NewWriter(writer),
 		Table:  tbl,
+		Writer: bufio.NewWriter(writer),
 	}
 }
 
