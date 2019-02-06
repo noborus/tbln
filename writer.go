@@ -21,8 +21,8 @@ func NewWriter(writer io.Writer, tbl Definition) *Writer {
 	}
 }
 
-// WriteInfo is output table definition.
-func (tw *Writer) WriteInfo() error {
+// WriteDefinition is write table definition.
+func (tw *Writer) WriteDefinition() error {
 	t := tw.Definition
 	err := tw.writeComment(t)
 	if err != nil {
@@ -95,4 +95,20 @@ func (tw *Writer) WriteRow(row []string) error {
 		return err
 	}
 	return nil
+}
+
+// WriteAll write all table.
+func WriteAll(writer io.Writer, table *Table) error {
+	tw := NewWriter(writer, table.Definition)
+	err := tw.WriteDefinition()
+	if err != nil {
+		return err
+	}
+	for _, row := range table.Rows {
+		err = tw.WriteRow(row)
+		if err != nil {
+			return err
+		}
+	}
+	return tw.Writer.Flush()
 }

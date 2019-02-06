@@ -2,6 +2,7 @@ package tbln
 
 import (
 	"database/sql"
+	"fmt"
 	"log"
 	"strings"
 )
@@ -13,7 +14,7 @@ type DBReader struct {
 	tx       *sql.Tx
 	rows     *sql.Rows
 	scanArgs []interface{}
-	values   []string
+	values   []interface{}
 }
 
 // NewDBReader is creates a structure for reading from the DB table.
@@ -39,8 +40,25 @@ func (tr *DBReader) ReadRow() ([]string, error) {
 		return nil, err
 	}
 	rec := make([]string, len(tr.values))
-	copy(rec, tr.values)
+	for i, col := range tr.values {
+		rec[i] = valString(col)
+	}
 	return rec, nil
+}
+
+func valString(v interface{}) string {
+	var str string
+	b, ok := v.([]byte)
+	if ok {
+		str = string(b)
+	} else {
+		if v == nil {
+			str = ""
+		} else {
+			str = fmt.Sprint(v)
+		}
+	}
+	return str
 }
 
 func (tr *DBReader) preparation() error {
@@ -57,7 +75,7 @@ func (tr *DBReader) preparation() error {
 	if err != nil {
 		return err
 	}
-	tr.values = make([]string, tr.columnNum)
+	tr.values = make([]interface{}, tr.columnNum)
 	tr.scanArgs = make([]interface{}, tr.columnNum)
 	for i := range tr.values {
 		tr.scanArgs[i] = &tr.values[i]

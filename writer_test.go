@@ -32,7 +32,7 @@ func TestNewWriter(t *testing.T) {
 	}
 }
 
-func TestWriter_WriteInfo(t *testing.T) {
+func TestWriter_WriteDefinition(t *testing.T) {
 	type fields struct {
 		Definition Definition
 		Writer     *bufio.Writer
@@ -50,8 +50,8 @@ func TestWriter_WriteInfo(t *testing.T) {
 				Definition: tt.fields.Definition,
 				Writer:     tt.fields.Writer,
 			}
-			if err := tw.WriteInfo(); (err != nil) != tt.wantErr {
-				t.Errorf("Writer.WriteInfo() error = %v, wantErr %v", err, tt.wantErr)
+			if err := tw.WriteDefinition(); (err != nil) != tt.wantErr {
+				t.Errorf("Writer.WriteDefinition() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
 	}

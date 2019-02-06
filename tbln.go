@@ -12,7 +12,7 @@ type Read interface {
 
 // Write is TBLN Write interface.
 type Write interface {
-	WriteInfo(Definition) error
+	WriteDefinition(Definition) error
 	WriteRow([]string) error
 }
 

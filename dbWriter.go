@@ -26,8 +26,8 @@ func NewDBWriter(db *sql.DB, d Definition, create bool) *DBWriter {
 	}
 }
 
-// WriteInfo is output table definition.
-func (tw *DBWriter) WriteInfo() error {
+// WriteDefinition is write table definition.
+func (tw *DBWriter) WriteDefinition() error {
 	if tw.Create {
 		err := tw.createTable()
 		if err != nil {
