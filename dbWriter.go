@@ -8,40 +8,50 @@ import (
 
 // DBWriter is writer struct.
 type DBWriter struct {
-	Table
-	db   *sql.DB
-	tx   *sql.Tx
-	stmt *sql.Stmt
-	Ph   string
+	Definition
+	db     *sql.DB
+	tx     *sql.Tx
+	stmt   *sql.Stmt
+	Create bool
+	Ph     string
 }
 
 // NewDBWriter is DB write struct.
-func NewDBWriter(db *sql.DB, tbl Table) *DBWriter {
+func NewDBWriter(db *sql.DB, d Definition, create bool) *DBWriter {
 	return &DBWriter{
-		Table: tbl,
-		db:    db,
-		Ph:    "?",
+		Definition: d,
+		db:         db,
+		Create:     create,
+		Ph:         "?",
 	}
 }
 
-// WriteInfo is output table information.
+// WriteInfo is output table definition.
 func (tw *DBWriter) WriteInfo() error {
-	sql := "CREATE TABLE " + tw.name + " ("
+	if tw.Create {
+		err := tw.createTable()
+		if err != nil {
+			return err
+		}
+	}
+	return tw.prepara()
+}
+
+func (tw *DBWriter) createTable() error {
 	col := make([]string, len(tw.Names))
 	for i := 0; i < len(tw.Names); i++ {
 		col[i] = tw.Names[i] + " " + tw.Types[i]
 	}
-	sql += strings.Join(col, ", ")
-	sql += ");"
+	sql := fmt.Sprintf("CREATE TABLE %s ( %s );",
+		tw.name, strings.Join(col, ", "))
 	_, err := tw.db.Exec(sql)
 	if err != nil {
 		return err
 	}
-	tw.preparation()
 	return nil
 }
 
-func (tw *DBWriter) preparation() error {
+func (tw *DBWriter) prepara() error {
 	var err error
 	ph := make([]string, len(tw.Names))
 	for i := 0; i < len(tw.Names); i++ {
@@ -51,11 +61,9 @@ func (tw *DBWriter) preparation() error {
 			ph[i] = fmt.Sprintf("?")
 		}
 	}
-	insert := "INSERT INTO " + tw.name + " ("
-	insert += strings.Join(tw.Names, ", ")
-	insert += ") VALUES ("
-	insert += strings.Join(ph, ", ")
-	insert += ");"
+	insert := fmt.Sprintf(
+		"INSERT INTO %s ( %s ) VALUES ( %s );",
+		tw.name, strings.Join(tw.Names, ", "), strings.Join(ph, ", "))
 	tw.stmt, err = tw.db.Prepare(insert)
 	return err
 }

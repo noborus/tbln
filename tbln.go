@@ -5,10 +5,14 @@ import (
 	"regexp"
 )
 
-// TBLN is Read/Writer interface.
-type TBLN interface {
+// Read is TBLN Read interface.
+type Read interface {
 	ReadRow() ([]string, error)
-	WriteInfo(Table) error
+}
+
+// Write is TBLN Write interface.
+type Write interface {
+	WriteInfo(Definition) error
 	WriteRow([]string) error
 }
 
@@ -18,8 +22,8 @@ var ESCREP = regexp.MustCompile(`(\|+)`)
 // UNESCREP is unescape || -> |
 var UNESCREP = regexp.MustCompile(`\|(\|+)`)
 
-// Table is common TBLN struct.
-type Table struct {
+// Definition is common table definition struct.
+type Definition struct {
 	columnNum int
 	name      string
 	Names     []string
@@ -28,14 +32,21 @@ type Table struct {
 	Ext       map[string]string
 }
 
+// Table struct is table Definition + Table all rows.
+type Table struct {
+	Definition
+	RowNum int
+	Rows   [][]string
+}
+
 // SetTableName is set Table Name of the Table.
-func (t *Table) SetTableName(name string) error {
+func (t *Definition) SetTableName(name string) error {
 	t.name = name
 	return nil
 }
 
 // setNames is set Column Name to the Table.
-func (t *Table) setNames(names []string) error {
+func (t *Definition) setNames(names []string) error {
 	if err := t.setColNum(len(names)); err != nil {
 		return err
 	}
@@ -44,7 +55,7 @@ func (t *Table) setNames(names []string) error {
 }
 
 // setTypes is set Column Type to Table.
-func (t *Table) setTypes(types []string) error {
+func (t *Definition) setTypes(types []string) error {
 	if err := t.setColNum(len(types)); err != nil {
 		return err
 	}
@@ -52,7 +63,7 @@ func (t *Table) setTypes(types []string) error {
 	return nil
 }
 
-func (t *Table) setColNum(colNum int) error {
+func (t *Definition) setColNum(colNum int) error {
 	if t.columnNum == 0 {
 		t.columnNum = colNum
 		return nil

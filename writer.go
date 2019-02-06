@@ -9,21 +9,21 @@ import (
 
 // Writer is writer struct.
 type Writer struct {
-	Table
+	Definition
 	Writer *bufio.Writer
 }
 
 // NewWriter is Writer
-func NewWriter(writer io.Writer, tbl Table) *Writer {
+func NewWriter(writer io.Writer, tbl Definition) *Writer {
 	return &Writer{
-		Table:  tbl,
-		Writer: bufio.NewWriter(writer),
+		Definition: tbl,
+		Writer:     bufio.NewWriter(writer),
 	}
 }
 
-// WriteInfo is output table information.
+// WriteInfo is output table definition.
 func (tw *Writer) WriteInfo() error {
-	t := tw.Table
+	t := tw.Definition
 	err := tw.writeComment(t)
 	if err != nil {
 		return err
@@ -35,7 +35,7 @@ func (tw *Writer) WriteInfo() error {
 	return nil
 }
 
-func (tw *Writer) writeComment(t Table) error {
+func (tw *Writer) writeComment(t Definition) error {
 	for _, comment := range t.Comments {
 		_, err := tw.Writer.WriteString(fmt.Sprintf("# %s\n", comment))
 		if err != nil {
@@ -45,7 +45,7 @@ func (tw *Writer) writeComment(t Table) error {
 	return nil
 }
 
-func (tw *Writer) writeExtra(t Table) error {
+func (tw *Writer) writeExtra(t Definition) error {
 	for key, value := range tw.Ext {
 		_, err := tw.Writer.WriteString(fmt.Sprintf("; %s: %s\n", key, value))
 		if err != nil {

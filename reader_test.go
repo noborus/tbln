@@ -9,8 +9,8 @@ import (
 
 func TestReader_ReadRow(t *testing.T) {
 	type fields struct {
-		Table  Table
-		Reader *bufio.Reader
+		Definition Definition
+		Reader     *bufio.Reader
 	}
 	tests := []struct {
 		name    string
@@ -32,7 +32,7 @@ func TestReader_ReadRow(t *testing.T) {
 		},
 		{
 			name:    "test3",
-			fields:  fields{Table: Table{columnNum: 2}, Reader: bufio.NewReader(bytes.NewBufferString("| a |\n"))},
+			fields:  fields{Definition: Definition{columnNum: 2}, Reader: bufio.NewReader(bytes.NewBufferString("| a |\n"))},
 			want:    nil,
 			wantErr: true,
 		},
@@ -40,8 +40,8 @@ func TestReader_ReadRow(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			tr := &Reader{
-				Table:  tt.fields.Table,
-				Reader: tt.fields.Reader,
+				Definition: tt.fields.Definition,
+				Reader:     tt.fields.Reader,
 			}
 			got, err := tr.ReadRow()
 			if (err != nil) != tt.wantErr {
@@ -57,8 +57,8 @@ func TestReader_ReadRow(t *testing.T) {
 
 func TestReader_scanLine(t *testing.T) {
 	type fields struct {
-		Table  Table
-		Reader *bufio.Reader
+		Definition Definition
+		Reader     *bufio.Reader
 	}
 	tests := []struct {
 		name    string
@@ -71,8 +71,8 @@ func TestReader_scanLine(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			tr := &Reader{
-				Table:  tt.fields.Table,
-				Reader: tt.fields.Reader,
+				Definition: tt.fields.Definition,
+				Reader:     tt.fields.Reader,
 			}
 			got, err := tr.scanLine()
 			if (err != nil) != tt.wantErr {
@@ -125,8 +125,8 @@ func Test_unescape(t *testing.T) {
 
 func TestReader_analyzeExt(t *testing.T) {
 	type fields struct {
-		Table  Table
-		Reader *bufio.Reader
+		Definition Definition
+		Reader     *bufio.Reader
 	}
 	type args struct {
 		extstr string
@@ -142,8 +142,8 @@ func TestReader_analyzeExt(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			tr := &Reader{
-				Table:  tt.fields.Table,
-				Reader: tt.fields.Reader,
+				Definition: tt.fields.Definition,
+				Reader:     tt.fields.Reader,
 			}
 			if err := tr.analyzeExt(tt.args.extstr); (err != nil) != tt.wantErr {
 				t.Errorf("Reader.analyzeExt() error = %v, wantErr %v", err, tt.wantErr)

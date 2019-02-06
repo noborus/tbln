@@ -26,7 +26,7 @@ func TestTable_setNames(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			tbl := &Table{
+			tbl := &Definition{
 				columnNum: tt.fields.columnNum,
 				name:      tt.fields.name,
 				Names:     tt.fields.Names,
@@ -65,7 +65,7 @@ func TestTable_setTypes(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			tbl := &Table{
+			tbl := &Definition{
 				columnNum: tt.fields.columnNum,
 				name:      tt.fields.name,
 				Names:     tt.fields.Names,
@@ -104,7 +104,7 @@ func TestTable_setColNum(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			tbl := &Table{
+			tbl := &Definition{
 				columnNum: tt.fields.columnNum,
 				name:      tt.fields.name,
 				Names:     tt.fields.Names,

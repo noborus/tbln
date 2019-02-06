@@ -9,15 +9,15 @@ import (
 
 // Reader is reader struct.
 type Reader struct {
-	Table
+	Definition
 	Reader *bufio.Reader
 }
 
 // NewReader is returns Reader.
 func NewReader(reader io.Reader) *Reader {
 	return &Reader{
-		Table:  Table{Ext: make(map[string]string)},
-		Reader: bufio.NewReader(reader),
+		Definition: Definition{Ext: make(map[string]string)},
+		Reader:     bufio.NewReader(reader),
 	}
 }
 
@@ -94,4 +94,28 @@ func unescape(rec []string) {
 			rec[i] = UNESCREP.ReplaceAllString(column, "$1")
 		}
 	}
+}
+
+// ReadAll reads all io.Reader
+func ReadAll(reader io.Reader) (*Table, error) {
+	r := NewReader(reader)
+	at := &Table{}
+	at.Rows = make([][]string, 0)
+	var err error
+	var info bool
+	for {
+		rec, err := r.ReadRow()
+		if err != nil {
+			break
+		}
+		if !info {
+			at.Definition = r.Definition
+		}
+		at.RowNum++
+		at.Rows = append(at.Rows, rec)
+	}
+	if err != io.EOF {
+		return at, nil
+	}
+	return nil, err
 }

@@ -2,12 +2,13 @@ package tbln
 
 import (
 	"database/sql"
+	"log"
 	"strings"
 )
 
 // DBReader is DB read struct.
 type DBReader struct {
-	Table
+	Definition
 	db       *sql.DB
 	tx       *sql.Tx
 	rows     *sql.Rows
@@ -18,8 +19,8 @@ type DBReader struct {
 // NewDBReader is creates a structure for reading from the DB table.
 func NewDBReader(db *sql.DB, tableName string) (*DBReader, error) {
 	tr := &DBReader{
-		Table: Table{Ext: make(map[string]string), name: tableName},
-		db:    db,
+		Definition: Definition{Ext: make(map[string]string), name: tableName},
+		db:         db,
 	}
 	err := tr.preparation()
 	if err != nil {
@@ -37,7 +38,9 @@ func (tr *DBReader) ReadRow() ([]string, error) {
 	if err != nil {
 		return nil, err
 	}
-	return tr.values, nil
+	rec := make([]string, len(tr.values))
+	copy(rec, tr.values)
+	return rec, nil
 }
 
 func (tr *DBReader) preparation() error {
@@ -122,4 +125,28 @@ func convertType(dbtype string) string {
 	default:
 		return "text"
 	}
+}
+
+// ReadTable reads all rows in the table.
+func ReadTable(db *sql.DB, tableName string) (*Table, error) {
+	r, err := NewDBReader(db, tableName)
+	if err != nil {
+		return nil, err
+	}
+	at := &Table{}
+	at.Definition = r.Definition
+	at.Rows = make([][]string, 0)
+	for {
+		rec, err := r.ReadRow()
+		if err != nil {
+			log.Println(err)
+			break
+		}
+		if rec == nil {
+			break
+		}
+		at.RowNum++
+		at.Rows = append(at.Rows, rec)
+	}
+	return at, err
 }
