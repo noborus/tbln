@@ -1,7 +1,6 @@
 package tbln
 
 import (
-	"bufio"
 	"fmt"
 	"io"
 	"strings"
@@ -10,14 +9,14 @@ import (
 // Writer is writer struct.
 type Writer struct {
 	Definition
-	Writer *bufio.Writer
+	Writer io.Writer
 }
 
 // NewWriter is Writer
 func NewWriter(writer io.Writer, tbl Definition) *Writer {
 	return &Writer{
 		Definition: tbl,
-		Writer:     bufio.NewWriter(writer),
+		Writer:     writer,
 	}
 }
 
@@ -37,7 +36,7 @@ func (tw *Writer) WriteDefinition() error {
 
 func (tw *Writer) writeComment(t Definition) error {
 	for _, comment := range t.Comments {
-		_, err := tw.Writer.WriteString(fmt.Sprintf("# %s\n", comment))
+		_, err := io.WriteString(tw.Writer, fmt.Sprintf("# %s\n", comment))
 		if err != nil {
 			return err
 		}
@@ -47,13 +46,13 @@ func (tw *Writer) writeComment(t Definition) error {
 
 func (tw *Writer) writeExtra(t Definition) error {
 	for key, value := range tw.Ext {
-		_, err := tw.Writer.WriteString(fmt.Sprintf("; %s: %s\n", key, value))
+		_, err := io.WriteString(tw.Writer, fmt.Sprintf("; %s: %s\n", key, value))
 		if err != nil {
 			return err
 		}
 	}
 	if len(tw.Names) > 0 {
-		_, err := tw.Writer.WriteString("; name: ")
+		_, err := io.WriteString(tw.Writer, "; name: ")
 		if err != nil {
 			return err
 		}
@@ -63,7 +62,7 @@ func (tw *Writer) writeExtra(t Definition) error {
 		}
 	}
 	if len(tw.Types) > 0 {
-		_, err := tw.Writer.WriteString("; type: ")
+		_, err := io.WriteString(tw.Writer, "; type: ")
 		if err != nil {
 			return err
 		}
@@ -77,7 +76,7 @@ func (tw *Writer) writeExtra(t Definition) error {
 
 // WriteRow is write one row.
 func (tw *Writer) WriteRow(row []string) error {
-	_, err := tw.Writer.WriteString("|")
+	_, err := io.WriteString(tw.Writer, "|")
 	if err != nil {
 		return err
 	}
@@ -85,12 +84,12 @@ func (tw *Writer) WriteRow(row []string) error {
 		if strings.Contains(column, "|") {
 			column = ESCREP.ReplaceAllString(column, "|$1")
 		}
-		_, err := tw.Writer.WriteString(" " + column + " |")
+		_, err := io.WriteString(tw.Writer, " "+column+" |")
 		if err != nil {
 			return err
 		}
 	}
-	_, err = tw.Writer.WriteString("\n")
+	_, err = io.WriteString(tw.Writer, "\n")
 	if err != nil {
 		return err
 	}
@@ -110,5 +109,5 @@ func WriteAll(writer io.Writer, table *Table) error {
 			return err
 		}
 	}
-	return tw.Writer.Flush()
+	return nil
 }
