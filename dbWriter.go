@@ -30,20 +30,20 @@ func NewDBWriter(dbd *DBD, d Definition, create bool) *DBWriter {
 // WriteDefinition is write table definition.
 func (tw *DBWriter) WriteDefinition() error {
 	if tw.Names == nil {
-		if tw.Definition.columnNum == 0 {
+		if tw.columnNum == 0 {
 			return fmt.Errorf("column num is 0")
 		}
-		tw.Names = make([]string, tw.Definition.columnNum)
-		for i := 0; i < tw.Definition.columnNum; i++ {
+		tw.Names = make([]string, tw.columnNum)
+		for i := 0; i < tw.columnNum; i++ {
 			tw.Names[i] = fmt.Sprintf("c%d", i+1)
 		}
 	}
 	if tw.Types == nil {
-		if tw.Definition.columnNum == 0 {
+		if tw.columnNum == 0 {
 			return fmt.Errorf("column num is 0")
 		}
-		tw.Types = make([]string, tw.Definition.columnNum)
-		for i := 0; i < tw.Definition.columnNum; i++ {
+		tw.Types = make([]string, tw.columnNum)
+		for i := 0; i < tw.columnNum; i++ {
 			tw.Types[i] = "text"
 		}
 	}

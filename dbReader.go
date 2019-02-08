@@ -92,7 +92,7 @@ func (tr *DBReader) setInfo(rows *sql.Rows) error {
 	if err != nil {
 		return err
 	}
-	tr.setNames(columns)
+	tr.SetNames(columns)
 	columntype, err := rows.ColumnTypes()
 	if err != nil {
 		return err
@@ -101,7 +101,7 @@ func (tr *DBReader) setInfo(rows *sql.Rows) error {
 	for i, ct := range columntype {
 		types[i] = convertType(ct.DatabaseTypeName())
 	}
-	tr.setTypes(types)
+	tr.SetTypes(types)
 	return nil
 }
 

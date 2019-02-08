@@ -51,6 +51,10 @@ func (tw *Writer) writeExtra(t Definition) error {
 			return err
 		}
 	}
+	_, err := fmt.Fprintf(tw.Writer, "; TableName: %s\n", tw.name)
+	if err != nil {
+		return err
+	}
 	if len(tw.Names) > 0 {
 		_, err := io.WriteString(tw.Writer, "; name: ")
 		if err != nil {

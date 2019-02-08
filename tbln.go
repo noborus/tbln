@@ -32,11 +32,11 @@ type Definition struct {
 	Ext       map[string]string
 }
 
-// Table struct is table Definition + Table rows.
-type Table struct {
-	Definition
-	RowNum int
-	Rows   [][]string
+// NewDefinition is create Definition struct.
+func NewDefinition(name string) Definition {
+	return Definition{
+		name: name,
+	}
 }
 
 // SetTableName is set Table Name of the Table.
@@ -45,8 +45,8 @@ func (t *Definition) SetTableName(name string) error {
 	return nil
 }
 
-// setNames is set Column Name to the Table.
-func (t *Definition) setNames(names []string) error {
+// SetNames is set Column Name to the Table.
+func (t *Definition) SetNames(names []string) error {
 	if err := t.setColNum(len(names)); err != nil {
 		return err
 	}
@@ -54,8 +54,8 @@ func (t *Definition) setNames(names []string) error {
 	return nil
 }
 
-// setTypes is set Column Type to Table.
-func (t *Definition) setTypes(types []string) error {
+// SetTypes is set Column Type to Table.
+func (t *Definition) SetTypes(types []string) error {
 	if err := t.setColNum(len(types)); err != nil {
 		return err
 	}
@@ -72,4 +72,41 @@ func (t *Definition) setColNum(colNum int) error {
 		return fmt.Errorf("number of columns is different")
 	}
 	return nil
+}
+
+// Table struct is table Definition + Table rows.
+type Table struct {
+	Definition
+	RowNum int
+	Rows   [][]string
+}
+
+// NewTable is create table struct.
+func NewTable(d Definition) *Table {
+	return &Table{
+		Definition: d,
+	}
+}
+
+// AddRows is Add row to Table.
+func (t *Table) AddRows(row []string) error {
+	var err error
+	t.columnNum, err = checkRow(t.columnNum, row)
+	if err != nil {
+		return err
+	}
+	t.Rows = append(t.Rows, row)
+	t.RowNum++
+	return nil
+}
+
+func checkRow(columnNum int, row []string) (int, error) {
+	if columnNum == 0 {
+		columnNum = len(row)
+	} else {
+		if len(row) != columnNum {
+			return columnNum, fmt.Errorf("Error: invalid column num (%d!=%d) %s", columnNum, len(row), row)
+		}
+	}
+	return columnNum, nil
 }

@@ -24,17 +24,11 @@ func NewReader(reader io.Reader) *Reader {
 // ReadRow is return one row.
 func (tr *Reader) ReadRow() ([]string, error) {
 	rec, err := tr.scanLine()
-	if err != nil {
+	if err != nil || rec == nil {
 		return nil, err
 	}
-	if tr.columnNum == 0 {
-		tr.columnNum = len(rec)
-	} else {
-		if len(rec) != tr.columnNum {
-			return nil, fmt.Errorf("Error: invalid column num (%d!=%d) %s", tr.columnNum, len(rec), rec)
-		}
-	}
-	return rec, nil
+	tr.columnNum, err = checkRow(tr.columnNum, rec)
+	return rec, err
 }
 
 // Return on one line or blank line.
@@ -70,9 +64,9 @@ func (tr *Reader) analyzeExt(extstr string) error {
 	value := extstr[keypos+2:]
 	switch key {
 	case "name":
-		tr.setNames(parseRecord(value))
+		tr.SetNames(parseRecord(value))
 	case "type":
-		tr.setTypes(parseRecord(value))
+		tr.SetTypes(parseRecord(value))
 	default:
 		tr.Ext[key] = value
 	}

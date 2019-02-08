@@ -2,7 +2,7 @@ package tbln
 
 import "testing"
 
-func TestTable_setNames(t *testing.T) {
+func TestTable_SetNames(t *testing.T) {
 	type fields struct {
 		columnNum int
 		name      string
@@ -34,14 +34,14 @@ func TestTable_setNames(t *testing.T) {
 				Comments:  tt.fields.Comments,
 				Ext:       tt.fields.Ext,
 			}
-			if err := tbl.setNames(tt.args.names); (err != nil) != tt.wantErr {
-				t.Errorf("Table.setNames() error = %v, wantErr %v", err, tt.wantErr)
+			if err := tbl.SetNames(tt.args.names); (err != nil) != tt.wantErr {
+				t.Errorf("Table.SetNames() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
 	}
 }
 
-func TestTable_setTypes(t *testing.T) {
+func TestTable_SetTypes(t *testing.T) {
 	type fields struct {
 		columnNum int
 		name      string
@@ -73,8 +73,8 @@ func TestTable_setTypes(t *testing.T) {
 				Comments:  tt.fields.Comments,
 				Ext:       tt.fields.Ext,
 			}
-			if err := tbl.setTypes(tt.args.types); (err != nil) != tt.wantErr {
-				t.Errorf("Table.setTypes() error = %v, wantErr %v", err, tt.wantErr)
+			if err := tbl.SetTypes(tt.args.types); (err != nil) != tt.wantErr {
+				t.Errorf("Table.SetTypes() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
 	}
