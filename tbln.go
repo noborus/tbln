@@ -32,7 +32,7 @@ type Definition struct {
 	Ext       map[string]string
 }
 
-// Table struct is table Definition + Table all rows.
+// Table struct is table Definition + Table rows.
 type Table struct {
 	Definition
 	RowNum int

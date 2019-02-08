@@ -10,6 +10,7 @@ import (
 // DBReader is DB read struct.
 type DBReader struct {
 	Definition
+	*DBD
 	db       *sql.DB
 	tx       *sql.Tx
 	rows     *sql.Rows
@@ -18,10 +19,10 @@ type DBReader struct {
 }
 
 // NewDBReader is creates a structure for reading from the DB table.
-func NewDBReader(db *sql.DB, tableName string) (*DBReader, error) {
+func NewDBReader(dbd *DBD, tableName string) (*DBReader, error) {
 	tr := &DBReader{
 		Definition: Definition{Ext: make(map[string]string), name: tableName},
-		db:         db,
+		DBD:        dbd,
 	}
 	err := tr.preparation()
 	if err != nil {
@@ -104,7 +105,7 @@ func (tr *DBReader) setInfo(rows *sql.Rows) error {
 	return nil
 }
 
-// Close is close the cursor.
+// Close is cursor close and commit.
 func (tr *DBReader) Close() error {
 	if tr.rows != nil {
 		err := tr.rows.Close()
@@ -146,7 +147,7 @@ func convertType(dbtype string) string {
 }
 
 // ReadTable reads all rows in the table.
-func ReadTable(db *sql.DB, tableName string) (*Table, error) {
+func ReadTable(db *DBD, tableName string) (*Table, error) {
 	r, err := NewDBReader(db, tableName)
 	if err != nil {
 		return nil, err
