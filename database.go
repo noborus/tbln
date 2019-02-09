@@ -13,10 +13,20 @@ type DBD struct {
 // DBOpen is *sql.Open Wrapper.
 func DBOpen(driver string, dsn string) (*DBD, error) {
 	db, err := sql.Open(driver, dsn)
-	ph := "?"
-	quote := "`"
-	if driver == "postgres" {
+	var ph, quote string
+	switch driver {
+	case "postgres":
 		ph = "$"
+		quote = `"`
+	case "mysql":
+		ph = "?"
+		quote = "`"
+	case "sqlite3":
+		ph = "?"
+		quote = "`"
+	default:
+		// SQL standard
+		ph = "?"
 		quote = `"`
 	}
 	dbd := &DBD{
