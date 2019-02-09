@@ -99,19 +99,16 @@ func ReadAll(reader io.Reader) (*Table, error) {
 	at := &Table{}
 	at.Rows = make([][]string, 0)
 	var err error
-	var info bool
 	for {
 		rec, err := r.ReadRow()
 		if err != nil {
 			break
 		}
-		if !info {
-			at.Definition = r.Definition
-		}
 		at.RowNum++
 		at.Rows = append(at.Rows, rec)
 	}
 	if err != io.EOF {
+		at.Definition = r.Definition
 		return at, nil
 	}
 	return nil, err

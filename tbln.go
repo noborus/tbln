@@ -40,35 +40,35 @@ func NewDefinition(name string) Definition {
 }
 
 // SetTableName is set Table Name of the Table.
-func (t *Definition) SetTableName(name string) error {
-	t.name = name
+func (d *Definition) SetTableName(name string) error {
+	d.name = name
 	return nil
 }
 
 // SetNames is set Column Name to the Table.
-func (t *Definition) SetNames(names []string) error {
-	if err := t.setColNum(len(names)); err != nil {
+func (d *Definition) SetNames(names []string) error {
+	if err := d.setColNum(len(names)); err != nil {
 		return err
 	}
-	t.Names = names
+	d.Names = names
 	return nil
 }
 
 // SetTypes is set Column Type to Table.
-func (t *Definition) SetTypes(types []string) error {
-	if err := t.setColNum(len(types)); err != nil {
+func (d *Definition) SetTypes(types []string) error {
+	if err := d.setColNum(len(types)); err != nil {
 		return err
 	}
-	t.Types = types
+	d.Types = types
 	return nil
 }
 
-func (t *Definition) setColNum(colNum int) error {
-	if t.columnNum == 0 {
-		t.columnNum = colNum
+func (d *Definition) setColNum(colNum int) error {
+	if d.columnNum == 0 {
+		d.columnNum = colNum
 		return nil
 	}
-	if colNum != t.columnNum {
+	if colNum != d.columnNum {
 		return fmt.Errorf("number of columns is different")
 	}
 	return nil
