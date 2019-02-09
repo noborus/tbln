@@ -5,7 +5,7 @@ import "testing"
 func TestTable_SetNames(t *testing.T) {
 	type fields struct {
 		columnNum int
-		name      string
+		tableName string
 		Names     []string
 		Types     []string
 		Comments  []string
@@ -28,7 +28,7 @@ func TestTable_SetNames(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			tbl := &Definition{
 				columnNum: tt.fields.columnNum,
-				name:      tt.fields.name,
+				tableName: tt.fields.tableName,
 				Names:     tt.fields.Names,
 				Types:     tt.fields.Types,
 				Comments:  tt.fields.Comments,
@@ -44,7 +44,7 @@ func TestTable_SetNames(t *testing.T) {
 func TestTable_SetTypes(t *testing.T) {
 	type fields struct {
 		columnNum int
-		name      string
+		tableName string
 		Names     []string
 		Types     []string
 		Comments  []string
@@ -67,7 +67,7 @@ func TestTable_SetTypes(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			tbl := &Definition{
 				columnNum: tt.fields.columnNum,
-				name:      tt.fields.name,
+				tableName: tt.fields.tableName,
 				Names:     tt.fields.Names,
 				Types:     tt.fields.Types,
 				Comments:  tt.fields.Comments,
@@ -83,7 +83,7 @@ func TestTable_SetTypes(t *testing.T) {
 func TestTable_setColNum(t *testing.T) {
 	type fields struct {
 		columnNum int
-		name      string
+		tableName string
 		Names     []string
 		Types     []string
 		Comments  []string
@@ -106,7 +106,7 @@ func TestTable_setColNum(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			tbl := &Definition{
 				columnNum: tt.fields.columnNum,
-				name:      tt.fields.name,
+				tableName: tt.fields.tableName,
 				Names:     tt.fields.Names,
 				Types:     tt.fields.Types,
 				Comments:  tt.fields.Comments,

@@ -51,8 +51,8 @@ func (tw *Writer) writeExtra(t Definition) error {
 			return err
 		}
 	}
-	if len(tw.name) > 0 {
-		_, err := fmt.Fprintf(tw.Writer, "; TableName: %s\n", tw.name)
+	if len(tw.tableName) > 0 {
+		_, err := fmt.Fprintf(tw.Writer, "; TableName: %s\n", tw.tableName)
 		if err != nil {
 			return err
 		}

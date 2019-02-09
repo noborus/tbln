@@ -21,7 +21,7 @@ type DBReader struct {
 // NewDBReader is creates a structure for reading from the DB table.
 func NewDBReader(dbd *DBD, tableName string) (*DBReader, error) {
 	tr := &DBReader{
-		Definition: Definition{Ext: make(map[string]string), name: tableName},
+		Definition: Definition{Ext: make(map[string]string), tableName: tableName},
 		DBD:        dbd,
 		db:         dbd.DB,
 	}
@@ -66,7 +66,7 @@ func valString(v interface{}) string {
 }
 
 func (tr *DBReader) preparation() error {
-	rows, err := tr.Query(`SELECT * FROM ` + tr.name)
+	rows, err := tr.Query(`SELECT * FROM ` + tr.tableName)
 	if err != nil {
 		return err
 	}
@@ -90,7 +90,7 @@ func (tr *DBReader) Query(query string) (*sql.Rows, error) {
 
 func (tr *DBReader) setInfo(rows *sql.Rows) error {
 	var err error
-	tr.SetTableName(tr.name)
+	tr.SetTableName(tr.tableName)
 	columns, err := rows.Columns()
 	if err != nil {
 		return err

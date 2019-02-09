@@ -25,7 +25,7 @@ var UNESCREP = regexp.MustCompile(`\|(\|+)`)
 // Definition is common table definition struct.
 type Definition struct {
 	columnNum int
-	name      string
+	tableName string
 	Names     []string
 	Types     []string
 	Comments  []string
@@ -35,13 +35,13 @@ type Definition struct {
 // NewDefinition is create Definition struct.
 func NewDefinition(name string) Definition {
 	return Definition{
-		name: name,
+		tableName: name,
 	}
 }
 
 // SetTableName is set Table Name of the Table.
 func (d *Definition) SetTableName(name string) error {
-	d.name = name
+	d.tableName = name
 	return nil
 }
 

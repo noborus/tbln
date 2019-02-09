@@ -62,7 +62,7 @@ func (tw *DBWriter) createTable() error {
 		col[i] = tw.quoting(tw.Names[i]) + " " + tw.Types[i]
 	}
 	sql := fmt.Sprintf("CREATE TABLE %s ( %s );",
-		tw.quoting(tw.name), strings.Join(col, ", "))
+		tw.quoting(tw.tableName), strings.Join(col, ", "))
 	_, err := tw.db.Exec(sql)
 	if err != nil {
 		return fmt.Errorf("%s: %s", err, sql)
@@ -84,7 +84,7 @@ func (tw *DBWriter) prepara() error {
 	}
 	insert := fmt.Sprintf(
 		"INSERT INTO %s ( %s ) VALUES ( %s );",
-		tw.quoting(tw.name), strings.Join(names, ", "), strings.Join(ph, ", "))
+		tw.quoting(tw.tableName), strings.Join(names, ", "), strings.Join(ph, ", "))
 	tw.stmt, err = tw.db.Prepare(insert)
 	if err != nil {
 		return fmt.Errorf("%s: %s", err, insert)
