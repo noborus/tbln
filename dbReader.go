@@ -36,7 +36,7 @@ func NewDBReader(dbd *DBD, tableName string) (*DBReader, error) {
 func (tr *DBReader) ReadRow() ([]string, error) {
 	if !tr.rows.Next() {
 		err := tr.rows.Err()
-		tr.Close()
+		tr.rows.Close()
 		return nil, err
 	}
 	err := tr.rows.Scan(tr.scanArgs...)
@@ -106,14 +106,6 @@ func (tr *DBReader) setInfo(rows *sql.Rows) error {
 	}
 	tr.SetTypes(types)
 	return nil
-}
-
-// Close is cursor close and commit.
-func (tr *DBReader) Close() {
-	if tr.rows != nil {
-		tr.rows.Close()
-		tr.rows = nil
-	}
 }
 
 func convertType(dbtype string) string {
