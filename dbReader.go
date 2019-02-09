@@ -63,8 +63,7 @@ func valString(v interface{}) string {
 }
 
 func (tr *DBReader) preparation() error {
-	var err error
-	err = tr.begin()
+	err := tr.begin()
 	if err != nil {
 		return err
 	}
@@ -118,7 +117,7 @@ func (tr *DBReader) Close() error {
 
 func (tr *DBReader) begin() error {
 	var err error
-	tr.tx, err = tr.db.Begin()
+	tr.tx, err = tr.DB.Begin()
 	if err != nil {
 		return err
 	}

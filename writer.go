@@ -46,14 +46,16 @@ func (tw *Writer) writeComment(t Definition) error {
 
 func (tw *Writer) writeExtra(t Definition) error {
 	for key, value := range tw.Ext {
-		_, err := io.WriteString(tw.Writer, fmt.Sprintf("; %s: %s\n", key, value))
+		_, err := fmt.Fprintf(tw.Writer, "; %s: %s\n", key, value)
 		if err != nil {
 			return err
 		}
 	}
-	_, err := fmt.Fprintf(tw.Writer, "; TableName: %s\n", tw.name)
-	if err != nil {
-		return err
+	if len(tw.name) > 0 {
+		_, err := fmt.Fprintf(tw.Writer, "; TableName: %s\n", tw.name)
+		if err != nil {
+			return err
+		}
 	}
 	if len(tw.Names) > 0 {
 		_, err := io.WriteString(tw.Writer, "; name: ")
