@@ -23,6 +23,7 @@ func NewDBReader(dbd *DBD, tableName string) (*DBReader, error) {
 	tr := &DBReader{
 		Definition: Definition{Ext: make(map[string]string), name: tableName},
 		DBD:        dbd,
+		db:         dbd.DB,
 	}
 	err := tr.preparation()
 	if err != nil {
@@ -34,7 +35,9 @@ func NewDBReader(dbd *DBD, tableName string) (*DBReader, error) {
 // ReadRow is return one row.
 func (tr *DBReader) ReadRow() ([]string, error) {
 	if !tr.rows.Next() {
-		return nil, tr.rows.Err()
+		err := tr.rows.Err()
+		tr.Close()
+		return nil, err
 	}
 	err := tr.rows.Scan(tr.scanArgs...)
 	if err != nil {
@@ -63,11 +66,7 @@ func valString(v interface{}) string {
 }
 
 func (tr *DBReader) preparation() error {
-	err := tr.begin()
-	if err != nil {
-		return err
-	}
-	rows, err := tr.tx.Query(`SELECT * FROM ` + tr.name)
+	rows, err := tr.Query(`SELECT * FROM ` + tr.name)
 	if err != nil {
 		return err
 	}
@@ -84,9 +83,14 @@ func (tr *DBReader) preparation() error {
 	return nil
 }
 
+// Query is sql.Query wrapper.
+func (tr *DBReader) Query(query string) (*sql.Rows, error) {
+	return tr.db.Query(query)
+}
+
 func (tr *DBReader) setInfo(rows *sql.Rows) error {
 	var err error
-	tr.Ext["TableName"] = tr.name
+	tr.SetTableName(tr.name)
 	columns, err := rows.Columns()
 	if err != nil {
 		return err
@@ -105,27 +109,11 @@ func (tr *DBReader) setInfo(rows *sql.Rows) error {
 }
 
 // Close is cursor close and commit.
-func (tr *DBReader) Close() error {
+func (tr *DBReader) Close() {
 	if tr.rows != nil {
-		err := tr.rows.Close()
+		tr.rows.Close()
 		tr.rows = nil
-		return err
 	}
-	return tr.commit()
-
-}
-
-func (tr *DBReader) begin() error {
-	var err error
-	tr.tx, err = tr.DB.Begin()
-	if err != nil {
-		return err
-	}
-	return nil
-}
-
-func (tr *DBReader) commit() error {
-	return tr.tx.Commit()
 }
 
 func convertType(dbtype string) string {

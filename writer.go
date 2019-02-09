@@ -13,9 +13,9 @@ type Writer struct {
 }
 
 // NewWriter is Writer
-func NewWriter(writer io.Writer, tbl Definition) *Writer {
+func NewWriter(writer io.Writer, definition Definition) *Writer {
 	return &Writer{
-		Definition: tbl,
+		Definition: definition,
 		Writer:     writer,
 	}
 }

@@ -28,7 +28,10 @@ func (tr *Reader) ReadRow() ([]string, error) {
 		return nil, err
 	}
 	tr.columnNum, err = checkRow(tr.columnNum, rec)
-	return rec, err
+	if err != nil {
+		return nil, err
+	}
+	return rec, nil
 }
 
 // Return on one line or blank line.

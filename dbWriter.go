@@ -18,9 +18,9 @@ type DBWriter struct {
 }
 
 // NewDBWriter is DB write struct.
-func NewDBWriter(dbd *DBD, d Definition, create bool) *DBWriter {
+func NewDBWriter(dbd *DBD, definition Definition, create bool) *DBWriter {
 	return &DBWriter{
-		Definition: d,
+		Definition: definition,
 		DBD:        dbd,
 		db:         dbd.DB,
 		Create:     create,
