@@ -9,7 +9,7 @@ func TestTable_SetNames(t *testing.T) {
 		Names     []string
 		Types     []string
 		Comments  []string
-		Ext       map[string]string
+		Ext       map[string]Extra
 	}
 	type args struct {
 		names []string
@@ -48,7 +48,7 @@ func TestTable_SetTypes(t *testing.T) {
 		Names     []string
 		Types     []string
 		Comments  []string
-		Ext       map[string]string
+		Ext       map[string]Extra
 	}
 	type args struct {
 		types []string
@@ -87,7 +87,7 @@ func TestTable_setColNum(t *testing.T) {
 		Names     []string
 		Types     []string
 		Comments  []string
-		Ext       map[string]string
+		Ext       map[string]Extra
 	}
 	type args struct {
 		colNum int

@@ -21,7 +21,7 @@ type DBReader struct {
 // NewDBReader is creates a structure for reading from the DB table.
 func NewDBReader(dbd *DBD, tableName string) (*DBReader, error) {
 	tr := &DBReader{
-		Definition: Definition{Ext: make(map[string]string), tableName: tableName},
+		Definition: NewDefinition(tableName),
 		DBD:        dbd,
 		db:         dbd.DB,
 	}
@@ -120,7 +120,10 @@ func convertType(dbtype string) string {
 		return "bool"
 	case "string", "text", "char", "varchar":
 		return "text"
+	case "timestamp", "timestamptz", "date", "time":
+		return "timestamp"
 	default:
+		fmt.Println(dbtype)
 		return "text"
 	}
 }

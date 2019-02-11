@@ -27,7 +27,7 @@ func NewDBWriter(dbd *DBD, definition Definition, create bool) *DBWriter {
 	}
 }
 
-// WriteDefinition is write table definition.
+// WriteDefinition is create table and insert preparation.
 func (tw *DBWriter) WriteDefinition() error {
 	if tw.Names == nil {
 		if tw.columnNum == 0 {

@@ -22,20 +22,27 @@ var ESCREP = regexp.MustCompile(`(\|+)`)
 // UNESCREP is unescape || -> |
 var UNESCREP = regexp.MustCompile(`\|(\|+)`)
 
+// Extra is table definition extra struct.
+type Extra struct {
+	hashing bool
+	value   interface{}
+}
+
 // Definition is common table definition struct.
 type Definition struct {
 	columnNum int
 	tableName string
+	Comments  []string
 	Names     []string
 	Types     []string
-	Comments  []string
-	Ext       map[string]string
+	Ext       map[string]Extra
 }
 
 // NewDefinition is create Definition struct.
 func NewDefinition(name string) Definition {
 	return Definition{
 		tableName: name,
+		Ext:       make(map[string]Extra),
 	}
 }
 

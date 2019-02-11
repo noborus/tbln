@@ -16,7 +16,7 @@ type Reader struct {
 // NewReader is returns Reader.
 func NewReader(reader io.Reader) *Reader {
 	return &Reader{
-		Definition: Definition{Ext: make(map[string]string)},
+		Definition: NewDefinition(""),
 		Reader:     bufio.NewReader(reader),
 	}
 }
@@ -70,8 +70,10 @@ func (tr *Reader) analyzeExt(extstr string) error {
 		tr.SetNames(parseRecord(value))
 	case "type":
 		tr.SetTypes(parseRecord(value))
+	case "TableName":
+		tr.SetTableName(value)
 	default:
-		tr.Ext[key] = value
+		tr.Ext[key] = Extra{value: value}
 	}
 	return nil
 }
