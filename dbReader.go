@@ -10,6 +10,8 @@ import (
 // DBReader is DB read struct.
 type DBReader struct {
 	Definition
+	table string
+	query string
 	*DBD
 	db       *sql.DB
 	tx       *sql.Tx
@@ -18,18 +20,34 @@ type DBReader struct {
 	values   []interface{}
 }
 
-// NewDBReader is creates a structure for reading from the DB table.
-func NewDBReader(dbd *DBD, tableName string) (*DBReader, error) {
-	tr := &DBReader{
-		Definition: NewDefinition(tableName),
+// ReadTable is reates a structure for reading from DB table.
+func (dbd *DBD) ReadTable(tableName string) (*DBReader, error) {
+	r := &DBReader{
+		Definition: NewDefinition(),
 		DBD:        dbd,
 		db:         dbd.DB,
 	}
-	err := tr.preparation()
+	r.SetTableName(tableName)
+	query := `SELECT * FROM ` + tableName + ` ORDER BY 1`
+	err := r.peparation(query)
 	if err != nil {
 		return nil, err
 	}
-	return tr, nil
+	return r, nil
+}
+
+// ReadQuery is reates a structure for reading from query.
+func (dbd *DBD) ReadQuery(query string, args ...interface{}) (*DBReader, error) {
+	r := &DBReader{
+		Definition: NewDefinition(),
+		DBD:        dbd,
+		db:         dbd.DB,
+	}
+	err := r.peparation(query, args...)
+	if err != nil {
+		return nil, err
+	}
+	return r, nil
 }
 
 // ReadRow is return one row.
@@ -65,8 +83,9 @@ func valString(v interface{}) string {
 	return str
 }
 
-func (tr *DBReader) preparation() error {
-	rows, err := tr.Query(`SELECT * FROM ` + tr.tableName)
+// preparation is read preparation.
+func (tr *DBReader) peparation(query string, args ...interface{}) error {
+	rows, err := tr.db.Query(query, args...)
 	if err != nil {
 		return err
 	}
@@ -81,11 +100,6 @@ func (tr *DBReader) preparation() error {
 	}
 	tr.rows = rows
 	return nil
-}
-
-// Query is sql.Query wrapper.
-func (tr *DBReader) Query(query string) (*sql.Rows, error) {
-	return tr.db.Query(query)
 }
 
 func (tr *DBReader) setInfo(rows *sql.Rows) error {
@@ -109,7 +123,7 @@ func (tr *DBReader) setInfo(rows *sql.Rows) error {
 	tr.SetTypes(types)
 	// Database type
 	t := "| " + strings.Join(dbtypes, " | ") + " |"
-	tr.Ext[tr.Name+"_type"] = Extra{value: t, hashTarget: true}
+	tr.Ext[tr.Name+"_type"] = Extra{value: t, hashTarget: false}
 	return nil
 }
 
@@ -132,17 +146,31 @@ func convertType(dbtype string) string {
 	}
 }
 
-// ReadTable reads all rows in the table.
-func ReadTable(db *DBD, tableName string) (*Table, error) {
-	r, err := NewDBReader(db, tableName)
+// ReadTableAll reads all rows in the table.
+func ReadTableAll(db *DBD, tableName string) (*Table, error) {
+	r, err := db.ReadTable(tableName)
 	if err != nil {
 		return nil, err
 	}
+	return readTableAll(db, r)
+}
+
+// ReadQueryAll reads all rows in the table.
+func ReadQueryAll(db *DBD, query string, args ...interface{}) (*Table, error) {
+	r, err := db.ReadQuery(query, args...)
+	if err != nil {
+		return nil, err
+	}
+	return readTableAll(db, r)
+}
+
+func readTableAll(db *DBD, rd *DBReader) (*Table, error) {
 	at := &Table{}
-	at.Definition = r.Definition
+	at.Definition = rd.Definition
 	at.Rows = make([][]string, 0)
+	var err error
 	for {
-		rec, err := r.ReadRow()
+		rec, err := rd.ReadRow()
 		if err != nil {
 			log.Println(err)
 			break

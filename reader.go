@@ -17,7 +17,7 @@ type Reader struct {
 // NewReader is returns Reader.
 func NewReader(reader io.Reader) *Reader {
 	return &Reader{
-		Definition: NewDefinition(""),
+		Definition: NewDefinition(),
 		Hash:       make(map[string]string),
 		Reader:     bufio.NewReader(reader),
 	}

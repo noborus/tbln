@@ -42,17 +42,15 @@ type Definition struct {
 }
 
 // NewDefinition is create Definition struct.
-func NewDefinition(name string) Definition {
+func NewDefinition() Definition {
 	return Definition{
-		tableName: name,
-		Ext:       make(map[string]Extra),
+		Ext: make(map[string]Extra),
 	}
 }
 
 // SetTableName is set Table Name of the Table.
-func (d *Definition) SetTableName(name string) error {
+func (d *Definition) SetTableName(name string) {
 	d.tableName = name
-	return nil
 }
 
 // SetNames is set Column Name to the Table.
