@@ -1,9 +1,6 @@
 package tbln
 
 import (
-	"bufio"
-	"bytes"
-	"crypto/sha256"
 	"fmt"
 	"io"
 	"strings"
@@ -49,7 +46,11 @@ func (w *Writer) writeExtra(d Definition) error {
 	if err != nil {
 		return err
 	}
-	return w.writeExtraWithHash(d)
+	err = w.writeExtraWithHash(d)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 func (w *Writer) writeExtraWithOutHash(d Definition) error {
@@ -60,7 +61,7 @@ func (w *Writer) writeExtraWithOutHash(d Definition) error {
 		}
 	}
 	for key, extra := range d.Ext {
-		if extra.hashing {
+		if extra.hashTarget {
 			continue
 		}
 		_, err := fmt.Fprintf(w.Writer, "; %s: %s\n", key, extra.value)
@@ -72,6 +73,15 @@ func (w *Writer) writeExtraWithOutHash(d Definition) error {
 }
 
 func (w *Writer) writeExtraWithHash(d Definition) error {
+	for key, extra := range d.Ext {
+		if !extra.hashTarget {
+			continue
+		}
+		_, err := fmt.Fprintf(w.Writer, "; %s: %s\n", key, extra.value)
+		if err != nil {
+			return err
+		}
+	}
 	if len(d.Names) > 0 {
 		_, err := io.WriteString(w.Writer, "; name: ")
 		if err != nil {
@@ -88,15 +98,6 @@ func (w *Writer) writeExtraWithHash(d Definition) error {
 			return err
 		}
 		err = w.WriteRow(d.Types)
-		if err != nil {
-			return err
-		}
-	}
-	for key, extra := range d.Ext {
-		if !extra.hashing {
-			continue
-		}
-		_, err := fmt.Fprintf(w.Writer, "; %s: %s\n", key, extra.value)
 		if err != nil {
 			return err
 		}
@@ -129,56 +130,29 @@ func (w *Writer) WriteRow(row []string) error {
 // WriteAll write all table.
 func WriteAll(writer io.Writer, table *Table) error {
 	w := NewWriter(writer)
-	err := w.WriteDefinition(table.Definition)
-	if err != nil {
-		return err
-	}
-	for _, row := range table.Rows {
-		err = w.WriteRow(row)
-		if err != nil {
-			return err
-		}
-	}
-	return nil
-}
-
-// WriteHashAll write hash ...
-func WriteHashAll(writer io.Writer, table *Table) error {
-	w := NewWriter(writer)
 	err := w.writeExtraWithOutHash(table.Definition)
 	if err != nil {
 		return err
 	}
-	b, err := targetBytes(table)
-	if err != nil {
-		return err
-	}
-	sum := sha256.Sum256(b)
-	_, err = fmt.Fprintf(w.Writer, "; sha256: %x\n", sum)
-	if err != nil {
-		return err
-	}
-	_, err = w.Writer.Write(b)
-	if err != nil {
-		return err
-	}
-	return nil
-}
-
-func targetBytes(table *Table) ([]byte, error) {
-	var b bytes.Buffer
-	writer := bufio.NewWriter(&b)
-	bw := NewWriter(writer)
-	err := bw.writeExtraWithHash(table.Definition)
-	if err != nil {
-		return nil, err
-	}
-	for _, row := range table.Rows {
-		err = bw.WriteRow(row)
+	if table.Hash != nil {
+		for n, v := range table.Hash {
+			_, err := fmt.Fprintf(w.Writer, "; %s: %s\n", n, v)
+			if err != nil {
+				return err
+			}
+		}
+		w.Writer.Write(table.buffer.Bytes())
+	} else {
+		err := w.writeExtraWithHash(table.Definition)
 		if err != nil {
-			return nil, err
+			return err
+		}
+		for _, row := range table.Rows {
+			err = w.WriteRow(row)
+			if err != nil {
+				return err
+			}
 		}
 	}
-	writer.Flush()
-	return b.Bytes(), nil
+	return nil
 }

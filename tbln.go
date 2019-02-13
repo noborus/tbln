@@ -1,6 +1,9 @@
 package tbln
 
 import (
+	"bufio"
+	"bytes"
+	"crypto/sha256"
 	"fmt"
 	"regexp"
 )
@@ -24,8 +27,8 @@ var UNESCREP = regexp.MustCompile(`\|(\|+)`)
 
 // Extra is table definition extra struct.
 type Extra struct {
-	hashing bool
-	value   interface{}
+	value      interface{}
+	hashTarget bool
 }
 
 // Definition is common table definition struct.
@@ -84,6 +87,8 @@ func (d *Definition) setColNum(colNum int) error {
 // Table struct is table Definition + Table rows.
 type Table struct {
 	Definition
+	Hash   map[string]string
+	buffer bytes.Buffer
 	RowNum int
 	Rows   [][]string
 }
@@ -116,4 +121,27 @@ func checkRow(columnNum int, row []string) (int, error) {
 		}
 	}
 	return columnNum, nil
+}
+
+// SumHash is checksum calculation.
+func (t *Table) SumHash() (map[string]string, error) {
+	if t.Hash == nil {
+		t.Hash = make(map[string]string)
+	}
+	writer := bufio.NewWriter(&t.buffer)
+	bw := NewWriter(writer)
+	err := bw.writeExtraWithHash(t.Definition)
+	if err != nil {
+		return nil, err
+	}
+	for _, row := range t.Rows {
+		err := bw.WriteRow(row)
+		if err != nil {
+			return nil, err
+		}
+	}
+	writer.Flush()
+	sum := sha256.Sum256(t.buffer.Bytes())
+	t.Hash["sha256"] = fmt.Sprintf("%x", sum)
+	return t.Hash, nil
 }

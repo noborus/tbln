@@ -100,11 +100,16 @@ func (tr *DBReader) setInfo(rows *sql.Rows) error {
 	if err != nil {
 		return err
 	}
+	dbtypes := make([]string, len(columns))
 	types := make([]string, len(columns))
 	for i, ct := range columntype {
+		dbtypes[i] = ct.DatabaseTypeName()
 		types[i] = convertType(ct.DatabaseTypeName())
 	}
 	tr.SetTypes(types)
+	// Database type
+	t := "| " + strings.Join(dbtypes, " | ") + " |"
+	tr.Ext[tr.Name+"_type"] = Extra{value: t, hashTarget: true}
 	return nil
 }
 
@@ -123,7 +128,6 @@ func convertType(dbtype string) string {
 	case "timestamp", "timestamptz", "date", "time":
 		return "timestamp"
 	default:
-		fmt.Println(dbtype)
 		return "text"
 	}
 }
