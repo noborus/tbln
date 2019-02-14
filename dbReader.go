@@ -147,7 +147,7 @@ func convertType(dbtype string) string {
 }
 
 // ReadTableAll reads all rows in the table.
-func ReadTableAll(db *DBD, tableName string) (*Table, error) {
+func ReadTableAll(db *DBD, tableName string) (*Tbln, error) {
 	r, err := db.ReadTable(tableName)
 	if err != nil {
 		return nil, err
@@ -156,7 +156,7 @@ func ReadTableAll(db *DBD, tableName string) (*Table, error) {
 }
 
 // ReadQueryAll reads all rows in the table.
-func ReadQueryAll(db *DBD, query string, args ...interface{}) (*Table, error) {
+func ReadQueryAll(db *DBD, query string, args ...interface{}) (*Tbln, error) {
 	r, err := db.ReadQuery(query, args...)
 	if err != nil {
 		return nil, err
@@ -164,8 +164,8 @@ func ReadQueryAll(db *DBD, query string, args ...interface{}) (*Table, error) {
 	return readTableAll(db, r)
 }
 
-func readTableAll(db *DBD, rd *DBReader) (*Table, error) {
-	at := &Table{}
+func readTableAll(db *DBD, rd *DBReader) (*Tbln, error) {
+	at := &Tbln{}
 	at.Definition = rd.Definition
 	at.Rows = make([][]string, 0)
 	var err error

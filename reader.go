@@ -108,9 +108,9 @@ func unescape(rec []string) {
 }
 
 // ReadAll reads all io.Reader
-func ReadAll(reader io.Reader) (*Table, error) {
+func ReadAll(reader io.Reader) (*Tbln, error) {
 	r := NewReader(reader)
-	at := &Table{}
+	at := &Tbln{}
 	at.Rows = make([][]string, 0)
 	var err error
 	for {

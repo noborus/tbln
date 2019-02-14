@@ -128,13 +128,13 @@ func (w *Writer) WriteRow(row []string) error {
 }
 
 // WriteAll write all table.
-func WriteAll(writer io.Writer, table *Table) error {
+func WriteAll(writer io.Writer, table *Tbln) error {
 	w := NewWriter(writer)
 	err := w.writeExtraWithOutHash(table.Definition)
 	if err != nil {
 		return err
 	}
-	if table.Hash != nil {
+	if len(table.Hash) > 0 {
 		for n, v := range table.Hash {
 			_, err := fmt.Fprintf(w.Writer, "; %s: %s\n", n, v)
 			if err != nil {

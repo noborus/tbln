@@ -111,7 +111,7 @@ func (tw *DBWriter) WriteRow(row []string) error {
 }
 
 // WriteTable writes all rows to the table.
-func WriteTable(db *DBD, table *Table, create bool) error {
+func WriteTable(db *DBD, table *Tbln, create bool) error {
 	w := NewDBWriter(db, table.Definition, create)
 	err := w.WriteDefinition()
 	if err != nil {
