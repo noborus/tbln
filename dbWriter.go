@@ -111,13 +111,13 @@ func (tw *DBWriter) WriteRow(row []string) error {
 }
 
 // WriteTable writes all rows to the table.
-func WriteTable(db *DBD, table *Tbln, create bool) error {
-	w := NewDBWriter(db, table.Definition, create)
+func WriteTable(db *DBD, tbln *Tbln, create bool) error {
+	w := NewDBWriter(db, tbln.Definition, create)
 	err := w.WriteDefinition()
 	if err != nil {
 		return err
 	}
-	for _, row := range table.Rows {
+	for _, row := range tbln.Rows {
 		err = w.WriteRow(row)
 		if err != nil {
 			return err

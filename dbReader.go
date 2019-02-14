@@ -152,7 +152,7 @@ func ReadTableAll(db *DBD, tableName string) (*Tbln, error) {
 	if err != nil {
 		return nil, err
 	}
-	return readTableAll(db, r)
+	return readRowsAll(db, r)
 }
 
 // ReadQueryAll reads all rows in the table.
@@ -161,10 +161,10 @@ func ReadQueryAll(db *DBD, query string, args ...interface{}) (*Tbln, error) {
 	if err != nil {
 		return nil, err
 	}
-	return readTableAll(db, r)
+	return readRowsAll(db, r)
 }
 
-func readTableAll(db *DBD, rd *DBReader) (*Tbln, error) {
+func readRowsAll(db *DBD, rd *DBReader) (*Tbln, error) {
 	at := &Tbln{}
 	at.Definition = rd.Definition
 	at.Rows = make([][]string, 0)

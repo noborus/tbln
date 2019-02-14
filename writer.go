@@ -18,7 +18,7 @@ func NewWriter(writer io.Writer) *Writer {
 	}
 }
 
-// WriteDefinition is write table definition.
+// WriteDefinition is write tbln definition.
 func (w *Writer) WriteDefinition(d Definition) error {
 	err := w.writeComment(d)
 	if err != nil {
@@ -127,27 +127,27 @@ func (w *Writer) WriteRow(row []string) error {
 	return nil
 }
 
-// WriteAll write all table.
-func WriteAll(writer io.Writer, table *Tbln) error {
+// WriteAll write tbln.
+func WriteAll(writer io.Writer, tbln *Tbln) error {
 	w := NewWriter(writer)
-	err := w.writeExtraWithOutHash(table.Definition)
+	err := w.writeExtraWithOutHash(tbln.Definition)
 	if err != nil {
 		return err
 	}
-	if len(table.Hash) > 0 {
-		for n, v := range table.Hash {
+	if tbln.buffer.Len() > 0 {
+		for n, v := range tbln.Hash {
 			_, err := fmt.Fprintf(w.Writer, "; %s: %s\n", n, v)
 			if err != nil {
 				return err
 			}
 		}
-		w.Writer.Write(table.buffer.Bytes())
+		w.Writer.Write(tbln.buffer.Bytes())
 	} else {
-		err := w.writeExtraWithHash(table.Definition)
+		err := w.writeExtraWithHash(tbln.Definition)
 		if err != nil {
 			return err
 		}
-		for _, row := range table.Rows {
+		for _, row := range tbln.Rows {
 			err = w.WriteRow(row)
 			if err != nil {
 				return err
