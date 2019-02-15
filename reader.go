@@ -69,9 +69,9 @@ func (tr *Reader) analyzeExt(extstr string) error {
 	value := extstr[keypos+2:]
 	switch key {
 	case "name":
-		tr.SetNames(parseRecord(value))
+		return tr.SetNames(parseRecord(value))
 	case "type":
-		tr.SetTypes(parseRecord(value))
+		return tr.SetTypes(parseRecord(value))
 	case "TableName":
 		tr.SetTableName(value)
 	case "sha256":
@@ -98,13 +98,14 @@ func parseRecord(body string) []string {
 	return rec
 }
 
-func unescape(rec []string) {
+func unescape(rec []string) []string {
 	// Unescape vertical bars || -> |
 	for i, column := range rec {
 		if strings.Contains(column, "|") {
 			rec[i] = UNESCREP.ReplaceAllString(column, "$1")
 		}
 	}
+	return rec
 }
 
 // ReadAll reads all io.Reader

@@ -147,3 +147,11 @@ type Extra struct {
 	value      interface{}
 	hashTarget bool
 }
+
+// HashTarget is set as target of hash
+func (d *Definition) HashTarget(key string, target bool) {
+	if v, ok := d.Ext[key]; ok {
+		v.hashTarget = target
+		d.Ext[key] = v
+	}
+}
