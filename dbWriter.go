@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 	"strings"
+	"time"
 )
 
 // DBWriter is writer struct.
@@ -99,11 +100,26 @@ func (tw *DBWriter) prepara() error {
 	return nil
 }
 
+func (tw *DBWriter) convertDBType(dbtype string, value string) interface{} {
+	switch strings.ToLower(dbtype) {
+	case "datetime", "timestamp":
+		if tw.DBD.Name == "mysql" {
+			t, err := time.Parse(time.RFC3339, value)
+			if err != nil {
+				return nil
+			}
+			return t
+		}
+		return value
+	}
+	return value
+}
+
 // WriteRow is write one row.
 func (tw *DBWriter) WriteRow(row []string) error {
 	r := make([]interface{}, len(row))
 	for i, v := range row {
-		r[i] = v
+		r[i] = tw.convertDBType(tw.Types[i], v)
 	}
 	_, err := tw.stmt.Exec(r...)
 	return err
