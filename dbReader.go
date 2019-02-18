@@ -85,7 +85,7 @@ func valString(v interface{}) string {
 		case nil:
 			str = ""
 		case time.Time:
-			str = fmt.Sprintf("%s", t.Format(time.RFC3339))
+			str = t.Format(time.RFC3339)
 		default:
 			str = fmt.Sprint(v)
 		}

@@ -87,7 +87,7 @@ func (tw *DBWriter) prepara() error {
 		if tw.Ph == "$" {
 			ph[i] = fmt.Sprintf("$%d", i+1)
 		} else {
-			ph[i] = fmt.Sprintf("?")
+			ph[i] = "?"
 		}
 	}
 	insert := fmt.Sprintf(
