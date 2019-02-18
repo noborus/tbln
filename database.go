@@ -32,8 +32,7 @@ type DBD struct {
 // DBOpen is *sql.Open Wrapper.
 func DBOpen(driver string, dsn string) (*DBD, error) {
 	db, err := sql.Open(driver, dsn)
-	var c Constraint
-	c = &NotSupport{}
+	var c Constraint = &NotSupport{}
 	var ph, quote string
 	switch driver {
 	case "postgres":

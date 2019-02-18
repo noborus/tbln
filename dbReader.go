@@ -3,7 +3,6 @@ package tbln
 import (
 	"database/sql"
 	"fmt"
-	"log"
 	"strings"
 	"time"
 )
@@ -11,11 +10,8 @@ import (
 // DBReader is DB read struct.
 type DBReader struct {
 	Definition
-	table string
 	query string
 	*DBD
-	db       *sql.DB
-	tx       *sql.Tx
 	rows     *sql.Rows
 	scanArgs []interface{}
 	values   []interface{}
@@ -26,7 +22,6 @@ func (dbd *DBD) ReadTable(tableName string, pkey []string) (*DBReader, error) {
 	tr := &DBReader{
 		Definition: NewDefinition(),
 		DBD:        dbd,
-		db:         dbd.DB,
 	}
 	tr.SetTableName(tableName)
 	var orderby string
@@ -48,7 +43,6 @@ func (dbd *DBD) ReadQuery(query string, args ...interface{}) (*DBReader, error) 
 	tr := &DBReader{
 		Definition: NewDefinition(),
 		DBD:        dbd,
-		db:         dbd.DB,
 	}
 	err := tr.peparation(query, args...)
 	if err != nil {
@@ -61,7 +55,6 @@ func (dbd *DBD) ReadQuery(query string, args ...interface{}) (*DBReader, error) 
 func (tr *DBReader) ReadRow() ([]string, error) {
 	if !tr.rows.Next() {
 		err := tr.rows.Err()
-		tr.rows.Close()
 		return nil, err
 	}
 	err := tr.rows.Scan(tr.scanArgs...)
@@ -97,7 +90,7 @@ func valString(v interface{}) string {
 // preparation is read preparation.
 func (tr *DBReader) peparation(query string, args ...interface{}) error {
 	tr.query = query
-	rows, err := tr.db.Query(query, args...)
+	rows, err := tr.DB.Query(query, args...)
 	if err != nil {
 		return err
 	}
@@ -121,7 +114,10 @@ func (tr *DBReader) setExtra(rows *sql.Rows) error {
 	if err != nil {
 		return err
 	}
-	tr.SetNames(columns)
+	err = tr.SetNames(columns)
+	if err != nil {
+		return err
+	}
 	columntype, err := rows.ColumnTypes()
 	if err != nil {
 		return err
@@ -132,7 +128,10 @@ func (tr *DBReader) setExtra(rows *sql.Rows) error {
 		dbtypes[i] = ct.DatabaseTypeName()
 		types[i] = convertType(ct.DatabaseTypeName())
 	}
-	tr.SetTypes(types)
+	err = tr.SetTypes(types)
+	if err != nil {
+		return err
+	}
 	// Database type
 	t := "| " + strings.Join(dbtypes, " | ") + " |"
 	tr.Ext[tr.Name+"_type"] = Extra{value: t, hashTarget: false}
@@ -183,16 +182,21 @@ func ReadQueryAll(db *DBD, query string, args ...interface{}) (*Tbln, error) {
 	return readRowsAll(db, r)
 }
 
-func readRowsAll(db *DBD, rd *DBReader) (*Tbln, error) {
-	at := &Tbln{}
+func readRowsAll(db *DBD, rd *DBReader) (at *Tbln, err error) {
+	at = &Tbln{}
 	at.Definition = rd.Definition
 	at.Rows = make([][]string, 0)
-	var err error
+	defer func() {
+		cerr := rd.rows.Close()
+		if err == nil {
+			err = cerr
+		}
+	}()
 	for {
-		rec, err := rd.ReadRow()
+		var rec []string
+		rec, err = rd.ReadRow()
 		if err != nil {
-			log.Println(err)
-			break
+			return at, err
 		}
 		if rec == nil {
 			break
@@ -200,5 +204,5 @@ func readRowsAll(db *DBD, rd *DBReader) (*Tbln, error) {
 		at.RowNum++
 		at.Rows = append(at.Rows, rec)
 	}
-	return at, err
+	return
 }

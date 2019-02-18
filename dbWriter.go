@@ -11,8 +11,6 @@ import (
 type DBWriter struct {
 	Definition
 	*DBD
-	db     *sql.DB
-	tx     *sql.Tx
 	stmt   *sql.Stmt
 	Create bool
 }
@@ -29,8 +27,6 @@ func NewDBWriter(dbd *DBD, definition Definition, create bool) *DBWriter {
 	return &DBWriter{
 		Definition: definition,
 		DBD:        dbd,
-		db:         dbd.DB,
-		tx:         dbd.Tx,
 		Create:     create,
 	}
 }
@@ -71,7 +67,7 @@ func (tw *DBWriter) createTable() error {
 	}
 	sql := fmt.Sprintf("CREATE TABLE %s ( %s );",
 		tw.quoting(tw.tableName), strings.Join(col, ", "))
-	_, err := tw.tx.Exec(sql)
+	_, err := tw.Tx.Exec(sql)
 	if err != nil {
 		return fmt.Errorf("%s: %s", err, sql)
 	}
@@ -93,7 +89,7 @@ func (tw *DBWriter) prepara() error {
 	insert := fmt.Sprintf(
 		"INSERT INTO %s ( %s ) VALUES ( %s );",
 		tw.quoting(tw.tableName), strings.Join(names, ", "), strings.Join(ph, ", "))
-	tw.stmt, err = tw.tx.Prepare(insert)
+	tw.stmt, err = tw.Tx.Prepare(insert)
 	if err != nil {
 		return fmt.Errorf("%s: %s", err, insert)
 	}
