@@ -23,12 +23,12 @@ type DBReader struct {
 
 // ReadTable is reates a structure for reading from DB table.
 func (dbd *DBD) ReadTable(tableName string, pkey []string) (*DBReader, error) {
-	r := &DBReader{
+	tr := &DBReader{
 		Definition: NewDefinition(),
 		DBD:        dbd,
 		db:         dbd.DB,
 	}
-	r.SetTableName(tableName)
+	tr.SetTableName(tableName)
 	var orderby string
 	if len(pkey) > 0 {
 		orderby = strings.Join(pkey, ", ")
@@ -36,25 +36,25 @@ func (dbd *DBD) ReadTable(tableName string, pkey []string) (*DBReader, error) {
 		orderby = "1"
 	}
 	query := fmt.Sprintf("SELECT * FROM %s ORDER BY %s", dbd.quoting(tableName), orderby)
-	err := r.peparation(query)
+	err := tr.peparation(query)
 	if err != nil {
 		return nil, err
 	}
-	return r, nil
+	return tr, nil
 }
 
 // ReadQuery is reates a structure for reading from query.
 func (dbd *DBD) ReadQuery(query string, args ...interface{}) (*DBReader, error) {
-	r := &DBReader{
+	tr := &DBReader{
 		Definition: NewDefinition(),
 		DBD:        dbd,
 		db:         dbd.DB,
 	}
-	err := r.peparation(query, args...)
+	err := tr.peparation(query, args...)
 	if err != nil {
 		return nil, err
 	}
-	return r, nil
+	return tr, nil
 }
 
 // ReadRow is return one row.
@@ -96,6 +96,7 @@ func valString(v interface{}) string {
 
 // preparation is read preparation.
 func (tr *DBReader) peparation(query string, args ...interface{}) error {
+	tr.query = query
 	rows, err := tr.db.Query(query, args...)
 	if err != nil {
 		return err

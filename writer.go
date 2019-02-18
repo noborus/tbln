@@ -24,11 +24,7 @@ func (w *Writer) WriteDefinition(d Definition) error {
 	if err != nil {
 		return err
 	}
-	err = w.writeExtra(d)
-	if err != nil {
-		return err
-	}
-	return nil
+	return w.writeExtra(d)
 }
 
 func (w *Writer) writeComment(d Definition) error {
@@ -46,11 +42,7 @@ func (w *Writer) writeExtra(d Definition) error {
 	if err != nil {
 		return err
 	}
-	err = w.writeExtraWithHash(d)
-	if err != nil {
-		return err
-	}
-	return nil
+	return w.writeExtraWithHash(d)
 }
 
 func (w *Writer) writeExtraWithOutHash(d Definition) error {
@@ -121,10 +113,7 @@ func (w *Writer) WriteRow(row []string) error {
 		}
 	}
 	_, err = io.WriteString(w.Writer, "\n")
-	if err != nil {
-		return err
-	}
-	return nil
+	return err
 }
 
 // WriteAll write tbln.
@@ -141,7 +130,10 @@ func WriteAll(writer io.Writer, tbln *Tbln) error {
 				return err
 			}
 		}
-		w.Writer.Write(tbln.buffer.Bytes())
+		_, err := w.Writer.Write(tbln.buffer.Bytes())
+		if err != nil {
+			return err
+		}
 	} else {
 		err := w.writeExtraWithHash(tbln.Definition)
 		if err != nil {

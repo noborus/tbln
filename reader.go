@@ -50,7 +50,10 @@ func (tr *Reader) scanLine() ([]string, error) {
 		case strings.HasPrefix(str, "# "):
 			tr.Comments = append(tr.Comments, str[2:])
 		case strings.HasPrefix(str, "; "):
-			tr.analyzeExt(str)
+			err := tr.analyzeExt(str)
+			if err != nil {
+				return nil, err
+			}
 		case str == "":
 			return nil, nil
 		default:
