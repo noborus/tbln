@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"strings"
+	"time"
 )
 
 // DBReader is DB read struct.
@@ -21,14 +22,20 @@ type DBReader struct {
 }
 
 // ReadTable is reates a structure for reading from DB table.
-func (dbd *DBD) ReadTable(tableName string) (*DBReader, error) {
+func (dbd *DBD) ReadTable(tableName string, pkey []string) (*DBReader, error) {
 	r := &DBReader{
 		Definition: NewDefinition(),
 		DBD:        dbd,
 		db:         dbd.DB,
 	}
 	r.SetTableName(tableName)
-	query := `SELECT * FROM ` + tableName + ` ORDER BY 1`
+	var orderby string
+	if len(pkey) > 0 {
+		orderby = strings.Join(pkey, ", ")
+	} else {
+		orderby = "1"
+	}
+	query := fmt.Sprintf("SELECT * FROM %s ORDER BY %s", dbd.quoting(tableName), orderby)
 	err := r.peparation(query)
 	if err != nil {
 		return nil, err
@@ -74,11 +81,15 @@ func valString(v interface{}) string {
 	if ok {
 		str = string(b)
 	} else {
-		if v == nil {
+		switch t := v.(type) {
+		case nil:
 			str = ""
-		} else {
+		case time.Time:
+			str = fmt.Sprintf("%s", t.Format(time.RFC3339))
+		default:
 			str = fmt.Sprint(v)
 		}
+
 	}
 	return str
 }
@@ -89,7 +100,7 @@ func (tr *DBReader) peparation(query string, args ...interface{}) error {
 	if err != nil {
 		return err
 	}
-	err = tr.setInfo(rows)
+	err = tr.setExtra(rows)
 	if err != nil {
 		return err
 	}
@@ -102,7 +113,7 @@ func (tr *DBReader) peparation(query string, args ...interface{}) error {
 	return nil
 }
 
-func (tr *DBReader) setInfo(rows *sql.Rows) error {
+func (tr *DBReader) setExtra(rows *sql.Rows) error {
 	var err error
 	tr.SetTableName(tr.tableName)
 	columns, err := rows.Columns()
@@ -124,6 +135,13 @@ func (tr *DBReader) setInfo(rows *sql.Rows) error {
 	// Database type
 	t := "| " + strings.Join(dbtypes, " | ") + " |"
 	tr.Ext[tr.Name+"_type"] = Extra{value: t, hashTarget: false}
+	// Primary key
+	pk, err := tr.DBD.GetPrimaryKey(tr.DBD.DB, tr.tableName)
+	if len(pk) > 0 && err == nil {
+		p := "| " + strings.Join(pk, " | ") + " |"
+		tr.Ext["Primarykey"] = Extra{value: p, hashTarget: false}
+	}
+
 	return nil
 }
 
@@ -148,7 +166,7 @@ func convertType(dbtype string) string {
 
 // ReadTableAll reads all rows in the table.
 func ReadTableAll(db *DBD, tableName string) (*Tbln, error) {
-	r, err := db.ReadTable(tableName)
+	r, err := db.ReadTable(tableName, nil)
 	if err != nil {
 		return nil, err
 	}

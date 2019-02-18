@@ -3,7 +3,6 @@ package tbln
 import (
 	"database/sql"
 	"fmt"
-	"regexp"
 	"strings"
 )
 
@@ -19,10 +18,18 @@ type DBWriter struct {
 
 // NewDBWriter is DB write struct.
 func NewDBWriter(dbd *DBD, definition Definition, create bool) *DBWriter {
+	if dbd.Tx == nil {
+		var err error
+		dbd.Tx, err = dbd.DB.Begin()
+		if err != nil {
+			return nil
+		}
+	}
 	return &DBWriter{
 		Definition: definition,
 		DBD:        dbd,
 		db:         dbd.DB,
+		tx:         dbd.Tx,
 		Create:     create,
 	}
 }
@@ -63,7 +70,7 @@ func (tw *DBWriter) createTable() error {
 	}
 	sql := fmt.Sprintf("CREATE TABLE %s ( %s );",
 		tw.quoting(tw.tableName), strings.Join(col, ", "))
-	_, err := tw.db.Exec(sql)
+	_, err := tw.tx.Exec(sql)
 	if err != nil {
 		return fmt.Errorf("%s: %s", err, sql)
 	}
@@ -85,19 +92,11 @@ func (tw *DBWriter) prepara() error {
 	insert := fmt.Sprintf(
 		"INSERT INTO %s ( %s ) VALUES ( %s );",
 		tw.quoting(tw.tableName), strings.Join(names, ", "), strings.Join(ph, ", "))
-	tw.stmt, err = tw.db.Prepare(insert)
+	tw.stmt, err = tw.tx.Prepare(insert)
 	if err != nil {
 		return fmt.Errorf("%s: %s", err, insert)
 	}
 	return nil
-}
-
-func (tw *DBWriter) quoting(name string) string {
-	r := regexp.MustCompile(`[^a-z0-9_]+`)
-	if r.MatchString(name) {
-		return tw.Quote + name + tw.Quote
-	}
-	return name
 }
 
 // WriteRow is write one row.
