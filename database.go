@@ -8,12 +8,6 @@ import (
 	"github.com/noborus/tbln/db"
 )
 
-type NotSupport struct{}
-
-func (n *NotSupport) GetPrimaryKey(db *sql.DB, tableName string) ([]string, error) {
-	return nil, fmt.Errorf("this database is not supported")
-}
-
 // DBD is sql.DB wrapper.
 type DBD struct {
 	DB *sql.DB
@@ -66,4 +60,12 @@ func (db *DBD) quoting(name string) string {
 		return db.Quote + name + db.Quote
 	}
 	return name
+}
+
+// NotSupport is dummy struct.
+type NotSupport struct{}
+
+// GetPrimaryKey is dummy function.
+func (n *NotSupport) GetPrimaryKey(db *sql.DB, tableName string) ([]string, error) {
+	return nil, fmt.Errorf("this database is not supported")
 }

@@ -3,7 +3,6 @@ package tbln
 import (
 	"fmt"
 	"io"
-	"strings"
 )
 
 // Writer is writer struct.
@@ -99,20 +98,7 @@ func (w *Writer) writeExtraWithHash(d Definition) error {
 
 // WriteRow is write one row.
 func (w *Writer) WriteRow(row []string) error {
-	_, err := io.WriteString(w.Writer, "|")
-	if err != nil {
-		return err
-	}
-	for _, column := range row {
-		if strings.Contains(column, "|") {
-			column = ESCREP.ReplaceAllString(column, "|$1")
-		}
-		_, err := io.WriteString(w.Writer, " "+column+" |")
-		if err != nil {
-			return err
-		}
-	}
-	_, err = io.WriteString(w.Writer, "\n")
+	_, err := io.WriteString(w.Writer, stringRow(row)+"\n")
 	return err
 }
 

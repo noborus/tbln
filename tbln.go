@@ -6,6 +6,8 @@ import (
 	"crypto/sha256"
 	"fmt"
 	"regexp"
+	"strings"
+	"time"
 )
 
 // Tbln struct is tbln Definition + Tbln rows.
@@ -36,8 +38,10 @@ type Definition struct {
 
 // NewDefinition is create Definition struct.
 func NewDefinition() Definition {
+	ext := make(map[string]Extra)
+	ext["created_at"] = NewExtra(time.Now().Format(time.RFC3339))
 	return Definition{
-		Ext: make(map[string]Extra),
+		Ext: ext,
 	}
 }
 
@@ -79,6 +83,19 @@ func checkRow(columnNum int, row []string) (int, error) {
 		}
 	}
 	return columnNum, nil
+}
+
+func stringRow(row []string) string {
+	var b strings.Builder
+	b.WriteString("|")
+	for _, column := range row {
+		if strings.Contains(column, "|") {
+			column = ESCREP.ReplaceAllString(column, "|$1")
+		}
+		b.WriteString(" " + column + " |")
+	}
+	return b.String()
+
 }
 
 // SumHash is returns the calculated checksum.
@@ -146,6 +163,14 @@ func (d *Definition) setColNum(colNum int) error {
 type Extra struct {
 	value      interface{}
 	hashTarget bool
+}
+
+// NewExtra is return new extra struct.
+func NewExtra(value interface{}) Extra {
+	return Extra{
+		value:      value,
+		hashTarget: false,
+	}
 }
 
 // HashTarget is set as target of hash

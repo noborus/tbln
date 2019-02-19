@@ -133,13 +133,11 @@ func (tr *DBReader) setExtra(rows *sql.Rows) error {
 		return err
 	}
 	// Database type
-	t := "| " + strings.Join(dbtypes, " | ") + " |"
-	tr.Ext[tr.Name+"_type"] = Extra{value: t, hashTarget: false}
+	tr.Ext[tr.Name+"_type"] = NewExtra(stringRow(dbtypes))
 	// Primary key
 	pk, err := tr.DBD.GetPrimaryKey(tr.DBD.DB, tr.tableName)
 	if len(pk) > 0 && err == nil {
-		p := "| " + strings.Join(pk, " | ") + " |"
-		tr.Ext["Primarykey"] = Extra{value: p, hashTarget: false}
+		tr.Ext["Primarykey"] = NewExtra(stringRow(pk))
 	}
 
 	return nil
