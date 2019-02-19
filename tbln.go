@@ -8,6 +8,39 @@ import (
 	"regexp"
 )
 
+// Tbln struct is tbln Definition + Tbln rows.
+type Tbln struct {
+	Definition
+	Hash   map[string]string
+	buffer bytes.Buffer
+	RowNum int
+	Rows   [][]string
+}
+
+// NewTbln is create tbln struct.
+func NewTbln() *Tbln {
+	return &Tbln{
+		Definition: NewDefinition(),
+	}
+}
+
+// Definition is common table definition struct.
+type Definition struct {
+	columnNum int
+	tableName string
+	Comments  []string
+	Names     []string
+	Types     []string
+	Ext       map[string]Extra
+}
+
+// NewDefinition is create Definition struct.
+func NewDefinition() Definition {
+	return Definition{
+		Ext: make(map[string]Extra),
+	}
+}
+
 // Read is TBLN Read interface.
 type Read interface {
 	ReadRow() ([]string, error)
@@ -24,22 +57,6 @@ var ESCREP = regexp.MustCompile(`(\|+)`)
 
 // UNESCREP is unescape || -> |
 var UNESCREP = regexp.MustCompile(`\|(\|+)`)
-
-// Tbln struct is tbln Definition + Tbln rows.
-type Tbln struct {
-	Definition
-	Hash   map[string]string
-	buffer bytes.Buffer
-	RowNum int
-	Rows   [][]string
-}
-
-// NewTbln is create tbln struct.
-func NewTbln(d Definition) *Tbln {
-	return &Tbln{
-		Definition: d,
-	}
-}
 
 // AddRows is Add row to Table.
 func (t *Tbln) AddRows(row []string) error {
@@ -89,23 +106,6 @@ func (t *Tbln) SumHash() (map[string]string, error) {
 	sum := sha256.Sum256(t.buffer.Bytes())
 	t.Hash["sha256"] = fmt.Sprintf("%x", sum)
 	return t.Hash, nil
-}
-
-// Definition is common table definition struct.
-type Definition struct {
-	columnNum int
-	tableName string
-	Comments  []string
-	Names     []string
-	Types     []string
-	Ext       map[string]Extra
-}
-
-// NewDefinition is create Definition struct.
-func NewDefinition() Definition {
-	return Definition{
-		Ext: make(map[string]Extra),
-	}
 }
 
 // SetTableName is set Table Name of the Table.
