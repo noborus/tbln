@@ -98,7 +98,7 @@ func (w *Writer) writeExtraWithHash(d Definition) error {
 
 // WriteRow is write one row.
 func (w *Writer) WriteRow(row []string) error {
-	_, err := io.WriteString(w.Writer, stringRow(row)+"\n")
+	_, err := io.WriteString(w.Writer, joinRow(row)+"\n")
 	return err
 }
 

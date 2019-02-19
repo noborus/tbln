@@ -68,7 +68,7 @@ func TestReader_scanLine(t *testing.T) {
 	}
 }
 
-func Test_parseRecord(t *testing.T) {
+func Test_splitRow(t *testing.T) {
 	type args struct {
 		body string
 	}
@@ -90,8 +90,8 @@ func Test_parseRecord(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := parseRecord(tt.args.body); !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("parseRecord() = %v, want %v", got, tt.want)
+			if got := splitRow(tt.args.body); !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("splitRow() = %v, want %v", got, tt.want)
 			}
 		})
 	}

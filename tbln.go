@@ -56,11 +56,44 @@ type Write interface {
 	WriteRow([]string) error
 }
 
-// ESCREP is escape | -> ||
-var ESCREP = regexp.MustCompile(`(\|+)`)
+// ESCAPE is escape | -> ||
+var ESCAPE = regexp.MustCompile(`(\|+)`)
 
-// UNESCREP is unescape || -> |
-var UNESCREP = regexp.MustCompile(`\|(\|+)`)
+// UNESCAPE is unescape || -> |
+var UNESCAPE = regexp.MustCompile(`\|(\|+)`)
+
+func joinRow(row []string) string {
+	var b strings.Builder
+	b.WriteString("|")
+	for _, column := range row {
+		if strings.Contains(column, "|") {
+			column = ESCAPE.ReplaceAllString(column, "|$1")
+		}
+		b.WriteString(" " + column + " |")
+	}
+	return b.String()
+}
+
+func splitRow(body string) []string {
+	if body[:2] == "| " {
+		body = body[2:]
+	}
+	if body[len(body)-2:] == " |" {
+		body = body[0 : len(body)-2]
+	}
+	rec := strings.Split(body, " | ")
+	return unescape(rec)
+}
+
+// unescape vertical bars || -> |
+func unescape(rec []string) []string {
+	for i, column := range rec {
+		if strings.Contains(column, "|") {
+			rec[i] = UNESCAPE.ReplaceAllString(column, "$1")
+		}
+	}
+	return rec
+}
 
 // AddRows is Add row to Table.
 func (t *Tbln) AddRows(row []string) error {
@@ -83,19 +116,6 @@ func checkRow(columnNum int, row []string) (int, error) {
 		}
 	}
 	return columnNum, nil
-}
-
-func stringRow(row []string) string {
-	var b strings.Builder
-	b.WriteString("|")
-	for _, column := range row {
-		if strings.Contains(column, "|") {
-			column = ESCREP.ReplaceAllString(column, "|$1")
-		}
-		b.WriteString(" " + column + " |")
-	}
-	return b.String()
-
 }
 
 // SumHash is returns the calculated checksum.

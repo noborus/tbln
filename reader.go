@@ -46,7 +46,7 @@ func (tr *Reader) scanLine() ([]string, error) {
 		str := string(line)
 		switch {
 		case strings.HasPrefix(str, "| "):
-			return parseRecord(str), nil
+			return splitRow(str), nil
 		case strings.HasPrefix(str, "# "):
 			tr.Comments = append(tr.Comments, str[2:])
 		case strings.HasPrefix(str, "; "):
@@ -72,9 +72,9 @@ func (tr *Reader) analyzeExt(extstr string) error {
 	value := extstr[keypos+2:]
 	switch key {
 	case "name":
-		return tr.SetNames(parseRecord(value))
+		return tr.SetNames(splitRow(value))
 	case "type":
-		return tr.SetTypes(parseRecord(value))
+		return tr.SetTypes(splitRow(value))
 	case "TableName":
 		tr.SetTableName(value)
 	case "sha256":
@@ -87,28 +87,6 @@ func (tr *Reader) analyzeExt(extstr string) error {
 		}
 	}
 	return nil
-}
-
-func parseRecord(body string) []string {
-	if body[:2] == "| " {
-		body = body[2:]
-	}
-	if body[len(body)-2:] == " |" {
-		body = body[0 : len(body)-2]
-	}
-	rec := strings.Split(body, " | ")
-	unescape(rec)
-	return rec
-}
-
-func unescape(rec []string) []string {
-	// Unescape vertical bars || -> |
-	for i, column := range rec {
-		if strings.Contains(column, "|") {
-			rec[i] = UNESCREP.ReplaceAllString(column, "$1")
-		}
-	}
-	return rec
 }
 
 // ReadAll reads all io.Reader
