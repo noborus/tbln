@@ -12,24 +12,22 @@ import (
 type DBD struct {
 	DB *sql.DB
 	Tx *sql.Tx
-	db.Constraint
+	db.Driver
 	Name  string
 	Ph    string
 	Quote string
 }
 
 // DBOpen is *sql.Open Wrapper.
-func DBOpen(driver string, dsn string) (*DBD, error) {
-	var c db.Constraint
-	if db.DB[driver] != nil {
-		c = db.DB[driver]
-	} else {
+func DBOpen(name string, dsn string) (*DBD, error) {
+	var c db.Driver
+	if c = db.Get(name); c == nil {
 		c = &NotSupport{}
 	}
 
-	db, err := sql.Open(driver, dsn)
+	db, err := sql.Open(name, dsn)
 	var ph, quote string
-	switch driver {
+	switch name {
 	case "postgres":
 		ph = "$"
 		quote = `"`
@@ -45,11 +43,11 @@ func DBOpen(driver string, dsn string) (*DBD, error) {
 		quote = `"`
 	}
 	dbd := &DBD{
-		Name:       driver,
-		DB:         db,
-		Constraint: c,
-		Ph:         ph,
-		Quote:      quote,
+		Name:   name,
+		DB:     db,
+		Driver: c,
+		Ph:     ph,
+		Quote:  quote,
 	}
 	return dbd, err
 }

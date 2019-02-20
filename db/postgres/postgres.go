@@ -8,16 +8,15 @@ import (
 )
 
 // Postgres is dummy struct
-type Postgres struct {
-	name string
-}
+type Postgres struct{}
 
 func init() {
-	db.DB["postgres"] = &Postgres{name: "postgres"}
+	driver := Postgres{}
+	db.Register("postgres", &driver)
 }
 
 // GetPrimaryKey returns the primary key as a slice.
-func (p Postgres) GetPrimaryKey(db *sql.DB, tableName string) ([]string, error) {
+func (p *Postgres) GetPrimaryKey(conn *sql.DB, tableName string) ([]string, error) {
 	query :=
 		`SELECT ccu.column_name 
 	       FROM information_schema.table_constraints tc
@@ -28,7 +27,7 @@ func (p Postgres) GetPrimaryKey(db *sql.DB, tableName string) ([]string, error) 
             AND tc.table_schema = ccu.table_schema
             AND tc.table_name = ccu.table_name
 	        AND tc.constraint_name = ccu.constraint_name;`
-	rows, err := db.Query(query, tableName)
+	rows, err := conn.Query(query, tableName)
 	if err != nil {
 		return nil, err.(*pq.Error)
 	}
