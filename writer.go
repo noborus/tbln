@@ -45,8 +45,8 @@ func (w *Writer) writeExtra(d Definition) error {
 }
 
 func (w *Writer) writeExtraWithOutHash(d Definition) error {
-	if len(d.tableName) > 0 {
-		_, err := fmt.Fprintf(w.Writer, "; TableName: %s\n", d.tableName)
+	if len(d.TableName) > 0 {
+		_, err := fmt.Fprintf(w.Writer, "; TableName: %s\n", d.TableName)
 		if err != nil {
 			return err
 		}
@@ -98,7 +98,7 @@ func (w *Writer) writeExtraWithHash(d Definition) error {
 
 // WriteRow is write one row.
 func (w *Writer) WriteRow(row []string) error {
-	_, err := io.WriteString(w.Writer, joinRow(row)+"\n")
+	_, err := io.WriteString(w.Writer, JoinRow(row)+"\n")
 	return err
 }
 

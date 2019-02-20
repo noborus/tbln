@@ -68,7 +68,7 @@ func TestReader_scanLine(t *testing.T) {
 	}
 }
 
-func Test_splitRow(t *testing.T) {
+func Test_SplitRow(t *testing.T) {
 	type args struct {
 		body string
 	}
@@ -90,7 +90,7 @@ func Test_splitRow(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := splitRow(tt.args.body); !reflect.DeepEqual(got, tt.want) {
+			if got := SplitRow(tt.args.body); !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("splitRow() = %v, want %v", got, tt.want)
 			}
 		})
@@ -168,7 +168,7 @@ func TestReader_ReadRow(t *testing.T) {
 		},
 		{
 			name:    "test3",
-			fields:  fields{Definition: Definition{columnNum: 2}, Reader: bufio.NewReader(bytes.NewBufferString("| a |\n"))},
+			fields:  fields{Definition: Definition{ColumnNum: 2}, Reader: bufio.NewReader(bytes.NewBufferString("| a |\n"))},
 			want:    nil,
 			wantErr: true,
 		},

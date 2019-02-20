@@ -29,7 +29,7 @@ func (tr *Reader) ReadRow() ([]string, error) {
 	if err != nil || rec == nil {
 		return nil, err
 	}
-	tr.columnNum, err = checkRow(tr.columnNum, rec)
+	tr.ColumnNum, err = checkRow(tr.ColumnNum, rec)
 	if err != nil {
 		return nil, err
 	}
@@ -46,7 +46,7 @@ func (tr *Reader) scanLine() ([]string, error) {
 		str := string(line)
 		switch {
 		case strings.HasPrefix(str, "| "):
-			return splitRow(str), nil
+			return SplitRow(str), nil
 		case strings.HasPrefix(str, "# "):
 			tr.Comments = append(tr.Comments, str[2:])
 		case strings.HasPrefix(str, "; "):
@@ -72,9 +72,9 @@ func (tr *Reader) analyzeExt(extstr string) error {
 	value := extstr[keypos+2:]
 	switch key {
 	case "name":
-		return tr.SetNames(splitRow(value))
+		return tr.SetNames(SplitRow(value))
 	case "type":
-		return tr.SetTypes(splitRow(value))
+		return tr.SetTypes(SplitRow(value))
 	case "TableName":
 		tr.SetTableName(value)
 	case "sha256":

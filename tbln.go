@@ -28,8 +28,8 @@ func NewTbln() *Tbln {
 
 // Definition is common table definition struct.
 type Definition struct {
-	columnNum int
-	tableName string
+	ColumnNum int
+	TableName string
 	Comments  []string
 	Names     []string
 	Types     []string
@@ -62,7 +62,8 @@ var ESCAPE = regexp.MustCompile(`(\|+)`)
 // UNESCAPE is unescape || -> |
 var UNESCAPE = regexp.MustCompile(`\|(\|+)`)
 
-func joinRow(row []string) string {
+// JoinRow makes a Row array a character string.
+func JoinRow(row []string) string {
 	var b strings.Builder
 	b.WriteString("|")
 	for _, column := range row {
@@ -74,7 +75,8 @@ func joinRow(row []string) string {
 	return b.String()
 }
 
-func splitRow(body string) []string {
+// SplitRow divides a character string into a row array.
+func SplitRow(body string) []string {
 	if body[:2] == "| " {
 		body = body[2:]
 	}
@@ -98,7 +100,7 @@ func unescape(rec []string) []string {
 // AddRows is Add row to Table.
 func (t *Tbln) AddRows(row []string) error {
 	var err error
-	t.columnNum, err = checkRow(t.columnNum, row)
+	t.ColumnNum, err = checkRow(t.ColumnNum, row)
 	if err != nil {
 		return err
 	}
@@ -107,15 +109,15 @@ func (t *Tbln) AddRows(row []string) error {
 	return nil
 }
 
-func checkRow(columnNum int, row []string) (int, error) {
-	if columnNum == 0 {
-		columnNum = len(row)
+func checkRow(ColumnNum int, row []string) (int, error) {
+	if ColumnNum == 0 {
+		ColumnNum = len(row)
 	} else {
-		if len(row) != columnNum {
-			return columnNum, fmt.Errorf("Error: invalid column num (%d!=%d) %s", columnNum, len(row), row)
+		if len(row) != ColumnNum {
+			return ColumnNum, fmt.Errorf("Error: invalid column num (%d!=%d) %s", ColumnNum, len(row), row)
 		}
 	}
-	return columnNum, nil
+	return ColumnNum, nil
 }
 
 // SumHash is returns the calculated checksum.
@@ -147,7 +149,7 @@ func (t *Tbln) SumHash() (map[string]string, error) {
 
 // SetTableName is set Table Name of the Table.
 func (d *Definition) SetTableName(name string) {
-	d.tableName = name
+	d.TableName = name
 }
 
 // SetNames is set Column Name to the Table.
@@ -169,11 +171,11 @@ func (d *Definition) SetTypes(types []string) error {
 }
 
 func (d *Definition) setColNum(colNum int) error {
-	if d.columnNum == 0 {
-		d.columnNum = colNum
+	if d.ColumnNum == 0 {
+		d.ColumnNum = colNum
 		return nil
 	}
-	if colNum != d.columnNum {
+	if colNum != d.ColumnNum {
 		return fmt.Errorf("number of columns is different")
 	}
 	return nil

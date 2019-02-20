@@ -6,18 +6,19 @@ import (
 	"log"
 
 	"github.com/noborus/tbln"
+	"github.com/noborus/tbln/db"
 	_ "github.com/noborus/tbln/db/mysql"
 	_ "github.com/noborus/tbln/db/postgres"
 	_ "github.com/noborus/tbln/db/sqlite3"
 )
 
 func main() {
-	db, err := tbln.DBOpen("postgres", "")
-	// db, err := tbln.DBOpen("mysql", "root:@/noborus")
+	conn, err := db.Open("postgres", "")
+	// conn, err := db.Open("mysql", "root:@/noborus")
 	if err != nil {
 		log.Fatal(err)
 	}
-	at, err := tbln.ReadQueryAll(db, "SELECT * FROM t40 WHERE id=$1", os.Args[1])
+	at, err := db.ReadQueryAll(conn, "SELECT * FROM city WHERE city_id=$1", os.Args[1])
 	if err != nil {
 		log.Fatal(err)
 	}

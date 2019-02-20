@@ -6,14 +6,16 @@ import (
 	"os"
 
 	"github.com/noborus/tbln"
+	"github.com/noborus/tbln/db"
+
 	_ "github.com/noborus/tbln/db/mysql"
 	_ "github.com/noborus/tbln/db/postgres"
 	_ "github.com/noborus/tbln/db/sqlite3"
 )
 
 func main() {
-	db, err := tbln.DBOpen("postgres", "")
-	//	db, err := tbln.DBOpen("mysql", "root:@/noborus")
+	conn, err := db.Open("postgres", "")
+	//	conn, err := db.Open("mysql", "root:@/noborus")
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -33,7 +35,7 @@ func main() {
 		log.Fatal(err)
 	}
 	at.SetTableName(os.Args[1])
-	err = tbln.WriteTable(db, at, true)
+	err = db.WriteTable(conn, at, true)
 	if err != nil {
 		log.Fatal(err)
 	}

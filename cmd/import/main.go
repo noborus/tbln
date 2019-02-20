@@ -5,20 +5,22 @@ import (
 	"os"
 
 	"github.com/noborus/tbln"
+	"github.com/noborus/tbln/db"
+
 	_ "github.com/noborus/tbln/db/mysql"
 	_ "github.com/noborus/tbln/db/postgres"
 	_ "github.com/noborus/tbln/db/sqlite3"
 )
 
 func main() {
-	// db, err := tbln.DBOpen("postgres", "")
-	db, err := tbln.DBOpen("mysql", "root:@/noborus")
-	// db, err := tbln.DBOpen("sqlite3", "sqlite_file")
+	// conn, err := db.Open("postgres", "")
+	conn, err := db.Open("mysql", "root:@/noborus")
+	// conn, err := db.Open("sqlite3", "sqlite_file")
 
 	if err != nil {
 		log.Fatal(err)
 	}
-	db.Tx, err = db.DB.Begin()
+	conn.Tx, err = conn.DB.Begin()
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -30,11 +32,11 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	err = tbln.WriteTable(db, at, true)
+	err = db.WriteTable(conn, at, true)
 	if err != nil {
 		log.Fatal(err)
 	}
-	err = db.Tx.Commit()
+	err = conn.Tx.Commit()
 	if err != nil {
 		log.Fatal(err)
 	}

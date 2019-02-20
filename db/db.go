@@ -15,7 +15,7 @@ type Driver interface {
 
 // Constraint is the interface database constraint.
 type Constraint interface {
-	GetPrimaryKey(db *sql.DB, tableName string) ([]string, error)
+	GetPrimaryKey(db *sql.DB, TableName string) ([]string, error)
 }
 
 var drivers = make(map[string]Driver)
