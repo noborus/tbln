@@ -7,6 +7,14 @@ import (
 
 // Driver is the interface every database driver.
 type Driver interface {
+	PlaceHolder() string
+	Quote() string
+
+	Constraint
+}
+
+// Constraint is the interface database constraint.
+type Constraint interface {
 	GetPrimaryKey(db *sql.DB, tableName string) ([]string, error)
 }
 

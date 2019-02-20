@@ -4,15 +4,17 @@ import (
 	"log"
 	"os"
 
-	_ "github.com/go-sql-driver/mysql"
-	_ "github.com/noborus/tbln/db/postgres"
-
 	"github.com/noborus/tbln"
+	// _ "github.com/noborus/tbln/db/mysql"
+	// _ "github.com/noborus/tbln/db/postgres"
+	// _ "github.com/noborus/tbln/db/sqlite3"
+	_ "github.com/lib/pq"
 )
 
 func main() {
 	db, err := tbln.DBOpen("postgres", "")
 	// db, err := tbln.DBOpen("mysql", "root:@/noborus")
+	// db, err := tbln.DBOpen("sqlite3", "sqlite_file")
 	if err != nil {
 		log.Fatal(err)
 	}

@@ -5,10 +5,10 @@ import (
 	"log"
 	"os"
 
-	_ "github.com/go-sql-driver/mysql"
-	_ "github.com/lib/pq"
-
 	"github.com/noborus/tbln"
+	_ "github.com/noborus/tbln/db/mysql"
+	_ "github.com/noborus/tbln/db/postgres"
+	_ "github.com/noborus/tbln/db/sqlite3"
 )
 
 func main() {

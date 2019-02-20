@@ -43,3 +43,13 @@ func (p *Postgres) GetPrimaryKey(conn *sql.DB, tableName string) ([]string, erro
 	rows.Close()
 	return pkeys, nil
 }
+
+// PlaceHolder returns the placeholer string.
+func (p *Postgres) PlaceHolder() string {
+	return "$"
+}
+
+// Quote returns the quote string.
+func (p *Postgres) Quote() string {
+	return `"`
+}

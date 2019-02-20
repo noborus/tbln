@@ -20,34 +20,17 @@ type DBD struct {
 
 // DBOpen is *sql.Open Wrapper.
 func DBOpen(name string, dsn string) (*DBD, error) {
-	var c db.Driver
-	if c = db.Get(name); c == nil {
+	c := db.Get(name)
+	if c == nil {
 		c = &NotSupport{}
 	}
-
 	db, err := sql.Open(name, dsn)
-	var ph, quote string
-	switch name {
-	case "postgres":
-		ph = "$"
-		quote = `"`
-	case "mysql":
-		ph = "?"
-		quote = "`"
-	case "sqlite3":
-		ph = "?"
-		quote = "`"
-	default:
-		// SQL standard
-		ph = "?"
-		quote = `"`
-	}
 	dbd := &DBD{
 		Name:   name,
 		DB:     db,
 		Driver: c,
-		Ph:     ph,
-		Quote:  quote,
+		Ph:     c.PlaceHolder(),
+		Quote:  c.Quote(),
 	}
 	return dbd, err
 }
@@ -66,4 +49,14 @@ type NotSupport struct{}
 // GetPrimaryKey is dummy function.
 func (n *NotSupport) GetPrimaryKey(db *sql.DB, tableName string) ([]string, error) {
 	return nil, fmt.Errorf("this database is not supported")
+}
+
+// PlaceHolder returns the placeholer string.
+func (n *NotSupport) PlaceHolder() string {
+	return "?"
+}
+
+// Quote returns the quote string.
+func (n *NotSupport) Quote() string {
+	return `"`
 }
