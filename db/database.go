@@ -2,59 +2,39 @@ package db
 
 import (
 	"database/sql"
-	"fmt"
 	"regexp"
 )
 
-// DBD is sql.DB wrapper.
-type DBD struct {
+// TDB is sql.DB wrapper.
+type TDB struct {
 	DB *sql.DB
 	Tx *sql.Tx
 	Driver
-	Name  string
-	Ph    string
-	Quote string
+	Name string
 }
 
 // Open is tbln/db Open.
-func Open(name string, dsn string) (*DBD, error) {
-	c := Get(name)
-	if c == nil {
-		c = &NotSupport{}
+func Open(name string, dsn string) (*TDB, error) {
+	d := GetDriver(name)
+	if d == nil {
+		d = &Default{}
 	}
 	db, err := sql.Open(name, dsn)
-	dbd := &DBD{
+	TDB := &TDB{
 		Name:   name,
 		DB:     db,
-		Driver: c,
-		Ph:     c.PlaceHolder(),
-		Quote:  c.Quote(),
+		Driver: d,
 	}
-	return dbd, err
+	return TDB, err
 }
 
-func (db *DBD) quoting(name string) string {
+func (TDB *TDB) quoting(name string) string {
 	r := regexp.MustCompile(`[^a-z0-9_]+`)
+	q := TDB.Driver.Quote()
+	escape := regexp.MustCompile(`(` + q + `)`)
 	if r.MatchString(name) {
-		return db.Quote + name + db.Quote
+		name = escape.ReplaceAllString(name, "$1"+TDB.Driver.Quote())
+		return q + name + q
 	}
 	return name
-}
-
-// NotSupport is dummy struct.
-type NotSupport struct{}
-
-// GetPrimaryKey is dummy function.
-func (n *NotSupport) GetPrimaryKey(db *sql.DB, TableName string) ([]string, error) {
-	return nil, fmt.Errorf("this database is not supported")
-}
-
-// PlaceHolder returns the placeholer string.
-func (n *NotSupport) PlaceHolder() string {
-	return "?"
-}
-
-// Quote returns the quote string.
-func (n *NotSupport) Quote() string {
-	return `"`
 }

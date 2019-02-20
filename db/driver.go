@@ -2,6 +2,7 @@ package db
 
 import (
 	"database/sql"
+	"fmt"
 	"sync"
 )
 
@@ -29,7 +30,25 @@ func Register(name string, driver Driver) {
 	drivers[name] = driver
 }
 
-// Get resturn database driver.
-func Get(name string) Driver {
+// GetDriver resturn database driver.
+func GetDriver(name string) Driver {
 	return drivers[name]
+}
+
+// Default is a driver that retrieves data using only database/SQL.
+type Default struct{}
+
+// GetPrimaryKey returns the primary key as a slice.
+func (d *Default) GetPrimaryKey(db *sql.DB, TableName string) ([]string, error) {
+	return nil, fmt.Errorf("this database is not supported")
+}
+
+// PlaceHolder returns the placeholer string.
+func (d *Default) PlaceHolder() string {
+	return "?"
+}
+
+// Quote returns the quote string.
+func (d *Default) Quote() string {
+	return `"`
 }

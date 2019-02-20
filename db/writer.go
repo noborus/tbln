@@ -12,23 +12,23 @@ import (
 // Writer is writer struct.
 type Writer struct {
 	tbln.Definition
-	*DBD
+	*TDB
 	stmt   *sql.Stmt
 	Create bool
 }
 
 // NewWriter is DB write struct.
-func NewWriter(dbd *DBD, definition tbln.Definition, create bool) *Writer {
-	if dbd.Tx == nil {
+func NewWriter(TDB *TDB, definition tbln.Definition, create bool) *Writer {
+	if TDB.Tx == nil {
 		var err error
-		dbd.Tx, err = dbd.DB.Begin()
+		TDB.Tx, err = TDB.DB.Begin()
 		if err != nil {
 			return nil
 		}
 	}
 	return &Writer{
 		Definition: definition,
-		DBD:        dbd,
+		TDB:        TDB,
 		Create:     create,
 	}
 }
@@ -82,7 +82,7 @@ func (tw *Writer) prepara() error {
 	ph := make([]string, len(tw.Names))
 	for i := 0; i < len(tw.Names); i++ {
 		names[i] = tw.quoting(tw.Names[i])
-		if tw.Ph == "$" {
+		if tw.Driver.PlaceHolder() == "$" {
 			ph[i] = fmt.Sprintf("$%d", i+1)
 		} else {
 			ph[i] = "?"
@@ -101,7 +101,7 @@ func (tw *Writer) prepara() error {
 func (tw *Writer) convertDBType(dbtype string, value string) interface{} {
 	switch strings.ToLower(dbtype) {
 	case "datetime", "timestamp":
-		if tw.DBD.Name == "mysql" {
+		if tw.TDB.Name == "mysql" {
 			t, err := time.Parse(time.RFC3339, value)
 			if err != nil {
 				return nil
@@ -124,8 +124,8 @@ func (tw *Writer) WriteRow(row []string) error {
 }
 
 // WriteTable writes all rows to the table.
-func WriteTable(dbd *DBD, tbln *tbln.Tbln, create bool) error {
-	w := NewWriter(dbd, tbln.Definition, create)
+func WriteTable(TDB *TDB, tbln *tbln.Tbln, create bool) error {
+	w := NewWriter(TDB, tbln.Definition, create)
 	err := w.WriteDefinition()
 	if err != nil {
 		return err

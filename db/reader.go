@@ -13,17 +13,17 @@ import (
 type Reader struct {
 	tbln.Definition
 	query string
-	*DBD
+	*TDB
 	rows     *sql.Rows
 	scanArgs []interface{}
 	values   []interface{}
 }
 
 // ReadTable is reates a structure for reading from DB table.
-func (dbd *DBD) ReadTable(TableName string, pkey []string) (*Reader, error) {
+func (TDB *TDB) ReadTable(TableName string, pkey []string) (*Reader, error) {
 	tr := &Reader{
 		Definition: tbln.NewDefinition(),
-		DBD:        dbd,
+		TDB:        TDB,
 	}
 	tr.SetTableName(TableName)
 	var orderby string
@@ -32,7 +32,7 @@ func (dbd *DBD) ReadTable(TableName string, pkey []string) (*Reader, error) {
 	} else {
 		orderby = "1"
 	}
-	query := fmt.Sprintf("SELECT * FROM %s ORDER BY %s", dbd.quoting(TableName), orderby)
+	query := fmt.Sprintf("SELECT * FROM %s ORDER BY %s", TDB.quoting(TableName), orderby)
 	err := tr.peparation(query)
 	if err != nil {
 		return nil, err
@@ -41,10 +41,10 @@ func (dbd *DBD) ReadTable(TableName string, pkey []string) (*Reader, error) {
 }
 
 // ReadQuery is reates a structure for reading from query.
-func (dbd *DBD) ReadQuery(query string, args ...interface{}) (*Reader, error) {
+func (TDB *TDB) ReadQuery(query string, args ...interface{}) (*Reader, error) {
 	tr := &Reader{
 		Definition: tbln.NewDefinition(),
-		DBD:        dbd,
+		TDB:        TDB,
 	}
 	err := tr.peparation(query, args...)
 	if err != nil {
@@ -137,7 +137,7 @@ func (tr *Reader) setExtra(rows *sql.Rows) error {
 	// Database type
 	tr.Ext[tr.Name+"_type"] = tbln.NewExtra(tbln.JoinRow(dbtypes))
 	// Primary key
-	pk, err := tr.DBD.GetPrimaryKey(tr.DBD.DB, tr.TableName)
+	pk, err := tr.TDB.GetPrimaryKey(tr.TDB.DB, tr.TableName)
 	if len(pk) > 0 && err == nil {
 		tr.Ext["Primarykey"] = tbln.NewExtra(tbln.JoinRow(pk))
 	}
@@ -165,8 +165,8 @@ func convertType(dbtype string) string {
 }
 
 // ReadTableAll reads all rows in the table.
-func ReadTableAll(dbd *DBD, TableName string) (*tbln.Tbln, error) {
-	r, err := dbd.ReadTable(TableName, nil)
+func ReadTableAll(TDB *TDB, TableName string) (*tbln.Tbln, error) {
+	r, err := TDB.ReadTable(TableName, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -174,8 +174,8 @@ func ReadTableAll(dbd *DBD, TableName string) (*tbln.Tbln, error) {
 }
 
 // ReadQueryAll reads all rows in the table.
-func ReadQueryAll(dbd *DBD, query string, args ...interface{}) (*tbln.Tbln, error) {
-	r, err := dbd.ReadQuery(query, args...)
+func ReadQueryAll(TDB *TDB, query string, args ...interface{}) (*tbln.Tbln, error) {
+	r, err := TDB.ReadQuery(query, args...)
 	if err != nil {
 		return nil, err
 	}
