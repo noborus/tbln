@@ -13,7 +13,7 @@ type SQLite3 struct{}
 
 func init() {
 	driver := SQLite3{}
-	db.Register("mysql", &driver)
+	db.Register("sqlite3", &driver)
 }
 
 // PlaceHolder returns the placeholer string.
@@ -28,5 +28,10 @@ func (s *SQLite3) Quote() string {
 
 // GetPrimaryKey returns the primary key as a slice.
 func (s *SQLite3) GetPrimaryKey(conn *sql.DB, tableName string) ([]string, error) {
+	return nil, fmt.Errorf("this database is not supported")
+}
+
+// GetColumnInfo returns information of a table column as an array.
+func (s *SQLite3) GetColumnInfo(conn *sql.DB, tableName string) (map[string][]interface{}, error) {
 	return nil, fmt.Errorf("this database is not supported")
 }

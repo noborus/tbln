@@ -26,6 +26,19 @@ func (TDB *TDB) ReadTable(TableName string, pkey []string) (*Reader, error) {
 		TDB:        TDB,
 	}
 	tr.SetTableName(TableName)
+	// Column info
+	columns, err := tr.TDB.GetColumnInfo(tr.TDB.DB, tr.TableName)
+	if err != nil {
+		fmt.Println(err)
+	} else {
+		tr.constraint(columns)
+	}
+	// Primary key
+	pk, err := tr.TDB.GetPrimaryKey(tr.TDB.DB, tr.TableName)
+	if len(pk) > 0 && err == nil {
+		tr.Ext["Primarykey"] = tbln.NewExtra(tbln.JoinRow(pk))
+	}
+
 	var orderby string
 	if len(pkey) > 0 {
 		orderby = strings.Join(pkey, ", ")
@@ -33,11 +46,28 @@ func (TDB *TDB) ReadTable(TableName string, pkey []string) (*Reader, error) {
 		orderby = "1"
 	}
 	query := fmt.Sprintf("SELECT * FROM %s ORDER BY %s", TDB.quoting(TableName), orderby)
-	err := tr.peparation(query)
+	err = tr.peparation(query)
 	if err != nil {
 		return nil, err
 	}
 	return tr, nil
+}
+
+func (tr *Reader) constraint(columns map[string][]interface{}) (map[string]string, error) {
+	for k, v := range columns {
+		col := make([]string, len(v))
+		visible := false
+		for i, c := range v {
+			col[i] = valString(c)
+			if col[i] != "" {
+				visible = true
+			}
+		}
+		if visible {
+			tr.Ext[strings.ToLower(k)] = tbln.NewExtra(tbln.JoinRow(col))
+		}
+	}
+	return nil, nil
 }
 
 // ReadQuery is reates a structure for reading from query.
@@ -116,6 +146,7 @@ func (tr *Reader) setExtra(rows *sql.Rows) error {
 	if err != nil {
 		return err
 	}
+
 	err = tr.SetNames(columns)
 	if err != nil {
 		return err
@@ -135,13 +166,9 @@ func (tr *Reader) setExtra(rows *sql.Rows) error {
 		return err
 	}
 	// Database type
-	tr.Ext[tr.Name+"_type"] = tbln.NewExtra(tbln.JoinRow(dbtypes))
-	// Primary key
-	pk, err := tr.TDB.GetPrimaryKey(tr.TDB.DB, tr.TableName)
-	if len(pk) > 0 && err == nil {
-		tr.Ext["Primarykey"] = tbln.NewExtra(tbln.JoinRow(pk))
+	if _, ok := tr.Ext[tr.Name+"_type"]; !ok {
+		tr.Ext[tr.Name+"_type"] = tbln.NewExtra(tbln.JoinRow(dbtypes))
 	}
-
 	return nil
 }
 

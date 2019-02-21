@@ -3,6 +3,7 @@ package tbln
 import (
 	"fmt"
 	"io"
+	"sort"
 )
 
 // Writer is writer struct.
@@ -51,11 +52,17 @@ func (w *Writer) writeExtraWithOutHash(d Definition) error {
 			return err
 		}
 	}
+	a := List{}
 	for key, extra := range d.Ext {
 		if extra.hashTarget {
 			continue
 		}
-		_, err := fmt.Fprintf(w.Writer, "; %s: %s\n", key, extra.value)
+		e := Entry{key, extra}
+		a = append(a, e)
+	}
+	sort.Sort(a)
+	for _, entry := range a {
+		_, err := fmt.Fprintf(w.Writer, "; %s: %s\n", entry.n, entry.v.value)
 		if err != nil {
 			return err
 		}
@@ -63,12 +70,34 @@ func (w *Writer) writeExtraWithOutHash(d Definition) error {
 	return nil
 }
 
+type Entry struct {
+	n string
+	v Extra
+}
+type List []Entry
+
+func (l List) Len() int {
+	return len(l)
+}
+func (l List) Swap(i, j int) {
+	l[i], l[j] = l[j], l[i]
+}
+func (l List) Less(i, j int) bool {
+	return l[i].n < l[j].n
+}
+
 func (w *Writer) writeExtraWithHash(d Definition) error {
+	a := List{}
 	for key, extra := range d.Ext {
 		if !extra.hashTarget {
 			continue
 		}
-		_, err := fmt.Fprintf(w.Writer, "; %s: %s\n", key, extra.value)
+		e := Entry{key, extra}
+		a = append(a, e)
+	}
+	sort.Sort(a)
+	for _, entry := range a {
+		_, err := fmt.Fprintf(w.Writer, "; %s: %s\n", entry.n, entry.v.value)
 		if err != nil {
 			return err
 		}
