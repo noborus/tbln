@@ -3,38 +3,24 @@ package postgres
 import (
 	"database/sql"
 
-	"github.com/lib/pq"
+	// PostgreSQL driver
+	_ "github.com/lib/pq"
 	"github.com/noborus/tbln/db"
 )
 
-// Postgres is dummy struct
-type Postgres struct {
-	pq.Driver
-}
+// Constr is Implement Constraint interface.
+type Constr struct{}
 
 func init() {
-	driver := Postgres{}
-	constr := Constr{}
-
-	db.Register("postgres", &driver, &constr)
-}
-
-// PlaceHolder returns the placeholer string.
-func (p *Postgres) PlaceHolder() string {
-	return "$"
-}
-
-// Quote returns the quote string.
-func (p *Postgres) Quote() string {
-	return `"`
-}
-
-// Constr is Implement Constraint interface.
-type Constr struct {
+	driver := db.Driver{
+		Style:      db.Style{PlaceHolder: "$", Quote: `"`},
+		Constraint: &Constr{},
+	}
+	db.Register("postgres", driver)
 }
 
 // GetPrimaryKey returns the primary key as a slice.
-func (p *Constr) GetPrimaryKey(conn *sql.DB, tableName string) ([]string, error) {
+func (c *Constr) GetPrimaryKey(conn *sql.DB, tableName string) ([]string, error) {
 	query := `SELECT ccu.column_name
 	   	      FROM information_schema.table_constraints tc
 	             , information_schema.constraint_column_usage ccu
@@ -48,7 +34,7 @@ func (p *Constr) GetPrimaryKey(conn *sql.DB, tableName string) ([]string, error)
 }
 
 // GetColumnInfo returns information of a table column as an array.
-func (p *Constr) GetColumnInfo(conn *sql.DB, tableName string) (map[string][]interface{}, error) {
+func (c *Constr) GetColumnInfo(conn *sql.DB, tableName string) (map[string][]interface{}, error) {
 	query := `SELECT
 	              column_default
               , is_nullable

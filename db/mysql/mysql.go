@@ -3,38 +3,24 @@ package mysql
 import (
 	"database/sql"
 
-	"github.com/go-sql-driver/mysql"
-
+	// MySQL driver
+	_ "github.com/go-sql-driver/mysql"
 	"github.com/noborus/tbln/db"
 )
 
-// MySQL is dummy struct
-type MySQL struct {
-	mysql.MySQLDriver
-}
-
 // Constr is Implement Constraint interface.
-type Constr struct {
-}
+type Constr struct{}
 
 func init() {
-	driver := MySQL{}
-	constr := Constr{}
-	db.Register("mysql", &driver, &constr)
-}
-
-// PlaceHolder returns the placeholer string.
-func (m *MySQL) PlaceHolder() string {
-	return "?"
-}
-
-// Quote returns the quote string.
-func (m *MySQL) Quote() string {
-	return "`"
+	driver := db.Driver{
+		Style:      db.Style{PlaceHolder: "?", Quote: "`"},
+		Constraint: &Constr{},
+	}
+	db.Register("mysql", driver)
 }
 
 // GetPrimaryKey returns the primary key as a slice.
-func (m *Constr) GetPrimaryKey(conn *sql.DB, tableName string) ([]string, error) {
+func (c *Constr) GetPrimaryKey(conn *sql.DB, tableName string) ([]string, error) {
 	query := `SELECT  column_name
 	             FROM information_schema.columns
 				WHERE table_schema = database()
@@ -45,7 +31,7 @@ func (m *Constr) GetPrimaryKey(conn *sql.DB, tableName string) ([]string, error)
 }
 
 // GetColumnInfo returns information of a table column as an array.
-func (m *Constr) GetColumnInfo(conn *sql.DB, tableName string) (map[string][]interface{}, error) {
+func (c *Constr) GetColumnInfo(conn *sql.DB, tableName string) (map[string][]interface{}, error) {
 	query := `SELECT
 		        column_default
               , is_nullable

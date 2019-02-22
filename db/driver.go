@@ -6,16 +6,22 @@ import (
 	"sync"
 )
 
-// Driver is the interface every database driver.
-type Driver interface {
-	PlaceHolder() string
-	Quote() string
-}
-
 var (
 	// ErrorNotSupport is database driver not supported
 	ErrorNotSupport = errors.New("not supported")
 )
+
+// Driver is the interface every database driver.
+type Driver struct {
+	Style
+	Constraint
+}
+
+// Style is SQLStyle struct
+type Style struct {
+	PlaceHolder string
+	Quote       string
+}
 
 // Constraint is the interface database constraint.
 type Constraint interface {
@@ -24,47 +30,30 @@ type Constraint interface {
 }
 
 var drivers = make(map[string]Driver)
-var constraints = make(map[string]Constraint)
 var driversMu sync.RWMutex
 
 // Register is database driver register.
-func Register(name string, driver Driver, constraint Constraint) {
+func Register(name string, driver Driver) {
 	driversMu.Lock()
 	defer driversMu.Unlock()
 
 	drivers[name] = driver
-	if constraint != nil {
-		constraints[name] = constraint
-	}
 }
 
 // GetDriver resturn database driver.
-func GetDriver(name string) (Driver, Constraint) {
-	return drivers[name], constraints[name]
-}
-
-// Default is a driver that retrieves data using only database/SQL.
-type Default struct{}
-
-// PlaceHolder returns the placeholer string.
-func (d *Default) PlaceHolder() string {
-	return "?"
-}
-
-// Quote returns the quote string.
-func (d *Default) Quote() string {
-	return `"`
+func GetDriver(name string) Driver {
+	return drivers[name]
 }
 
 // DefaultConstr is a driver that retrieves data using only database/SQL.
 type DefaultConstr struct{}
 
 // GetPrimaryKey returns the primary key as a slice.
-func (d *DefaultConstr) GetPrimaryKey(conn *sql.DB, tableName string) ([]string, error) {
+func (c *DefaultConstr) GetPrimaryKey(conn *sql.DB, tableName string) ([]string, error) {
 	return nil, ErrorNotSupport
 }
 
 // GetColumnInfo returns information of a table column as an array.
-func (d *DefaultConstr) GetColumnInfo(conn *sql.DB, tableName string) (map[string][]interface{}, error) {
+func (c *DefaultConstr) GetColumnInfo(conn *sql.DB, tableName string) (map[string][]interface{}, error) {
 	return nil, ErrorNotSupport
 }

@@ -9,36 +9,40 @@ import (
 type TDB struct {
 	DB *sql.DB
 	Tx *sql.Tx
-	Driver
+	Style
 	Constraint
 	Name string
 }
 
 // Open is tbln/db Open.
 func Open(name string, dsn string) (*TDB, error) {
-	d, c := GetDriver(name)
-	if d == nil {
-		d = &Default{}
+	d := GetDriver(name)
+	if d.PlaceHolder == "" {
+		// Default SQL Style.
+		d.Style = Style{
+			PlaceHolder: "?",
+			Quote:       `"`,
+		}
 	}
-	if c == nil {
-		c = &DefaultConstr{}
+	if d.Constraint == nil {
+		d.Constraint = &DefaultConstr{}
 	}
 	db, err := sql.Open(name, dsn)
 	TDB := &TDB{
 		Name:       name,
 		DB:         db,
-		Driver:     d,
-		Constraint: c,
+		Style:      d.Style,
+		Constraint: d.Constraint,
 	}
 	return TDB, err
 }
 
 func (TDB *TDB) quoting(name string) string {
 	r := regexp.MustCompile(`[^a-z0-9_]+`)
-	q := TDB.Driver.Quote()
+	q := TDB.Style.Quote
 	escape := regexp.MustCompile(`(` + q + `)`)
 	if r.MatchString(name) {
-		name = escape.ReplaceAllString(name, "$1"+TDB.Driver.Quote())
+		name = escape.ReplaceAllString(name, "$1"+TDB.Style.Quote)
 		return q + name + q
 	}
 	return name

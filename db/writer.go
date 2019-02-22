@@ -82,7 +82,7 @@ func (tw *Writer) prepara() error {
 	ph := make([]string, len(tw.Names))
 	for i := 0; i < len(tw.Names); i++ {
 		names[i] = tw.quoting(tw.Names[i])
-		if tw.Driver.PlaceHolder() == "$" {
+		if tw.Style.PlaceHolder == "$" {
 			ph[i] = fmt.Sprintf("$%d", i+1)
 		} else {
 			ph[i] = "?"

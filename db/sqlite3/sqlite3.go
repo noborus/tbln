@@ -3,34 +3,20 @@ package sqlite3
 import (
 	"database/sql"
 
-	sqlite3 "github.com/mattn/go-sqlite3"
+	// SQLite3 driver.
+	_ "github.com/mattn/go-sqlite3"
 	"github.com/noborus/tbln/db"
 )
 
-// SQLite3 struct
-type SQLite3 struct {
-	sqlite3.SQLiteDriver
-}
-
 // Constr is Implement Constraint interface.
-type Constr struct {
-}
+type Constr struct{}
 
 func init() {
-	driver := SQLite3{}
-	constr := Constr{}
-
-	db.Register("sqlite3", &driver, &constr)
-}
-
-// PlaceHolder returns the placeholer string.
-func (s *SQLite3) PlaceHolder() string {
-	return "?"
-}
-
-// Quote returns the quote string.
-func (s *SQLite3) Quote() string {
-	return "`"
+	driver := db.Driver{
+		Style:      db.Style{PlaceHolder: "?", Quote: "`"},
+		Constraint: &Constr{},
+	}
+	db.Register("sqlite3", driver)
 }
 
 // GetPrimaryKey returns the primary key as a slice.
