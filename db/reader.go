@@ -182,7 +182,7 @@ func (tr *Reader) setExtra(rows *sql.Rows) error {
 
 func convertType(dbtype string) string {
 	switch strings.ToLower(dbtype) {
-	case "smallint", "integer", "int", "int4", "smallserial", "serial":
+	case "smallint", "integer", "int", "int2", "int4", "smallserial", "serial":
 		return "int"
 	case "bigint", "int8", "bigserial":
 		return "bigint"

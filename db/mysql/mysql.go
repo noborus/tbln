@@ -46,8 +46,8 @@ func (m *Constr) GetPrimaryKey(conn *sql.DB, tableName string) ([]string, error)
 
 // GetColumnInfo returns information of a table column as an array.
 func (m *Constr) GetColumnInfo(conn *sql.DB, tableName string) (map[string][]interface{}, error) {
-	query := `SELECT column_name
-		      , column_default
+	query := `SELECT
+		        column_default
               , is_nullable
               , data_type AS mysql_type
               , character_maximum_length

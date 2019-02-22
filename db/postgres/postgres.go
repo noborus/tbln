@@ -43,14 +43,14 @@ func (p *Constr) GetPrimaryKey(conn *sql.DB, tableName string) ([]string, error)
              AND tc.table_catalog = ccu.table_catalog
 						 AND tc.table_schema = ccu.table_schema
 						 AND tc.table_name = ccu.table_name
-					   AND tc.constraint_name = ccu.constraint_name;`
+             AND tc.constraint_name = ccu.constraint_name;`
 	return db.GetPrimaryKey(conn, query, tableName)
 }
 
 // GetColumnInfo returns information of a table column as an array.
 func (p *Constr) GetColumnInfo(conn *sql.DB, tableName string) (map[string][]interface{}, error) {
-	query := `SELECT column_name
-	            , column_default
+	query := `SELECT
+	              column_default
               , is_nullable
               , data_type AS postgres_type
               , character_maximum_length
