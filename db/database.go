@@ -2,7 +2,6 @@ package db
 
 import (
 	"database/sql"
-	"fmt"
 	"regexp"
 )
 
@@ -49,8 +48,6 @@ func (TDB *TDB) quoting(name string) string {
 func GetPrimaryKey(conn *sql.DB, query string, tableName string) ([]string, error) {
 	rows, err := conn.Query(query, tableName)
 	if err != nil {
-		fmt.Println(query, tableName)
-		fmt.Println(err)
 		return nil, err
 	}
 	var pkeys []string

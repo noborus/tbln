@@ -2,7 +2,7 @@ package db
 
 import (
 	"database/sql"
-	"fmt"
+	"errors"
 	"sync"
 )
 
@@ -11,6 +11,11 @@ type Driver interface {
 	PlaceHolder() string
 	Quote() string
 }
+
+var (
+	// ErrorNotSupport is database driver not supported
+	ErrorNotSupport = errors.New("not supported")
+)
 
 // Constraint is the interface database constraint.
 type Constraint interface {
@@ -56,10 +61,10 @@ type DefaultConstr struct{}
 
 // GetPrimaryKey returns the primary key as a slice.
 func (d *DefaultConstr) GetPrimaryKey(conn *sql.DB, tableName string) ([]string, error) {
-	return nil, fmt.Errorf("not supported")
+	return nil, ErrorNotSupport
 }
 
 // GetColumnInfo returns information of a table column as an array.
 func (d *DefaultConstr) GetColumnInfo(conn *sql.DB, tableName string) (map[string][]interface{}, error) {
-	return nil, fmt.Errorf("not supported")
+	return nil, ErrorNotSupport
 }

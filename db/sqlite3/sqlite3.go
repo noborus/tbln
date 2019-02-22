@@ -5,7 +5,7 @@ import (
 	"github.com/noborus/tbln/db"
 )
 
-// SQLite3 is dummy struct
+// SQLite3 struct
 type SQLite3 struct {
 	sqlite3.SQLiteDriver
 }

@@ -29,13 +29,19 @@ func (TDB *TDB) ReadTable(TableName string, pkey []string) (*Reader, error) {
 	// Constraint
 	columns, err := tr.TDB.GetColumnInfo(tr.TDB.DB, tr.TableName)
 	if err != nil {
-		fmt.Println(err)
-	} else {
+		if err != ErrorNotSupport {
+			return nil, err
+		}
+	} else if columns != nil {
 		tr.constraint(columns)
 	}
 	// Primary key
 	pk, err := tr.TDB.GetPrimaryKey(tr.TDB.DB, tr.TableName)
-	if len(pk) > 0 && err == nil {
+	if err != nil {
+		if err != ErrorNotSupport {
+			return nil, err
+		}
+	} else if len(pk) > 0 {
 		tr.Ext["Primarykey"] = tbln.NewExtra(tbln.JoinRow(pk))
 	}
 	if len(pkey) == 0 && len(pk) > 0 {
