@@ -26,7 +26,7 @@ func (TDB *TDB) ReadTable(TableName string, pkey []string) (*Reader, error) {
 		TDB:        TDB,
 	}
 	tr.SetTableName(TableName)
-	// Column info
+	// Constraint
 	columns, err := tr.TDB.GetColumnInfo(tr.TDB.DB, tr.TableName)
 	if err != nil {
 		fmt.Println(err)
@@ -38,7 +38,9 @@ func (TDB *TDB) ReadTable(TableName string, pkey []string) (*Reader, error) {
 	if len(pk) > 0 && err == nil {
 		tr.Ext["Primarykey"] = tbln.NewExtra(tbln.JoinRow(pk))
 	}
-
+	if len(pkey) == 0 && len(pk) > 0 {
+		pkey = pk
+	}
 	var orderby string
 	if len(pkey) > 0 {
 		orderby = strings.Join(pkey, ", ")

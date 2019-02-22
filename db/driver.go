@@ -10,8 +10,6 @@ import (
 type Driver interface {
 	PlaceHolder() string
 	Quote() string
-
-	Constraint
 }
 
 // Constraint is the interface database constraint.
@@ -21,19 +19,23 @@ type Constraint interface {
 }
 
 var drivers = make(map[string]Driver)
+var constraints = make(map[string]Constraint)
 var driversMu sync.RWMutex
 
 // Register is database driver register.
-func Register(name string, driver Driver) {
+func Register(name string, driver Driver, constraint Constraint) {
 	driversMu.Lock()
 	defer driversMu.Unlock()
 
 	drivers[name] = driver
+	if constraint != nil {
+		constraints[name] = constraint
+	}
 }
 
 // GetDriver resturn database driver.
-func GetDriver(name string) Driver {
-	return drivers[name]
+func GetDriver(name string) (Driver, Constraint) {
+	return drivers[name], constraints[name]
 }
 
 // Default is a driver that retrieves data using only database/SQL.
@@ -49,17 +51,15 @@ func (d *Default) Quote() string {
 	return `"`
 }
 
-// DefaultError is not supported function.
-func DefaultError(conn *sql.DB, TableName string) ([]string, error) {
-	return nil, fmt.Errorf("this database is not supported")
-}
+// DefaultConstr is a driver that retrieves data using only database/SQL.
+type DefaultConstr struct{}
 
 // GetPrimaryKey returns the primary key as a slice.
-func (d *Default) GetPrimaryKey(conn *sql.DB, tableName string) ([]string, error) {
-	return nil, fmt.Errorf("this database is not supported")
+func (d *DefaultConstr) GetPrimaryKey(conn *sql.DB, tableName string) ([]string, error) {
+	return nil, fmt.Errorf("not supported")
 }
 
 // GetColumnInfo returns information of a table column as an array.
-func (d *Default) GetColumnInfo(conn *sql.DB, tableName string) (map[string][]interface{}, error) {
-	return nil, fmt.Errorf("this database is not supported")
+func (d *DefaultConstr) GetColumnInfo(conn *sql.DB, tableName string) (map[string][]interface{}, error) {
+	return nil, fmt.Errorf("not supported")
 }
