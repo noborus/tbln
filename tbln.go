@@ -128,7 +128,7 @@ func (t *Tbln) SumHash() (map[string]string, error) {
 	}
 	writer := bufio.NewWriter(&t.buffer)
 	bw := NewWriter(writer)
-	err := bw.writeExtraWithHash(t.Definition)
+	err := bw.writeExtraTarget(t.Definition, true)
 	if err != nil {
 		return nil, err
 	}
@@ -150,6 +150,11 @@ func (t *Tbln) SumHash() (map[string]string, error) {
 // SetTableName is set Table Name of the Table.
 func (d *Definition) SetTableName(name string) {
 	d.TableName = name
+	if len(name) != 0 {
+		d.Ext["TableName"] = NewExtra(name)
+	} else {
+		delete(d.Ext, "TableName")
+	}
 }
 
 // SetNames is set Column Name to the Table.
@@ -158,15 +163,30 @@ func (d *Definition) SetNames(names []string) error {
 		return err
 	}
 	d.Names = names
+	if names != nil {
+		d.Ext["name"] = NewExtra(JoinRow(names))
+		d.HashTarget("name", true)
+	} else {
+		delete(d.Ext, "name")
+	}
 	return nil
 }
 
 // SetTypes is set Column Type to Table.
 func (d *Definition) SetTypes(types []string) error {
+	if types == nil {
+		return nil
+	}
 	if err := d.setColNum(len(types)); err != nil {
 		return err
 	}
 	d.Types = types
+	if types != nil {
+		d.Ext["type"] = NewExtra(JoinRow(types))
+		d.HashTarget("type", true)
+	} else {
+		delete(d.Ext, "type")
+	}
 	return nil
 }
 

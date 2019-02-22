@@ -37,12 +37,10 @@ func (TDB *TDB) ReadTable(TableName string, pkey []string) (*Reader, error) {
 	}
 	// Primary key
 	pk, err := tr.TDB.GetPrimaryKey(tr.TDB.DB, tr.TableName)
-	if err != nil {
-		if err != ErrorNotSupport {
-			return nil, err
-		}
+	if err != nil && err != ErrorNotSupport {
+		return nil, err
 	} else if len(pk) > 0 {
-		tr.Ext["Primarykey"] = tbln.NewExtra(tbln.JoinRow(pk))
+		tr.Ext["primarykey"] = tbln.NewExtra(tbln.JoinRow(pk))
 	}
 	if len(pkey) == 0 && len(pk) > 0 {
 		pkey = pk
@@ -56,7 +54,7 @@ func (TDB *TDB) ReadTable(TableName string, pkey []string) (*Reader, error) {
 	query := fmt.Sprintf("SELECT * FROM %s ORDER BY %s", TDB.quoting(TableName), orderby)
 	err = tr.peparation(query)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("%s: [%s]", err, query)
 	}
 	return tr, nil
 }

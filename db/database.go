@@ -38,7 +38,7 @@ func Open(name string, dsn string) (*TDB, error) {
 }
 
 func (TDB *TDB) quoting(name string) string {
-	r := regexp.MustCompile(`[^a-z0-9_]+`)
+	r := regexp.MustCompile(`[^a-z\.0-9_]+`)
 	q := TDB.Style.Quote
 	escape := regexp.MustCompile(`(` + q + `)`)
 	if r.MatchString(name) {

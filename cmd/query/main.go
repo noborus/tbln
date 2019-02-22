@@ -18,7 +18,7 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	at, err := db.ReadQueryAll(conn, "SELECT * FROM city WHERE city_id=$1", os.Args[1])
+	at, err := db.ReadQueryAll(conn, os.Args[1])
 	if err != nil {
 		log.Fatal(err)
 	}

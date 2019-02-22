@@ -124,13 +124,13 @@ func TestTbln_SumHash(t *testing.T) {
 		},
 		{
 			name:    "testNames",
-			fields:  fields{Definition: Definition{Names: []string{"id"}, ColumnNum: 1}, Rows: [][]string{{"1"}}, RowNum: 1},
+			fields:  fields{Definition: Definition{Ext: make(map[string]Extra), Names: []string{"id"}, ColumnNum: 1}, Rows: [][]string{{"1"}}, RowNum: 1},
 			want:    map[string]string{"sha256": "e5ce5f72c836840efdbcbf7639075966944253ef438a305761d888158a6b22a8"},
 			wantErr: false,
 		},
 		{
 			name:    "testFullRow",
-			fields:  fields{Definition: Definition{Names: []string{"id", "name"}, Types: []string{"int", "text"}, ColumnNum: 2}, Rows: [][]string{{"1", "test"}}, RowNum: 1},
+			fields:  fields{Definition: Definition{Ext: make(map[string]Extra), Names: []string{"id", "name"}, Types: []string{"int", "text"}, ColumnNum: 2}, Rows: [][]string{{"1", "test"}}, RowNum: 1},
 			want:    map[string]string{"sha256": "fcc150288d592d5c0cf13eed4b1054f6fadbfd2c48cde10954b44d6b7fc42623"},
 			wantErr: false,
 		},
@@ -144,6 +144,8 @@ func TestTbln_SumHash(t *testing.T) {
 				RowNum:     tt.fields.RowNum,
 				Rows:       tt.fields.Rows,
 			}
+			tb.SetNames(tb.Names)
+			tb.SetTypes(tb.Types)
 			got, err := tb.SumHash()
 			if (err != nil) != tt.wantErr {
 				t.Errorf("Tbln.SumHash() error = %v, wantErr %v", err, tt.wantErr)
@@ -174,9 +176,9 @@ func TestDefinition_SetNames(t *testing.T) {
 		args    args
 		wantErr bool
 	}{
-		{name: "test1", args: args{names: []string{"a", "b"}}, wantErr: false},
-		{name: "test2", fields: fields{ColumnNum: 3}, args: args{names: []string{"a", "b", "c"}}, wantErr: false},
-		{name: "test3", fields: fields{ColumnNum: 2}, args: args{names: []string{"a", "b", "c"}}, wantErr: true},
+		{name: "test1", fields: fields{Ext: make(map[string]Extra)}, args: args{names: []string{"a", "b"}}, wantErr: false},
+		{name: "test2", fields: fields{Ext: make(map[string]Extra), ColumnNum: 3}, args: args{names: []string{"a", "b", "c"}}, wantErr: false},
+		{name: "test3", fields: fields{Ext: make(map[string]Extra), ColumnNum: 2}, args: args{names: []string{"a", "b", "c"}}, wantErr: true},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -213,9 +215,9 @@ func TestDefinition_SetTypes(t *testing.T) {
 		args    args
 		wantErr bool
 	}{
-		{name: "test1", args: args{types: []string{"int", "text"}}, wantErr: false},
-		{name: "test2", fields: fields{ColumnNum: 3}, args: args{types: []string{"int", "text", "text"}}, wantErr: false},
-		{name: "test3", fields: fields{ColumnNum: 2}, args: args{types: []string{"int", "text", "text"}}, wantErr: true},
+		{name: "test1", fields: fields{Ext: make(map[string]Extra)}, args: args{types: []string{"int", "text"}}, wantErr: false},
+		{name: "test2", fields: fields{Ext: make(map[string]Extra), ColumnNum: 3}, args: args{types: []string{"int", "text", "text"}}, wantErr: false},
+		{name: "test3", fields: fields{Ext: make(map[string]Extra), ColumnNum: 2}, args: args{types: []string{"int", "text", "text"}}, wantErr: true},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
