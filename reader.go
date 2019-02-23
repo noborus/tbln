@@ -41,21 +41,19 @@ func ReadAll(reader io.Reader) (*Tbln, error) {
 	r := NewReader(reader)
 	at := &Tbln{}
 	at.Rows = make([][]string, 0)
-	var err error
 	for {
 		rec, err := r.ReadRow()
 		if err != nil {
-			break
+			if err == io.EOF {
+				at.Definition = r.Definition
+				at.Hash = r.Hash
+				return at, nil
+			}
+			return nil, err
 		}
 		at.RowNum++
 		at.Rows = append(at.Rows, rec)
 	}
-	if err != io.EOF {
-		at.Definition = r.Definition
-		at.Hash = r.Hash
-		return at, nil
-	}
-	return nil, err
 }
 
 // Return on one line or blank line.

@@ -56,23 +56,24 @@ type Write interface {
 	WriteRow([]string) error
 }
 
-// ESCAPE is escape | -> ||
-var ESCAPE = regexp.MustCompile(`(\|+)`)
-
-// UNESCAPE is unescape || -> |
-var UNESCAPE = regexp.MustCompile(`\|(\|+)`)
-
 // JoinRow makes a Row array a character string.
 func JoinRow(row []string) string {
 	var b strings.Builder
 	b.WriteString("|")
 	for _, column := range row {
-		if strings.Contains(column, "|") {
-			column = ESCAPE.ReplaceAllString(column, "|$1")
-		}
-		b.WriteString(" " + column + " |")
+		b.WriteString(" " + escape(column) + " |")
 	}
 	return b.String()
+}
+
+// ESCAPE is escape | -> ||
+var ESCAPE = regexp.MustCompile(`(\|+)`)
+
+func escape(str string) string {
+	if strings.Contains(str, "|") {
+		str = ESCAPE.ReplaceAllString(str, "|$1")
+	}
+	return str
 }
 
 // SplitRow divides a character string into a row array.
@@ -86,6 +87,9 @@ func SplitRow(body string) []string {
 	rec := strings.Split(body, " | ")
 	return unescape(rec)
 }
+
+// UNESCAPE is unescape || -> |
+var UNESCAPE = regexp.MustCompile(`\|(\|+)`)
 
 // unescape vertical bars || -> |
 func unescape(rec []string) []string {
