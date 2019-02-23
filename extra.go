@@ -16,7 +16,7 @@ func NewExtra(value interface{}) Extra {
 	}
 }
 
-func sortExt(ext map[string]Extra) list {
+func sortExtra(ext map[string]Extra) list {
 	l := list{}
 	for key, extra := range ext {
 		e := entry{key, extra}

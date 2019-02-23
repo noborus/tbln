@@ -84,7 +84,7 @@ func (w *Writer) writeExtra(d Definition) error {
 }
 
 func (w *Writer) writeExtraTarget(d Definition, targetFlag bool) error {
-	ext := sortExt(d.Ext)
+	ext := sortExtra(d.Ext)
 	for _, entry := range ext {
 		if entry.v.hashTarget != targetFlag {
 			continue
