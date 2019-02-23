@@ -36,6 +36,28 @@ func (tr *Reader) ReadRow() ([]string, error) {
 	return rec, nil
 }
 
+// ReadAll reads all io.Reader
+func ReadAll(reader io.Reader) (*Tbln, error) {
+	r := NewReader(reader)
+	at := &Tbln{}
+	at.Rows = make([][]string, 0)
+	var err error
+	for {
+		rec, err := r.ReadRow()
+		if err != nil {
+			break
+		}
+		at.RowNum++
+		at.Rows = append(at.Rows, rec)
+	}
+	if err != io.EOF {
+		at.Definition = r.Definition
+		at.Hash = r.Hash
+		return at, nil
+	}
+	return nil, err
+}
+
 // Return on one line or blank line.
 func (tr *Reader) scanLine() ([]string, error) {
 	for {
@@ -87,26 +109,4 @@ func (tr *Reader) analyzeExt(extstr string) error {
 		}
 	}
 	return nil
-}
-
-// ReadAll reads all io.Reader
-func ReadAll(reader io.Reader) (*Tbln, error) {
-	r := NewReader(reader)
-	at := &Tbln{}
-	at.Rows = make([][]string, 0)
-	var err error
-	for {
-		rec, err := r.ReadRow()
-		if err != nil {
-			break
-		}
-		at.RowNum++
-		at.Rows = append(at.Rows, rec)
-	}
-	if err != io.EOF {
-		at.Definition = r.Definition
-		at.Hash = r.Hash
-		return at, nil
-	}
-	return nil, err
 }

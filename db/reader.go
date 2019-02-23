@@ -27,7 +27,7 @@ func (TDB *TDB) ReadTable(TableName string, pkey []string) (*Reader, error) {
 	}
 	tr.SetTableName(TableName)
 	// Constraint
-	columns, err := tr.TDB.GetColumnInfo(tr.TDB.DB, tr.TableName)
+	columns, err := tr.GetColumnInfo(tr.TDB.DB, tr.TableName)
 	if err != nil {
 		if err != ErrorNotSupport {
 			return nil, err
@@ -36,7 +36,7 @@ func (TDB *TDB) ReadTable(TableName string, pkey []string) (*Reader, error) {
 		tr.constraint(columns)
 	}
 	// Primary key
-	pk, err := tr.TDB.GetPrimaryKey(tr.TDB.DB, tr.TableName)
+	pk, err := tr.GetPrimaryKey(tr.TDB.DB, tr.TableName)
 	if err != nil && err != ErrorNotSupport {
 		return nil, err
 	} else if len(pk) > 0 {
@@ -57,23 +57,6 @@ func (TDB *TDB) ReadTable(TableName string, pkey []string) (*Reader, error) {
 		return nil, fmt.Errorf("%s: [%s]", err, query)
 	}
 	return tr, nil
-}
-
-func (tr *Reader) constraint(columns map[string][]interface{}) (map[string]string, error) {
-	for k, v := range columns {
-		col := make([]string, len(v))
-		visible := false
-		for i, c := range v {
-			col[i] = valString(c)
-			if col[i] != "" {
-				visible = true
-			}
-		}
-		if visible {
-			tr.Ext[strings.ToLower(k)] = tbln.NewExtra(tbln.JoinRow(col))
-		}
-	}
-	return nil, nil
 }
 
 // ReadQuery is reates a structure for reading from query.
@@ -106,23 +89,64 @@ func (tr *Reader) ReadRow() ([]string, error) {
 	return rec, nil
 }
 
-func valString(v interface{}) string {
-	var str string
-	b, ok := v.([]byte)
-	if ok {
-		str = string(b)
-	} else {
-		switch t := v.(type) {
-		case nil:
-			str = ""
-		case time.Time:
-			str = t.Format(time.RFC3339)
-		default:
-			str = fmt.Sprint(v)
-		}
-
+// ReadTableAll reads all rows in the table.
+func ReadTableAll(TDB *TDB, TableName string) (*tbln.Tbln, error) {
+	r, err := TDB.ReadTable(TableName, nil)
+	if err != nil {
+		return nil, err
 	}
-	return str
+	return readRowsAll(r)
+}
+
+// ReadQueryAll reads all rows in the table.
+func ReadQueryAll(TDB *TDB, query string, args ...interface{}) (*tbln.Tbln, error) {
+	r, err := TDB.ReadQuery(query, args...)
+	if err != nil {
+		return nil, err
+	}
+	return readRowsAll(r)
+}
+
+func readRowsAll(rd *Reader) (at *tbln.Tbln, err error) {
+	at = &tbln.Tbln{}
+	at.Definition = rd.Definition
+	at.Rows = make([][]string, 0)
+	defer func() {
+		cerr := rd.rows.Close()
+		if err == nil {
+			err = cerr
+		}
+	}()
+	for {
+		var rec []string
+		rec, err = rd.ReadRow()
+		if err != nil {
+			return at, err
+		}
+		if rec == nil {
+			break
+		}
+		at.RowNum++
+		at.Rows = append(at.Rows, rec)
+	}
+	return
+}
+
+func (tr *Reader) constraint(columns map[string][]interface{}) (map[string]string, error) {
+	for k, v := range columns {
+		col := make([]string, len(v))
+		visible := false
+		for i, c := range v {
+			col[i] = valString(c)
+			if col[i] != "" {
+				visible = true
+			}
+		}
+		if visible {
+			tr.Ext[strings.ToLower(k)] = tbln.NewExtra(tbln.JoinRow(col))
+		}
+	}
+	return nil, nil
 }
 
 // preparation is read preparation.
@@ -178,6 +202,25 @@ func (tr *Reader) setExtra(rows *sql.Rows) error {
 	return nil
 }
 
+func valString(v interface{}) string {
+	var str string
+	b, ok := v.([]byte)
+	if ok {
+		str = string(b)
+	} else {
+		switch t := v.(type) {
+		case nil:
+			str = ""
+		case time.Time:
+			str = t.Format(time.RFC3339)
+		default:
+			str = fmt.Sprint(v)
+		}
+
+	}
+	return str
+}
+
 func convertType(dbtype string) string {
 	switch strings.ToLower(dbtype) {
 	case "smallint", "integer", "int", "int2", "int4", "smallserial", "serial":
@@ -195,47 +238,4 @@ func convertType(dbtype string) string {
 	default:
 		return "text"
 	}
-}
-
-// ReadTableAll reads all rows in the table.
-func ReadTableAll(TDB *TDB, TableName string) (*tbln.Tbln, error) {
-	r, err := TDB.ReadTable(TableName, nil)
-	if err != nil {
-		return nil, err
-	}
-	return readRowsAll(r)
-}
-
-// ReadQueryAll reads all rows in the table.
-func ReadQueryAll(TDB *TDB, query string, args ...interface{}) (*tbln.Tbln, error) {
-	r, err := TDB.ReadQuery(query, args...)
-	if err != nil {
-		return nil, err
-	}
-	return readRowsAll(r)
-}
-
-func readRowsAll(rd *Reader) (at *tbln.Tbln, err error) {
-	at = &tbln.Tbln{}
-	at.Definition = rd.Definition
-	at.Rows = make([][]string, 0)
-	defer func() {
-		cerr := rd.rows.Close()
-		if err == nil {
-			err = cerr
-		}
-	}()
-	for {
-		var rec []string
-		rec, err = rd.ReadRow()
-		if err != nil {
-			return at, err
-		}
-		if rec == nil {
-			break
-		}
-		at.RowNum++
-		at.Rows = append(at.Rows, rec)
-	}
-	return
 }

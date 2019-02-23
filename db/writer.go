@@ -33,6 +33,32 @@ func NewWriter(TDB *TDB, definition tbln.Definition, create bool) *Writer {
 	}
 }
 
+// WriteRow is write one row.
+func (tw *Writer) WriteRow(row []string) error {
+	r := make([]interface{}, len(row))
+	for i, v := range row {
+		r[i] = tw.convertDBType(tw.Types[i], v)
+	}
+	_, err := tw.stmt.Exec(r...)
+	return err
+}
+
+// WriteTable writes all rows to the table.
+func WriteTable(TDB *TDB, tbln *tbln.Tbln, create bool) error {
+	w := NewWriter(TDB, tbln.Definition, create)
+	err := w.WriteDefinition()
+	if err != nil {
+		return err
+	}
+	for _, row := range tbln.Rows {
+		err = w.WriteRow(row)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
 // WriteDefinition is create table and insert preparation.
 func (tw *Writer) WriteDefinition() error {
 	if tw.Names == nil {
@@ -111,30 +137,4 @@ func (tw *Writer) convertDBType(dbtype string, value string) interface{} {
 		return value
 	}
 	return value
-}
-
-// WriteRow is write one row.
-func (tw *Writer) WriteRow(row []string) error {
-	r := make([]interface{}, len(row))
-	for i, v := range row {
-		r[i] = tw.convertDBType(tw.Types[i], v)
-	}
-	_, err := tw.stmt.Exec(r...)
-	return err
-}
-
-// WriteTable writes all rows to the table.
-func WriteTable(TDB *TDB, tbln *tbln.Tbln, create bool) error {
-	w := NewWriter(TDB, tbln.Definition, create)
-	err := w.WriteDefinition()
-	if err != nil {
-		return err
-	}
-	for _, row := range tbln.Rows {
-		err = w.WriteRow(row)
-		if err != nil {
-			return err
-		}
-	}
-	return nil
 }

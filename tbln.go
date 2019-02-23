@@ -201,20 +201,6 @@ func (d *Definition) setColNum(colNum int) error {
 	return nil
 }
 
-// Extra is table definition extra struct.
-type Extra struct {
-	value      interface{}
-	hashTarget bool
-}
-
-// NewExtra is return new extra struct.
-func NewExtra(value interface{}) Extra {
-	return Extra{
-		value:      value,
-		hashTarget: false,
-	}
-}
-
 // HashTarget is set as target of hash
 func (d *Definition) HashTarget(key string, target bool) {
 	if v, ok := d.Ext[key]; ok {
