@@ -4,16 +4,23 @@ import (
 	"bufio"
 	"bytes"
 	"crypto/sha256"
+	"crypto/sha512"
 	"fmt"
 	"regexp"
 	"strings"
 	"time"
 )
 
+const (
+	SHA256 = iota
+	SHA512
+)
+
+type HashType int
+
 // Tbln struct is tbln Definition + Tbln rows.
 type Tbln struct {
 	Definition
-	Hash   map[string]string
 	buffer bytes.Buffer
 	RowNum int
 	Rows   [][]string
@@ -34,14 +41,17 @@ type Definition struct {
 	Names     []string
 	Types     []string
 	Ext       map[string]Extra
+	Hash      map[string]string
 }
 
 // NewDefinition is create Definition struct.
 func NewDefinition() Definition {
 	ext := make(map[string]Extra)
 	ext["created_at"] = NewExtra(time.Now().Format(time.RFC3339))
+	hash := make(map[string]string)
 	return Definition{
-		Ext: ext,
+		Ext:  ext,
+		Hash: hash,
 	}
 }
 
@@ -126,7 +136,7 @@ func checkRow(ColumnNum int, row []string) (int, error) {
 
 // SumHash is returns the calculated checksum.
 // Checksum target is exported to buffer and saved.
-func (t *Tbln) SumHash() (map[string]string, error) {
+func (t *Tbln) SumHash(h HashType) (map[string]string, error) {
 	if t.Hash == nil {
 		t.Hash = make(map[string]string)
 	}
@@ -146,8 +156,16 @@ func (t *Tbln) SumHash() (map[string]string, error) {
 	if err != nil {
 		return nil, err
 	}
-	sum := sha256.Sum256(t.buffer.Bytes())
-	t.Hash["sha256"] = fmt.Sprintf("%x", sum)
+	switch h {
+	case SHA256:
+		sum := sha256.Sum256(t.buffer.Bytes())
+		t.Hash["sha256"] = fmt.Sprintf("%x", sum)
+	case SHA512:
+		sum := sha512.Sum512(t.buffer.Bytes())
+		t.Hash["sha512"] = fmt.Sprintf("%x", sum)
+	default:
+		return nil, fmt.Errorf("not support")
+	}
 	return t.Hash, nil
 }
 
@@ -201,6 +219,15 @@ func (d *Definition) setColNum(colNum int) error {
 	}
 	if colNum != d.ColumnNum {
 		return fmt.Errorf("number of columns is different")
+	}
+	return nil
+}
+
+// SetHashes is set hashes.
+func (d *Definition) SetHashes(hashes []string) error {
+	for _, hash := range hashes {
+		h := strings.SplitN(hash, ":", 2)
+		d.Hash[h[0]] = h[1]
 	}
 	return nil
 }

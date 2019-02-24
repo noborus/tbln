@@ -35,20 +35,29 @@ func (c *Constr) GetPrimaryKey(conn *sql.DB, tableName string) ([]string, error)
 
 // GetColumnInfo returns information of a table column as an array.
 func (c *Constr) GetColumnInfo(conn *sql.DB, tableName string) (map[string][]interface{}, error) {
-	query := `SELECT
-	              column_default
-              , is_nullable
-              , data_type AS postgres_type
-              , character_maximum_length
-              , character_octet_length
-              , numeric_precision
-              , numeric_precision_radix
-              , numeric_scale
-              , datetime_precision
-              , interval_type
-	     FROM information_schema.columns
-        WHERE table_catalog = current_database()
-		    AND table_name = $1
-	    ORDER BY ordinal_position;`
+	query := `WITH u AS (
+		SELECT DISTINCT tc.table_name, cc.column_name, 'YES' as is_unique
+			FROM information_schema.table_constraints AS tc
+			LEFT JOIN information_schema.constraint_column_usage AS cc
+				ON (tc.table_name = cc.table_name AND tc.constraint_type = 'UNIQUE')
+		 WHERE tc.table_name = $1
+	)
+	SELECT
+			column_default
+			, is_nullable
+			, data_type AS postgres_type
+			, character_maximum_length
+  		, character_octet_length
+		  , numeric_precision
+			, numeric_precision_radix
+			, numeric_scale
+			, datetime_precision
+			, interval_type
+			, u.is_unique
+		FROM information_schema.columns AS t
+		LEFT JOIN u
+			ON (t.table_name = u.table_name AND t.column_name = u.column_name)
+		WHERE t.table_name = $1
+	 ORDER BY t.ordinal_position;`
 	return db.GetColumnInfo(conn, query, tableName)
 }

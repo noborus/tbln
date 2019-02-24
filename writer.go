@@ -40,14 +40,16 @@ func WriteAll(writer io.Writer, tbln *Tbln) error {
 	if err != nil {
 		return err
 	}
-	if tbln.buffer.Len() > 0 {
-		for n, v := range tbln.Hash {
-			_, err := fmt.Fprintf(w.Writer, "; %s: %s\n", n, v)
-			if err != nil {
-				return err
-			}
+	if len(tbln.Hash) > 0 {
+		hash := make([]string, 0, len(tbln.Hash))
+		for k, v := range tbln.Hash {
+			hash = append(hash, k+":"+v)
 		}
-		_, err := w.Writer.Write(tbln.buffer.Bytes())
+		_, err := fmt.Fprintf(w.Writer, "; Hash: %s\n", JoinRow(hash))
+		if err != nil {
+			return err
+		}
+		_, err = w.Writer.Write(tbln.buffer.Bytes())
 		if err != nil {
 			return err
 		}

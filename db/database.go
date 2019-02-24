@@ -68,8 +68,8 @@ func GetPrimaryKey(conn *sql.DB, query string, tableName string) ([]string, erro
 }
 
 // GetColumnInfo returns information of a table column as an array.
-func GetColumnInfo(conn *sql.DB, query string, tableName string) (map[string][]interface{}, error) {
-	rows, err := conn.Query(query, tableName)
+func GetColumnInfo(conn *sql.DB, query string, args ...interface{}) (map[string][]interface{}, error) {
+	rows, err := conn.Query(query, args...)
 	if err != nil {
 		return nil, err
 	}

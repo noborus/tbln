@@ -22,7 +22,7 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	_, err = at.SumHash()
+	_, err = at.SumHash(tbln.SHA256)
 	if err != nil {
 		log.Fatal(err)
 	}

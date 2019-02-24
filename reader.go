@@ -10,7 +10,6 @@ import (
 // Reader is reader struct.
 type Reader struct {
 	Definition
-	Hash   map[string]string
 	Reader *bufio.Reader
 }
 
@@ -18,7 +17,6 @@ type Reader struct {
 func NewReader(reader io.Reader) *Reader {
 	return &Reader{
 		Definition: NewDefinition(),
-		Hash:       make(map[string]string),
 		Reader:     bufio.NewReader(reader),
 	}
 }
@@ -97,8 +95,8 @@ func (tr *Reader) analyzeExt(extstr string) error {
 		return tr.SetTypes(SplitRow(value))
 	case "TableName":
 		tr.SetTableName(value)
-	case "sha256":
-		tr.Hash["sha256"] = value
+	case "Hash":
+		tr.SetHashes(SplitRow(value))
 	default:
 		if len(tr.Hash) > 0 {
 			tr.Ext[key] = Extra{value: value, hashTarget: true}

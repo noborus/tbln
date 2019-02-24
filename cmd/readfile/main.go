@@ -17,7 +17,7 @@ func main() {
 		log.Fatal(err)
 	}
 	rh := at.Hash["sha256"]
-	h, err := at.SumHash()
+	h, err := at.SumHash(tbln.SHA256)
 	if err != nil {
 		log.Fatal(err)
 	}

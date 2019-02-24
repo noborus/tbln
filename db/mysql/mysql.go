@@ -32,17 +32,27 @@ func (c *Constr) GetPrimaryKey(conn *sql.DB, tableName string) ([]string, error)
 
 // GetColumnInfo returns information of a table column as an array.
 func (c *Constr) GetColumnInfo(conn *sql.DB, tableName string) (map[string][]interface{}, error) {
-	query := `SELECT
-		        column_default
+	query := `WITH u AS (
+		SELECT DISTINCT tc.table_name, cc.column_name, 'YES' as constraint_unique
+			FROM information_schema.table_constraints AS tc
+			LEFT JOIN information_schema.KEY_COLUMN_USAGE AS cc
+				ON (tc.table_name = cc.table_name AND tc.constraint_type = 'UNIQUE')
+		 WHERE tc.table_name = ?
+	)
+	   SELECT column_default
               , is_nullable
               , data_type AS mysql_type
               , character_maximum_length
               , character_octet_length
               , numeric_precision
               , numeric_scale
-              , datetime_precision
-	     FROM information_schema.columns
-        WHERE table_name = ?
+							, datetime_precision
+							, u.constraint_unique
+			 FROM information_schema.columns AS tc 
+			 LEFT JOIN u 
+				      ON (tc.table_name = u.table_name 
+				     AND tc.column_name = u.column_name ) 
+						 WHERE tc.table_name = ?
 		ORDER BY ordinal_position;`
-	return db.GetColumnInfo(conn, query, tableName)
+	return db.GetColumnInfo(conn, query, tableName, tableName)
 }

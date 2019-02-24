@@ -40,7 +40,6 @@ func TestTbln_AddRows(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			tb := &Tbln{
 				Definition: tt.fields.Definition,
-				Hash:       tt.fields.Hash,
 				buffer:     tt.fields.buffer,
 				RowNum:     tt.fields.RowNum,
 				Rows:       tt.fields.Rows,
@@ -139,20 +138,19 @@ func TestTbln_SumHash(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			tb := &Tbln{
 				Definition: tt.fields.Definition,
-				Hash:       tt.fields.Hash,
 				buffer:     tt.fields.buffer,
 				RowNum:     tt.fields.RowNum,
 				Rows:       tt.fields.Rows,
 			}
 			tb.SetNames(tb.Names)
 			tb.SetTypes(tb.Types)
-			got, err := tb.SumHash()
+			got, err := tb.SumHash(SHA256)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("Tbln.SumHash() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("Tbln.SumHash(SHA256) error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 			if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("Tbln.SumHash() = %v, want %v", got, tt.want)
+				t.Errorf("Tbln.SumHash(SHA256) = %v, want %v", got, tt.want)
 			}
 		})
 	}

@@ -2,6 +2,7 @@ package db
 
 import (
 	"database/sql"
+	"encoding/hex"
 	"fmt"
 	"strings"
 	"time"
@@ -204,19 +205,15 @@ func (tr *Reader) setExtra(rows *sql.Rows) error {
 
 func valString(v interface{}) string {
 	var str string
-	b, ok := v.([]byte)
-	if ok {
-		str = string(b)
-	} else {
-		switch t := v.(type) {
-		case nil:
-			str = ""
-		case time.Time:
-			str = t.Format(time.RFC3339)
-		default:
-			str = fmt.Sprint(v)
-		}
-
+	switch t := v.(type) {
+	case nil:
+		str = ""
+	case time.Time:
+		str = t.Format(time.RFC3339)
+	case []byte:
+		str = `\x` + hex.EncodeToString(t)
+	default:
+		str = fmt.Sprint(v)
 	}
 	return str
 }
