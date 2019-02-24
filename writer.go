@@ -3,6 +3,7 @@ package tbln
 import (
 	"fmt"
 	"io"
+	"sort"
 )
 
 // Writer is writer struct.
@@ -84,12 +85,16 @@ func (w *Writer) writeExtra(d Definition) error {
 }
 
 func (w *Writer) writeExtraTarget(d Definition, targetFlag bool) error {
-	ext := sortExtra(d.Ext)
-	for _, entry := range ext {
-		if entry.v.hashTarget != targetFlag {
+	keys := make([]string, 0, len(d.Ext))
+	for k := range d.Ext {
+		keys = append(keys, k)
+	}
+	sort.Strings(keys)
+	for _, k := range keys {
+		if d.Ext[k].hashTarget != targetFlag {
 			continue
 		}
-		_, err := fmt.Fprintf(w.Writer, "; %s: %s\n", entry.n, entry.v.value)
+		_, err := fmt.Fprintf(w.Writer, "; %s: %s\n", k, d.Ext[k].value)
 		if err != nil {
 			return err
 		}
