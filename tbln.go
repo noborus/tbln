@@ -42,18 +42,18 @@ type Definition struct {
 	Comments  []string
 	Names     []string
 	Types     []string
-	Ext       map[string]Extra
-	Hash      map[string]string
+	Extras    map[string]Extra
+	Hashes    map[string]string
 }
 
 // NewDefinition is create Definition struct.
 func NewDefinition() Definition {
-	ext := make(map[string]Extra)
-	ext["created_at"] = NewExtra(time.Now().Format(time.RFC3339))
-	hash := make(map[string]string)
+	extras := make(map[string]Extra)
+	extras["created_at"] = NewExtra(time.Now().Format(time.RFC3339), false)
+	hashes := make(map[string]string)
 	return Definition{
-		Ext:  ext,
-		Hash: hash,
+		Extras: extras,
+		Hashes: hashes,
 	}
 }
 
@@ -64,10 +64,10 @@ type Extra struct {
 }
 
 // NewExtra is return new extra struct.
-func NewExtra(value interface{}) Extra {
+func NewExtra(value interface{}, hashTarget bool) Extra {
 	return Extra{
 		value:      value,
-		hashTarget: false,
+		hashTarget: hashTarget,
 	}
 }
 
@@ -153,8 +153,8 @@ func checkRow(ColumnNum int, row []string) (int, error) {
 // SumHash is returns the calculated checksum.
 // Checksum target is exported to buffer and saved.
 func (t *Tbln) SumHash(hashType HashType) (map[string]string, error) {
-	if t.Hash == nil {
-		t.Hash = make(map[string]string)
+	if t.Hashes == nil {
+		t.Hashes = make(map[string]string)
 	}
 	writer := bufio.NewWriter(&t.buffer)
 	bw := NewWriter(writer)
@@ -175,14 +175,14 @@ func (t *Tbln) SumHash(hashType HashType) (map[string]string, error) {
 	switch hashType {
 	case SHA256:
 		sum := sha256.Sum256(t.buffer.Bytes())
-		t.Hash["sha256"] = fmt.Sprintf("%x", sum)
+		t.Hashes["sha256"] = fmt.Sprintf("%x", sum)
 	case SHA512:
 		sum := sha512.Sum512(t.buffer.Bytes())
-		t.Hash["sha512"] = fmt.Sprintf("%x", sum)
+		t.Hashes["sha512"] = fmt.Sprintf("%x", sum)
 	default:
 		return nil, fmt.Errorf("not support")
 	}
-	return t.Hash, nil
+	return t.Hashes, nil
 }
 
 // TableName returns the Table Name.
@@ -194,9 +194,9 @@ func (d *Definition) TableName() string {
 func (d *Definition) SetTableName(name string) {
 	d.tableName = name
 	if len(name) != 0 {
-		d.Ext["TableName"] = NewExtra(name)
+		d.Extras["TableName"] = NewExtra(name, false)
 	} else {
-		delete(d.Ext, "TableName")
+		delete(d.Extras, "TableName")
 	}
 }
 
@@ -207,10 +207,9 @@ func (d *Definition) SetNames(names []string) error {
 	}
 	d.Names = names
 	if names != nil {
-		d.Ext["name"] = NewExtra(JoinRow(names))
-		d.HashTarget("name", true)
+		d.Extras["name"] = NewExtra(JoinRow(names), true)
 	} else {
-		delete(d.Ext, "name")
+		delete(d.Extras, "name")
 	}
 	return nil
 }
@@ -225,10 +224,9 @@ func (d *Definition) SetTypes(types []string) error {
 	}
 	d.Types = types
 	if types != nil {
-		d.Ext["type"] = NewExtra(JoinRow(types))
-		d.HashTarget("type", true)
+		d.Extras["type"] = NewExtra(JoinRow(types), true)
 	} else {
-		delete(d.Ext, "type")
+		delete(d.Extras, "type")
 	}
 	return nil
 }
@@ -253,14 +251,14 @@ func (d *Definition) setColNum(colNum int) error {
 func (d *Definition) SetHashes(hashes []string) {
 	for _, hash := range hashes {
 		h := strings.SplitN(hash, ":", 2)
-		d.Hash[h[0]] = h[1]
+		d.Hashes[h[0]] = h[1]
 	}
 }
 
 // HashTarget is set as target of hash
 func (d *Definition) HashTarget(key string, target bool) {
-	if v, ok := d.Ext[key]; ok {
+	if v, ok := d.Extras[key]; ok {
 		v.hashTarget = target
-		d.Ext[key] = v
+		d.Extras[key] = v
 	}
 }

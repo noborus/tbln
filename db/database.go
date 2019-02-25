@@ -7,11 +7,11 @@ import (
 
 // TDB is sql.DB wrapper.
 type TDB struct {
-	db *sql.DB
-	tx *sql.Tx
+	Name string
+	*sql.DB
+	*sql.Tx
 	Style
 	Constraint
-	Name string
 }
 
 // Open is tbln/db Open.
@@ -30,7 +30,7 @@ func Open(name string, dsn string) (*TDB, error) {
 	db, err := sql.Open(name, dsn)
 	TDB := &TDB{
 		Name:       name,
-		db:         db,
+		DB:         db,
 		Style:      d.Style,
 		Constraint: d.Constraint,
 	}

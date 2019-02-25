@@ -19,9 +19,9 @@ type Writer struct {
 
 // NewWriter is DB write struct.
 func NewWriter(tdb *TDB, definition tbln.Definition, create bool) *Writer {
-	if tdb.tx == nil {
+	if tdb.Tx == nil {
 		var err error
-		tdb.tx, err = tdb.db.Begin()
+		tdb.Tx, err = tdb.Begin()
 		if err != nil {
 			return nil
 		}
@@ -95,7 +95,7 @@ func (tw *Writer) createTable() error {
 	}
 	sql := fmt.Sprintf("CREATE TABLE %s ( %s );",
 		tw.quoting(tw.TableName()), strings.Join(col, ", "))
-	_, err := tw.tx.Exec(sql)
+	_, err := tw.Tx.Exec(sql)
 	if err != nil {
 		return fmt.Errorf("%s: %s", err, sql)
 	}
@@ -117,7 +117,7 @@ func (tw *Writer) prepara() error {
 	insert := fmt.Sprintf(
 		"INSERT INTO %s ( %s ) VALUES ( %s );",
 		tw.quoting(tw.TableName()), strings.Join(names, ", "), strings.Join(ph, ", "))
-	tw.stmt, err = tw.tx.Prepare(insert)
+	tw.stmt, err = tw.Tx.Prepare(insert)
 	if err != nil {
 		return fmt.Errorf("%s: %s", err, insert)
 	}

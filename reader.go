@@ -44,7 +44,7 @@ func ReadAll(reader io.Reader) (*Tbln, error) {
 		if err != nil {
 			if err == io.EOF {
 				at.Definition = r.Definition
-				at.Hash = r.Hash
+				at.Hashes = r.Hashes
 				return at, nil
 			}
 			return nil, err
@@ -98,10 +98,10 @@ func (tr *Reader) analyzeExt(extstr string) error {
 	case "Hash":
 		tr.SetHashes(SplitRow(value))
 	default:
-		if len(tr.Hash) > 0 {
-			tr.Ext[key] = Extra{value: value, hashTarget: true}
+		if len(tr.Hashes) > 0 {
+			tr.Extras[key] = NewExtra(value, true)
 		} else {
-			tr.Ext[key] = Extra{value: value, hashTarget: false}
+			tr.Extras[key] = NewExtra(value, false)
 		}
 	}
 	return nil

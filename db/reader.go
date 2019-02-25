@@ -29,7 +29,7 @@ func (tdb *TDB) ReadTable(tableName string, pkey []string) (*Reader, error) {
 	}
 	tr.SetTableName(tableName)
 	// Constraint
-	info, err := tr.GetColumnInfo(tdb.db, tableName)
+	info, err := tr.GetColumnInfo(tdb.DB, tableName)
 	if err != nil {
 		if err != ErrorNotSupport {
 			return nil, err
@@ -37,11 +37,11 @@ func (tdb *TDB) ReadTable(tableName string, pkey []string) (*Reader, error) {
 	}
 	tr.setExtraInfo(info)
 	// Primary key
-	pk, err := tr.GetPrimaryKey(tr.TDB.db, tableName)
+	pk, err := tr.GetPrimaryKey(tr.TDB.DB, tableName)
 	if err != nil && err != ErrorNotSupport {
 		return nil, err
 	} else if len(pk) > 0 {
-		tr.Ext["primarykey"] = tbln.NewExtra(tbln.JoinRow(pk))
+		tr.Extras["primarykey"] = tbln.NewExtra(tbln.JoinRow(pk), false)
 	}
 	if len(pkey) == 0 && len(pk) > 0 {
 		pkey = pk
@@ -144,7 +144,7 @@ func (tr *Reader) setExtraInfo(constraints map[string][]interface{}) {
 			}
 		}
 		if visible {
-			tr.Ext[strings.ToLower(k)] = tbln.NewExtra(tbln.JoinRow(col))
+			tr.Extras[strings.ToLower(k)] = tbln.NewExtra(tbln.JoinRow(col), false)
 		}
 	}
 }
@@ -152,7 +152,7 @@ func (tr *Reader) setExtraInfo(constraints map[string][]interface{}) {
 // preparation is read preparation.
 func (tr *Reader) peparation(query string, args ...interface{}) error {
 	tr.query = query
-	rows, err := tr.db.Query(query, args...)
+	rows, err := tr.DB.Query(query, args...)
 	if err != nil {
 		return err
 	}
@@ -196,8 +196,8 @@ func (tr *Reader) setExtra(rows *sql.Rows) error {
 		return err
 	}
 	// Database type
-	if _, ok := tr.Ext[tr.Name+"_type"]; !ok {
-		tr.Ext[tr.Name+"_type"] = tbln.NewExtra(tbln.JoinRow(dbtypes))
+	if _, ok := tr.Extras[tr.Name+"_type"]; !ok {
+		tr.Extras[tr.Name+"_type"] = tbln.NewExtra(tbln.JoinRow(dbtypes), false)
 	}
 	return nil
 }

@@ -40,9 +40,9 @@ func WriteAll(writer io.Writer, tbln *Tbln) error {
 	if err != nil {
 		return err
 	}
-	if len(tbln.Hash) > 0 {
-		hash := make([]string, 0, len(tbln.Hash))
-		for k, v := range tbln.Hash {
+	if len(tbln.Hashes) > 0 {
+		hash := make([]string, 0, len(tbln.Hashes))
+		for k, v := range tbln.Hashes {
 			hash = append(hash, k+":"+v)
 		}
 		_, err := fmt.Fprintf(w.Writer, "; Hash: %s\n", JoinRow(hash))
@@ -87,16 +87,16 @@ func (w *Writer) writeExtra(d Definition) error {
 }
 
 func (w *Writer) writeExtraTarget(d Definition, targetFlag bool) error {
-	keys := make([]string, 0, len(d.Ext))
-	for k := range d.Ext {
+	keys := make([]string, 0, len(d.Extras))
+	for k := range d.Extras {
 		keys = append(keys, k)
 	}
 	sort.Strings(keys)
 	for _, k := range keys {
-		if d.Ext[k].hashTarget != targetFlag {
+		if d.Extras[k].hashTarget != targetFlag {
 			continue
 		}
-		_, err := fmt.Fprintf(w.Writer, "; %s: %s\n", k, d.Ext[k].value)
+		_, err := fmt.Fprintf(w.Writer, "; %s: %s\n", k, d.Extras[k].value)
 		if err != nil {
 			return err
 		}

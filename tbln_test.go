@@ -123,13 +123,13 @@ func TestTbln_SumHash(t *testing.T) {
 		},
 		{
 			name:    "testNames",
-			fields:  fields{Definition: Definition{Ext: make(map[string]Extra), Names: []string{"id"}, columnNum: 1}, Rows: [][]string{{"1"}}, RowNum: 1},
+			fields:  fields{Definition: Definition{Extras: make(map[string]Extra), Names: []string{"id"}, columnNum: 1}, Rows: [][]string{{"1"}}, RowNum: 1},
 			want:    map[string]string{"sha256": "e5ce5f72c836840efdbcbf7639075966944253ef438a305761d888158a6b22a8"},
 			wantErr: false,
 		},
 		{
 			name:    "testFullRow",
-			fields:  fields{Definition: Definition{Ext: make(map[string]Extra), Names: []string{"id", "name"}, Types: []string{"int", "text"}, columnNum: 2}, Rows: [][]string{{"1", "test"}}, RowNum: 1},
+			fields:  fields{Definition: Definition{Extras: make(map[string]Extra), Names: []string{"id", "name"}, Types: []string{"int", "text"}, columnNum: 2}, Rows: [][]string{{"1", "test"}}, RowNum: 1},
 			want:    map[string]string{"sha256": "fcc150288d592d5c0cf13eed4b1054f6fadbfd2c48cde10954b44d6b7fc42623"},
 			wantErr: false,
 		},
@@ -163,7 +163,7 @@ func TestDefinition_SetNames(t *testing.T) {
 		comments  []string
 		Names     []string
 		Types     []string
-		Ext       map[string]Extra
+		Extras    map[string]Extra
 	}
 	type args struct {
 		names []string
@@ -174,9 +174,9 @@ func TestDefinition_SetNames(t *testing.T) {
 		args    args
 		wantErr bool
 	}{
-		{name: "test1", fields: fields{Ext: make(map[string]Extra)}, args: args{names: []string{"a", "b"}}, wantErr: false},
-		{name: "test2", fields: fields{Ext: make(map[string]Extra), columnNum: 3}, args: args{names: []string{"a", "b", "c"}}, wantErr: false},
-		{name: "test3", fields: fields{Ext: make(map[string]Extra), columnNum: 2}, args: args{names: []string{"a", "b", "c"}}, wantErr: true},
+		{name: "test1", fields: fields{Extras: make(map[string]Extra)}, args: args{names: []string{"a", "b"}}, wantErr: false},
+		{name: "test2", fields: fields{Extras: make(map[string]Extra), columnNum: 3}, args: args{names: []string{"a", "b", "c"}}, wantErr: false},
+		{name: "test3", fields: fields{Extras: make(map[string]Extra), columnNum: 2}, args: args{names: []string{"a", "b", "c"}}, wantErr: true},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -186,7 +186,7 @@ func TestDefinition_SetNames(t *testing.T) {
 				Comments:  tt.fields.comments,
 				Names:     tt.fields.Names,
 				Types:     tt.fields.Types,
-				Ext:       tt.fields.Ext,
+				Extras:    tt.fields.Extras,
 			}
 			if err := d.SetNames(tt.args.names); (err != nil) != tt.wantErr {
 				t.Errorf("Definition.SetNames() error = %v, wantErr %v", err, tt.wantErr)
@@ -202,7 +202,7 @@ func TestDefinition_SetTypes(t *testing.T) {
 		Comments  []string
 		Names     []string
 		Types     []string
-		Ext       map[string]Extra
+		Extras    map[string]Extra
 	}
 	type args struct {
 		types []string
@@ -213,9 +213,9 @@ func TestDefinition_SetTypes(t *testing.T) {
 		args    args
 		wantErr bool
 	}{
-		{name: "test1", fields: fields{Ext: make(map[string]Extra)}, args: args{types: []string{"int", "text"}}, wantErr: false},
-		{name: "test2", fields: fields{Ext: make(map[string]Extra), columnNum: 3}, args: args{types: []string{"int", "text", "text"}}, wantErr: false},
-		{name: "test3", fields: fields{Ext: make(map[string]Extra), columnNum: 2}, args: args{types: []string{"int", "text", "text"}}, wantErr: true},
+		{name: "test1", fields: fields{Extras: make(map[string]Extra)}, args: args{types: []string{"int", "text"}}, wantErr: false},
+		{name: "test2", fields: fields{Extras: make(map[string]Extra), columnNum: 3}, args: args{types: []string{"int", "text", "text"}}, wantErr: false},
+		{name: "test3", fields: fields{Extras: make(map[string]Extra), columnNum: 2}, args: args{types: []string{"int", "text", "text"}}, wantErr: true},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -225,7 +225,7 @@ func TestDefinition_SetTypes(t *testing.T) {
 				Comments:  tt.fields.Comments,
 				Names:     tt.fields.Names,
 				Types:     tt.fields.Types,
-				Ext:       tt.fields.Ext,
+				Extras:    tt.fields.Extras,
 			}
 			if err := d.SetTypes(tt.args.types); (err != nil) != tt.wantErr {
 				t.Errorf("Definition.SetTypes() error = %v, wantErr %v", err, tt.wantErr)
@@ -241,7 +241,7 @@ func TestDefinition_setColNum(t *testing.T) {
 		Comments  []string
 		Names     []string
 		Types     []string
-		Ext       map[string]Extra
+		Extras    map[string]Extra
 	}
 	type args struct {
 		colNum int
@@ -264,7 +264,7 @@ func TestDefinition_setColNum(t *testing.T) {
 				Comments:  tt.fields.Comments,
 				Names:     tt.fields.Names,
 				Types:     tt.fields.Types,
-				Ext:       tt.fields.Ext,
+				Extras:    tt.fields.Extras,
 			}
 			if err := d.setColNum(tt.args.colNum); (err != nil) != tt.wantErr {
 				t.Errorf("Definition.setColNum() error = %v, wantErr %v", err, tt.wantErr)

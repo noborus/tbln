@@ -20,7 +20,7 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	conn.Tx, err = conn.DB.Begin()
+	conn.Tx, err = conn.Begin()
 	if err != nil {
 		log.Fatal(err)
 	}
