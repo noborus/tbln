@@ -14,22 +14,22 @@ type Writer struct {
 	tbln.Definition
 	*TDB
 	stmt   *sql.Stmt
-	Create bool
+	create bool
 }
 
 // NewWriter is DB write struct.
-func NewWriter(TDB *TDB, definition tbln.Definition, create bool) *Writer {
-	if TDB.Tx == nil {
+func NewWriter(tdb *TDB, definition tbln.Definition, create bool) *Writer {
+	if tdb.tx == nil {
 		var err error
-		TDB.Tx, err = TDB.DB.Begin()
+		tdb.tx, err = tdb.db.Begin()
 		if err != nil {
 			return nil
 		}
 	}
 	return &Writer{
 		Definition: definition,
-		TDB:        TDB,
-		Create:     create,
+		TDB:        tdb,
+		create:     create,
 	}
 }
 
@@ -44,8 +44,8 @@ func (tw *Writer) WriteRow(row []string) error {
 }
 
 // WriteTable writes all rows to the table.
-func WriteTable(TDB *TDB, tbln *tbln.Tbln, create bool) error {
-	w := NewWriter(TDB, tbln.Definition, create)
+func WriteTable(tdb *TDB, tbln *tbln.Tbln, create bool) error {
+	w := NewWriter(tdb, tbln.Definition, create)
 	err := w.WriteDefinition()
 	if err != nil {
 		return err
@@ -62,24 +62,24 @@ func WriteTable(TDB *TDB, tbln *tbln.Tbln, create bool) error {
 // WriteDefinition is create table and insert preparation.
 func (tw *Writer) WriteDefinition() error {
 	if tw.Names == nil {
-		if tw.ColumnNum == 0 {
+		if tw.ColumnNum() == 0 {
 			return fmt.Errorf("column num is 0")
 		}
-		tw.Names = make([]string, tw.ColumnNum)
-		for i := 0; i < tw.ColumnNum; i++ {
+		tw.Names = make([]string, tw.ColumnNum())
+		for i := 0; i < tw.ColumnNum(); i++ {
 			tw.Names[i] = fmt.Sprintf("c%d", i+1)
 		}
 	}
 	if tw.Types == nil {
-		if tw.ColumnNum == 0 {
+		if tw.ColumnNum() == 0 {
 			return fmt.Errorf("column num is 0")
 		}
-		tw.Types = make([]string, tw.ColumnNum)
-		for i := 0; i < tw.ColumnNum; i++ {
+		tw.Types = make([]string, tw.ColumnNum())
+		for i := 0; i < tw.ColumnNum(); i++ {
 			tw.Types[i] = "text"
 		}
 	}
-	if tw.Create {
+	if tw.create {
 		err := tw.createTable()
 		if err != nil {
 			return err
@@ -94,8 +94,8 @@ func (tw *Writer) createTable() error {
 		col[i] = tw.quoting(tw.Names[i]) + " " + tw.Types[i]
 	}
 	sql := fmt.Sprintf("CREATE TABLE %s ( %s );",
-		tw.quoting(tw.TableName), strings.Join(col, ", "))
-	_, err := tw.Tx.Exec(sql)
+		tw.quoting(tw.TableName()), strings.Join(col, ", "))
+	_, err := tw.tx.Exec(sql)
 	if err != nil {
 		return fmt.Errorf("%s: %s", err, sql)
 	}
@@ -116,8 +116,8 @@ func (tw *Writer) prepara() error {
 	}
 	insert := fmt.Sprintf(
 		"INSERT INTO %s ( %s ) VALUES ( %s );",
-		tw.quoting(tw.TableName), strings.Join(names, ", "), strings.Join(ph, ", "))
-	tw.stmt, err = tw.Tx.Prepare(insert)
+		tw.quoting(tw.TableName()), strings.Join(names, ", "), strings.Join(ph, ", "))
+	tw.stmt, err = tw.tx.Prepare(insert)
 	if err != nil {
 		return fmt.Errorf("%s: %s", err, insert)
 	}

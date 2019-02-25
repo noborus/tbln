@@ -22,23 +22,22 @@ type Reader struct {
 }
 
 // ReadTable is reates a structure for reading from DB table.
-func (TDB *TDB) ReadTable(TableName string, pkey []string) (*Reader, error) {
+func (tdb *TDB) ReadTable(tableName string, pkey []string) (*Reader, error) {
 	tr := &Reader{
 		Definition: tbln.NewDefinition(),
-		TDB:        TDB,
+		TDB:        tdb,
 	}
-	tr.SetTableName(TableName)
+	tr.SetTableName(tableName)
 	// Constraint
-	columns, err := tr.GetColumnInfo(tr.TDB.DB, tr.TableName)
+	info, err := tr.GetColumnInfo(tdb.db, tableName)
 	if err != nil {
 		if err != ErrorNotSupport {
 			return nil, err
 		}
-	} else if columns != nil {
-		tr.constraint(columns)
 	}
+	tr.setExtraInfo(info)
 	// Primary key
-	pk, err := tr.GetPrimaryKey(tr.TDB.DB, tr.TableName)
+	pk, err := tr.GetPrimaryKey(tr.TDB.db, tableName)
 	if err != nil && err != ErrorNotSupport {
 		return nil, err
 	} else if len(pk) > 0 {
@@ -53,7 +52,7 @@ func (TDB *TDB) ReadTable(TableName string, pkey []string) (*Reader, error) {
 	} else {
 		orderby = "1"
 	}
-	query := fmt.Sprintf("SELECT * FROM %s ORDER BY %s", TDB.quoting(TableName), orderby)
+	query := fmt.Sprintf("SELECT * FROM %s ORDER BY %s", tdb.quoting(tableName), orderby)
 	err = tr.peparation(query)
 	if err != nil {
 		return nil, fmt.Errorf("%s: [%s]", err, query)
@@ -62,10 +61,10 @@ func (TDB *TDB) ReadTable(TableName string, pkey []string) (*Reader, error) {
 }
 
 // ReadQuery is reates a structure for reading from query.
-func (TDB *TDB) ReadQuery(query string, args ...interface{}) (*Reader, error) {
+func (tdb *TDB) ReadQuery(query string, args ...interface{}) (*Reader, error) {
 	tr := &Reader{
 		Definition: tbln.NewDefinition(),
-		TDB:        TDB,
+		TDB:        tdb,
 	}
 	err := tr.peparation(query, args...)
 	if err != nil {
@@ -92,8 +91,8 @@ func (tr *Reader) ReadRow() ([]string, error) {
 }
 
 // ReadTableAll reads all rows in the table.
-func ReadTableAll(TDB *TDB, TableName string) (*tbln.Tbln, error) {
-	r, err := TDB.ReadTable(TableName, nil)
+func ReadTableAll(tdb *TDB, TableName string) (*tbln.Tbln, error) {
+	r, err := tdb.ReadTable(TableName, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -101,8 +100,8 @@ func ReadTableAll(TDB *TDB, TableName string) (*tbln.Tbln, error) {
 }
 
 // ReadQueryAll reads all rows in the table.
-func ReadQueryAll(TDB *TDB, query string, args ...interface{}) (*tbln.Tbln, error) {
-	r, err := TDB.ReadQuery(query, args...)
+func ReadQueryAll(tdb *TDB, query string, args ...interface{}) (*tbln.Tbln, error) {
+	r, err := tdb.ReadQuery(query, args...)
 	if err != nil {
 		return nil, err
 	}
@@ -134,8 +133,8 @@ func readRowsAll(rd *Reader) (at *tbln.Tbln, err error) {
 	return
 }
 
-func (tr *Reader) constraint(columns map[string][]interface{}) (map[string]string, error) {
-	for k, v := range columns {
+func (tr *Reader) setExtraInfo(constraints map[string][]interface{}) {
+	for k, v := range constraints {
 		col := make([]string, len(v))
 		visible := false
 		for i, c := range v {
@@ -148,13 +147,12 @@ func (tr *Reader) constraint(columns map[string][]interface{}) (map[string]strin
 			tr.Ext[strings.ToLower(k)] = tbln.NewExtra(tbln.JoinRow(col))
 		}
 	}
-	return nil, nil
 }
 
 // preparation is read preparation.
 func (tr *Reader) peparation(query string, args ...interface{}) error {
 	tr.query = query
-	rows, err := tr.DB.Query(query, args...)
+	rows, err := tr.db.Query(query, args...)
 	if err != nil {
 		return err
 	}
@@ -162,8 +160,8 @@ func (tr *Reader) peparation(query string, args ...interface{}) error {
 	if err != nil {
 		return err
 	}
-	tr.values = make([]interface{}, tr.ColumnNum)
-	tr.scanArgs = make([]interface{}, tr.ColumnNum)
+	tr.values = make([]interface{}, tr.ColumnNum())
+	tr.scanArgs = make([]interface{}, tr.ColumnNum())
 	for i := range tr.values {
 		tr.scanArgs[i] = &tr.values[i]
 	}
@@ -173,7 +171,7 @@ func (tr *Reader) peparation(query string, args ...interface{}) error {
 
 func (tr *Reader) setExtra(rows *sql.Rows) error {
 	var err error
-	tr.SetTableName(tr.TableName)
+	tr.SetTableName(tr.TableName())
 	columns, err := rows.Columns()
 	if err != nil {
 		return err

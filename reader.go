@@ -27,7 +27,7 @@ func (tr *Reader) ReadRow() ([]string, error) {
 	if err != nil || rec == nil {
 		return nil, err
 	}
-	tr.ColumnNum, err = checkRow(tr.ColumnNum, rec)
+	tr.columnNum, err = checkRow(tr.columnNum, rec)
 	if err != nil {
 		return nil, err
 	}

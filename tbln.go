@@ -11,12 +11,14 @@ import (
 	"time"
 )
 
-const (
-	SHA256 = iota
-	SHA512
-)
-
+// HashType supports the type of hash.
 type HashType int
+
+// Types of supported hashes
+const (
+	SHA256 = iota // import crypto/sha256
+	SHA512        // import crypto/sha512
+)
 
 // Tbln struct is tbln Definition + Tbln rows.
 type Tbln struct {
@@ -35,8 +37,8 @@ func NewTbln() *Tbln {
 
 // Definition is common table definition struct.
 type Definition struct {
-	ColumnNum int
-	TableName string
+	columnNum int
+	tableName string
 	Comments  []string
 	Names     []string
 	Types     []string
@@ -114,7 +116,7 @@ func unescape(rec []string) []string {
 // AddRows is Add row to Table.
 func (t *Tbln) AddRows(row []string) error {
 	var err error
-	t.ColumnNum, err = checkRow(t.ColumnNum, row)
+	t.columnNum, err = checkRow(t.columnNum, row)
 	if err != nil {
 		return err
 	}
@@ -136,7 +138,7 @@ func checkRow(ColumnNum int, row []string) (int, error) {
 
 // SumHash is returns the calculated checksum.
 // Checksum target is exported to buffer and saved.
-func (t *Tbln) SumHash(h HashType) (map[string]string, error) {
+func (t *Tbln) SumHash(hashType HashType) (map[string]string, error) {
 	if t.Hash == nil {
 		t.Hash = make(map[string]string)
 	}
@@ -156,7 +158,7 @@ func (t *Tbln) SumHash(h HashType) (map[string]string, error) {
 	if err != nil {
 		return nil, err
 	}
-	switch h {
+	switch hashType {
 	case SHA256:
 		sum := sha256.Sum256(t.buffer.Bytes())
 		t.Hash["sha256"] = fmt.Sprintf("%x", sum)
@@ -169,9 +171,14 @@ func (t *Tbln) SumHash(h HashType) (map[string]string, error) {
 	return t.Hash, nil
 }
 
+// TableName returns the Table Name.
+func (d *Definition) TableName() string {
+	return d.tableName
+}
+
 // SetTableName is set Table Name of the Table.
 func (d *Definition) SetTableName(name string) {
-	d.TableName = name
+	d.tableName = name
 	if len(name) != 0 {
 		d.Ext["TableName"] = NewExtra(name)
 	} else {
@@ -212,12 +219,17 @@ func (d *Definition) SetTypes(types []string) error {
 	return nil
 }
 
+// ColumnNum returns the number of columns.
+func (d *Definition) ColumnNum() int {
+	return d.columnNum
+}
+
 func (d *Definition) setColNum(colNum int) error {
-	if d.ColumnNum == 0 {
-		d.ColumnNum = colNum
+	if d.columnNum == 0 {
+		d.columnNum = colNum
 		return nil
 	}
-	if colNum != d.ColumnNum {
+	if colNum != d.columnNum {
 		return fmt.Errorf("number of columns is different")
 	}
 	return nil

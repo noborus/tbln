@@ -7,8 +7,8 @@ import (
 
 // TDB is sql.DB wrapper.
 type TDB struct {
-	DB *sql.DB
-	Tx *sql.Tx
+	db *sql.DB
+	tx *sql.Tx
 	Style
 	Constraint
 	Name string
@@ -30,19 +30,19 @@ func Open(name string, dsn string) (*TDB, error) {
 	db, err := sql.Open(name, dsn)
 	TDB := &TDB{
 		Name:       name,
-		DB:         db,
+		db:         db,
 		Style:      d.Style,
 		Constraint: d.Constraint,
 	}
 	return TDB, err
 }
 
-func (TDB *TDB) quoting(name string) string {
+func (tdb *TDB) quoting(name string) string {
 	r := regexp.MustCompile(`[^a-z\.0-9_]+`)
-	q := TDB.Style.Quote
+	q := tdb.Style.Quote
 	escape := regexp.MustCompile(`(` + q + `)`)
 	if r.MatchString(name) {
-		name = escape.ReplaceAllString(name, "$1"+TDB.Style.Quote)
+		name = escape.ReplaceAllString(name, "$1"+tdb.Style.Quote)
 		return q + name + q
 	}
 	return name
@@ -63,8 +63,8 @@ func GetPrimaryKey(conn *sql.DB, query string, tableName string) ([]string, erro
 		}
 		pkeys = append(pkeys, pkey)
 	}
-	rows.Close()
-	return pkeys, nil
+	return pkeys, rows.Close()
+
 }
 
 // GetColumnInfo returns information of a table column as an array.

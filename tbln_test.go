@@ -25,13 +25,13 @@ func TestTbln_AddRows(t *testing.T) {
 	}{
 		{
 			name:    "test1",
-			fields:  fields{Definition: Definition{ColumnNum: 1}},
+			fields:  fields{Definition: Definition{columnNum: 1}},
 			args:    args{row: []string{"1"}},
 			wantErr: false,
 		},
 		{
 			name:    "test2",
-			fields:  fields{Definition: Definition{ColumnNum: 2}},
+			fields:  fields{Definition: Definition{columnNum: 2}},
 			args:    args{row: []string{"1"}},
 			wantErr: true,
 		},
@@ -123,13 +123,13 @@ func TestTbln_SumHash(t *testing.T) {
 		},
 		{
 			name:    "testNames",
-			fields:  fields{Definition: Definition{Ext: make(map[string]Extra), Names: []string{"id"}, ColumnNum: 1}, Rows: [][]string{{"1"}}, RowNum: 1},
+			fields:  fields{Definition: Definition{Ext: make(map[string]Extra), Names: []string{"id"}, columnNum: 1}, Rows: [][]string{{"1"}}, RowNum: 1},
 			want:    map[string]string{"sha256": "e5ce5f72c836840efdbcbf7639075966944253ef438a305761d888158a6b22a8"},
 			wantErr: false,
 		},
 		{
 			name:    "testFullRow",
-			fields:  fields{Definition: Definition{Ext: make(map[string]Extra), Names: []string{"id", "name"}, Types: []string{"int", "text"}, ColumnNum: 2}, Rows: [][]string{{"1", "test"}}, RowNum: 1},
+			fields:  fields{Definition: Definition{Ext: make(map[string]Extra), Names: []string{"id", "name"}, Types: []string{"int", "text"}, columnNum: 2}, Rows: [][]string{{"1", "test"}}, RowNum: 1},
 			want:    map[string]string{"sha256": "fcc150288d592d5c0cf13eed4b1054f6fadbfd2c48cde10954b44d6b7fc42623"},
 			wantErr: false,
 		},
@@ -158,9 +158,9 @@ func TestTbln_SumHash(t *testing.T) {
 
 func TestDefinition_SetNames(t *testing.T) {
 	type fields struct {
-		ColumnNum int
-		TableName string
-		Comments  []string
+		columnNum int
+		tableName string
+		comments  []string
 		Names     []string
 		Types     []string
 		Ext       map[string]Extra
@@ -175,15 +175,15 @@ func TestDefinition_SetNames(t *testing.T) {
 		wantErr bool
 	}{
 		{name: "test1", fields: fields{Ext: make(map[string]Extra)}, args: args{names: []string{"a", "b"}}, wantErr: false},
-		{name: "test2", fields: fields{Ext: make(map[string]Extra), ColumnNum: 3}, args: args{names: []string{"a", "b", "c"}}, wantErr: false},
-		{name: "test3", fields: fields{Ext: make(map[string]Extra), ColumnNum: 2}, args: args{names: []string{"a", "b", "c"}}, wantErr: true},
+		{name: "test2", fields: fields{Ext: make(map[string]Extra), columnNum: 3}, args: args{names: []string{"a", "b", "c"}}, wantErr: false},
+		{name: "test3", fields: fields{Ext: make(map[string]Extra), columnNum: 2}, args: args{names: []string{"a", "b", "c"}}, wantErr: true},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			d := &Definition{
-				ColumnNum: tt.fields.ColumnNum,
-				TableName: tt.fields.TableName,
-				Comments:  tt.fields.Comments,
+				columnNum: tt.fields.columnNum,
+				tableName: tt.fields.tableName,
+				Comments:  tt.fields.comments,
 				Names:     tt.fields.Names,
 				Types:     tt.fields.Types,
 				Ext:       tt.fields.Ext,
@@ -197,8 +197,8 @@ func TestDefinition_SetNames(t *testing.T) {
 
 func TestDefinition_SetTypes(t *testing.T) {
 	type fields struct {
-		ColumnNum int
-		TableName string
+		columnNum int
+		tableName string
 		Comments  []string
 		Names     []string
 		Types     []string
@@ -214,14 +214,14 @@ func TestDefinition_SetTypes(t *testing.T) {
 		wantErr bool
 	}{
 		{name: "test1", fields: fields{Ext: make(map[string]Extra)}, args: args{types: []string{"int", "text"}}, wantErr: false},
-		{name: "test2", fields: fields{Ext: make(map[string]Extra), ColumnNum: 3}, args: args{types: []string{"int", "text", "text"}}, wantErr: false},
-		{name: "test3", fields: fields{Ext: make(map[string]Extra), ColumnNum: 2}, args: args{types: []string{"int", "text", "text"}}, wantErr: true},
+		{name: "test2", fields: fields{Ext: make(map[string]Extra), columnNum: 3}, args: args{types: []string{"int", "text", "text"}}, wantErr: false},
+		{name: "test3", fields: fields{Ext: make(map[string]Extra), columnNum: 2}, args: args{types: []string{"int", "text", "text"}}, wantErr: true},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			d := &Definition{
-				ColumnNum: tt.fields.ColumnNum,
-				TableName: tt.fields.TableName,
+				columnNum: tt.fields.columnNum,
+				tableName: tt.fields.tableName,
 				Comments:  tt.fields.Comments,
 				Names:     tt.fields.Names,
 				Types:     tt.fields.Types,
@@ -236,8 +236,8 @@ func TestDefinition_SetTypes(t *testing.T) {
 
 func TestDefinition_setColNum(t *testing.T) {
 	type fields struct {
-		ColumnNum int
-		TableName string
+		columnNum int
+		tableName string
 		Comments  []string
 		Names     []string
 		Types     []string
@@ -253,14 +253,14 @@ func TestDefinition_setColNum(t *testing.T) {
 		wantErr bool
 	}{
 		{name: "test1", args: args{colNum: 2}, wantErr: false},
-		{name: "test2", fields: fields{ColumnNum: 3}, args: args{colNum: 3}, wantErr: false},
-		{name: "test3", fields: fields{ColumnNum: 2}, args: args{colNum: 3}, wantErr: true},
+		{name: "test2", fields: fields{columnNum: 3}, args: args{colNum: 3}, wantErr: false},
+		{name: "test3", fields: fields{columnNum: 2}, args: args{colNum: 3}, wantErr: true},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			d := &Definition{
-				ColumnNum: tt.fields.ColumnNum,
-				TableName: tt.fields.TableName,
+				columnNum: tt.fields.columnNum,
+				tableName: tt.fields.tableName,
 				Comments:  tt.fields.Comments,
 				Names:     tt.fields.Names,
 				Types:     tt.fields.Types,
