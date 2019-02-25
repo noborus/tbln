@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"os"
 
@@ -13,9 +14,9 @@ import (
 )
 
 func main() {
-	// conn, err := db.Open("postgres", "")
+	conn, err := db.Open("postgres", "")
 	// conn, err := db.Open("mysql", "root:@/noborus")
-	conn, err := db.Open("sqlite3", "sqlite_file")
+	// conn, err := db.Open("sqlite3", "sqlite_file")
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -23,6 +24,8 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
+	comment := fmt.Sprintf("DB:%s\tTable:%s", conn.Name, os.Args[1])
+	at.Comments = []string{comment}
 	_, err = at.SumHash(tbln.SHA256)
 	if err != nil {
 		log.Fatal(err)

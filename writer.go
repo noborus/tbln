@@ -36,33 +36,14 @@ func (w *Writer) WriteRow(row []string) error {
 // WriteAll write tbln.
 func WriteAll(writer io.Writer, tbln *Tbln) error {
 	w := NewWriter(writer)
-	err := w.writeExtraTarget(tbln.Definition, false)
+	err := w.WriteDefinition(tbln.Definition)
 	if err != nil {
 		return err
 	}
-	if len(tbln.Hashes) > 0 {
-		hash := make([]string, 0, len(tbln.Hashes))
-		for k, v := range tbln.Hashes {
-			hash = append(hash, k+":"+v)
-		}
-		_, err := fmt.Fprintf(w.Writer, "; Hash: %s\n", JoinRow(hash))
+	for _, row := range tbln.Rows {
+		err = w.WriteRow(row)
 		if err != nil {
 			return err
-		}
-		_, err = w.Writer.Write(tbln.buffer.Bytes())
-		if err != nil {
-			return err
-		}
-	} else {
-		err := w.writeExtraTarget(tbln.Definition, true)
-		if err != nil {
-			return err
-		}
-		for _, row := range tbln.Rows {
-			err = w.WriteRow(row)
-			if err != nil {
-				return err
-			}
 		}
 	}
 	return nil
@@ -83,6 +64,12 @@ func (w *Writer) writeExtra(d Definition) error {
 	if err != nil {
 		return err
 	}
+	if len(d.Hashes) > 0 {
+		err = w.writeHashes(d)
+		if err != nil {
+			return err
+		}
+	}
 	return w.writeExtraTarget(d, true)
 }
 
@@ -100,6 +87,18 @@ func (w *Writer) writeExtraTarget(d Definition, targetFlag bool) error {
 		if err != nil {
 			return err
 		}
+	}
+	return nil
+}
+
+func (w *Writer) writeHashes(d Definition) error {
+	hash := make([]string, 0, len(d.Hashes))
+	for k, v := range d.Hashes {
+		hash = append(hash, k+":"+v)
+	}
+	_, err := fmt.Fprintf(w.Writer, "; Hash: %s\n", JoinRow(hash))
+	if err != nil {
+		return err
 	}
 	return nil
 }

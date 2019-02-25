@@ -1,29 +1,18 @@
 package tbln
 
 import (
-	"bufio"
-	"bytes"
 	"crypto/sha256"
 	"crypto/sha512"
 	"fmt"
+	"hash"
 	"regexp"
 	"strings"
 	"time"
 )
 
-// HashType supports the type of hash.
-type HashType int
-
-// Types of supported hashes
-const (
-	SHA256 = iota // import crypto/sha256
-	SHA512        // import crypto/sha512
-)
-
 // Tbln struct is tbln Definition + Tbln rows.
 type Tbln struct {
 	Definition
-	buffer bytes.Buffer
 	RowNum int
 	Rows   [][]string
 }
@@ -85,9 +74,18 @@ type Write interface {
 // JoinRow makes a Row array a character string.
 func JoinRow(row []string) string {
 	var b strings.Builder
-	b.WriteString("|")
+	if len(row) == 0 {
+		return ""
+	}
+	_, err := b.WriteString("|")
+	if err != nil {
+		return ""
+	}
 	for _, column := range row {
-		b.WriteString(" " + escape(column) + " |")
+		_, err = b.WriteString(" " + escape(column) + " |")
+		if err != nil {
+			return ""
+		}
 	}
 	return b.String()
 }
@@ -103,28 +101,29 @@ func escape(str string) string {
 }
 
 // SplitRow divides a character string into a row array.
-func SplitRow(body string) []string {
-	if body[:2] == "| " {
-		body = body[2:]
+func SplitRow(str string) []string {
+	if str[:2] == "| " {
+		str = str[2:]
 	}
-	if body[len(body)-2:] == " |" {
-		body = body[0 : len(body)-2]
+	if str[len(str)-2:] == " |" {
+		str = str[0 : len(str)-2]
 	}
-	rec := strings.Split(body, " | ")
-	return unescape(rec)
+	rec := strings.Split(str, " | ")
+	for i, column := range rec {
+		rec[i] = unescape(column)
+	}
+	return rec
 }
 
 // UNESCAPE is unescape || -> |
 var UNESCAPE = regexp.MustCompile(`\|(\|+)`)
 
 // unescape vertical bars || -> |
-func unescape(rec []string) []string {
-	for i, column := range rec {
-		if strings.Contains(column, "|") {
-			rec[i] = UNESCAPE.ReplaceAllString(column, "$1")
-		}
+func unescape(str string) string {
+	if strings.Contains(str, "|") {
+		str = UNESCAPE.ReplaceAllString(str, "$1")
 	}
-	return rec
+	return str
 }
 
 // AddRows is Add row to Table.
@@ -139,49 +138,63 @@ func (t *Tbln) AddRows(row []string) error {
 	return nil
 }
 
-func checkRow(ColumnNum int, row []string) (int, error) {
-	if ColumnNum == 0 {
-		ColumnNum = len(row)
+func checkRow(columnNum int, row []string) (int, error) {
+	if columnNum == 0 {
+		columnNum = len(row)
 	} else {
-		if len(row) != ColumnNum {
-			return ColumnNum, fmt.Errorf("Error: invalid column num (%d!=%d) %s", ColumnNum, len(row), row)
+		if len(row) != columnNum {
+			return columnNum, fmt.Errorf("invalid column num (%d!=%d) %s", columnNum, len(row), row)
 		}
 	}
-	return ColumnNum, nil
+	return columnNum, nil
+}
+
+// HashType supports the type of hash.
+type HashType int
+
+// Types of supported hashes
+const (
+	SHA256 = iota // import crypto/sha256
+	SHA512        // import crypto/sha512
+)
+
+func (h HashType) string() string {
+	switch h {
+	case SHA256:
+		return "sha256"
+	case SHA512:
+		return "sha512"
+	default:
+		return ""
+	}
 }
 
 // SumHash is returns the calculated checksum.
-// Checksum target is exported to buffer and saved.
 func (t *Tbln) SumHash(hashType HashType) (map[string]string, error) {
 	if t.Hashes == nil {
 		t.Hashes = make(map[string]string)
 	}
-	writer := bufio.NewWriter(&t.buffer)
-	bw := NewWriter(writer)
-	err := bw.writeExtraTarget(t.Definition, true)
+	var hash hash.Hash
+	switch hashType {
+	case SHA256:
+		hash = sha256.New()
+	case SHA512:
+		hash = sha512.New()
+	default:
+		return nil, fmt.Errorf("not support")
+	}
+	w := NewWriter(hash)
+	err := w.writeExtraTarget(t.Definition, true)
 	if err != nil {
 		return nil, err
 	}
 	for _, row := range t.Rows {
-		err := bw.WriteRow(row)
+		err = w.WriteRow(row)
 		if err != nil {
 			return nil, err
 		}
 	}
-	err = writer.Flush()
-	if err != nil {
-		return nil, err
-	}
-	switch hashType {
-	case SHA256:
-		sum := sha256.Sum256(t.buffer.Bytes())
-		t.Hashes["sha256"] = fmt.Sprintf("%x", sum)
-	case SHA512:
-		sum := sha512.Sum512(t.buffer.Bytes())
-		t.Hashes["sha512"] = fmt.Sprintf("%x", sum)
-	default:
-		return nil, fmt.Errorf("not support")
-	}
+	t.Hashes[hashType.string()] = fmt.Sprintf("%x", hash.Sum(nil))
 	return t.Hashes, nil
 }
 

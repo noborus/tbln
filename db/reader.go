@@ -231,10 +231,10 @@ func convertType(dbtype string) string {
 		return "numeric"
 	case "bool":
 		return "bool"
-	case "string", "text", "char", "varchar":
-		return "text"
 	case "timestamp", "timestamptz", "date", "time":
 		return "timestamp"
+	case "string", "text", "char", "varchar":
+		return "text"
 	default:
 		return "text"
 	}

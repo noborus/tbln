@@ -1,7 +1,6 @@
 package tbln
 
 import (
-	"bytes"
 	"reflect"
 	"testing"
 )
@@ -10,7 +9,6 @@ func TestTbln_AddRows(t *testing.T) {
 	type fields struct {
 		Definition Definition
 		Hash       map[string]string
-		buffer     bytes.Buffer
 		RowNum     int
 		Rows       [][]string
 	}
@@ -40,7 +38,6 @@ func TestTbln_AddRows(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			tb := &Tbln{
 				Definition: tt.fields.Definition,
-				buffer:     tt.fields.buffer,
 				RowNum:     tt.fields.RowNum,
 				Rows:       tt.fields.Rows,
 			}
@@ -99,7 +96,6 @@ func TestTbln_SumHash(t *testing.T) {
 	type fields struct {
 		Definition Definition
 		Hash       map[string]string
-		buffer     bytes.Buffer
 		RowNum     int
 		Rows       [][]string
 	}
@@ -138,7 +134,6 @@ func TestTbln_SumHash(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			tb := &Tbln{
 				Definition: tt.fields.Definition,
-				buffer:     tt.fields.buffer,
 				RowNum:     tt.fields.RowNum,
 				Rows:       tt.fields.Rows,
 			}

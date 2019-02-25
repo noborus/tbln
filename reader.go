@@ -49,6 +49,10 @@ func ReadAll(reader io.Reader) (*Tbln, error) {
 			}
 			return nil, err
 		}
+		// blank line
+		if rec == nil {
+			continue
+		}
 		at.RowNum++
 		at.Rows = append(at.Rows, rec)
 	}
@@ -57,16 +61,19 @@ func ReadAll(reader io.Reader) (*Tbln, error) {
 // Return on one line or blank line.
 func (tr *Reader) scanLine() ([]string, error) {
 	for {
-		line, _, err := tr.Reader.ReadLine()
+		line, isPrefix, err := tr.Reader.ReadLine()
 		if err != nil {
 			return nil, err
+		}
+		if isPrefix {
+			return nil, fmt.Errorf("line too long (%s)", line)
 		}
 		str := string(line)
 		switch {
 		case strings.HasPrefix(str, "| "):
 			return SplitRow(str), nil
-		case strings.HasPrefix(str, "# "):
-			tr.Comments = append(tr.Comments, str[2:])
+		case strings.HasPrefix(str, "#"):
+			tr.Comments = append(tr.Comments, strings.TrimSpace(str[1:]))
 		case strings.HasPrefix(str, "; "):
 			err := tr.analyzeExt(str)
 			if err != nil {
@@ -75,7 +82,7 @@ func (tr *Reader) scanLine() ([]string, error) {
 		case str == "":
 			return nil, nil
 		default:
-			return nil, fmt.Errorf("Error: Unsupported line")
+			return nil, fmt.Errorf("unsupported line (%s)", line)
 		}
 	}
 }
@@ -84,7 +91,7 @@ func (tr *Reader) analyzeExt(extstr string) error {
 	extstr = strings.TrimLeft(extstr, "; ")
 	keypos := strings.Index(extstr, ":")
 	if keypos <= 0 {
-		return fmt.Errorf("Error: Extra format error %s", extstr)
+		return fmt.Errorf("extra format error %s", extstr)
 	}
 	key := extstr[:keypos]
 	value := extstr[keypos+2:]

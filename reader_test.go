@@ -224,20 +224,20 @@ func TestReadAll(t *testing.T) {
 
 func Test_unescape(t *testing.T) {
 	type args struct {
-		rec []string
+		str string
 	}
 	tests := []struct {
 		name string
 		args args
-		want []string
+		want string
 	}{
-		{name: "test1", args: args{[]string{"||"}}, want: []string{"|"}},
-		{name: "test2", args: args{[]string{"|||"}}, want: []string{"||"}},
-		{name: "test3", args: args{[]string{"a||b"}}, want: []string{"a|b"}},
+		{name: "test1", args: args{str: "||"}, want: "|"},
+		{name: "test2", args: args{str: "|||"}, want: "||"},
+		{name: "test3", args: args{str: "a||b"}, want: "a|b"},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := unescape(tt.args.rec); !reflect.DeepEqual(got, tt.want) {
+			if got := unescape(tt.args.str); !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("unescape() = %v, want %v", got, tt.want)
 			}
 		})
