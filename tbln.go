@@ -224,12 +224,11 @@ func (d *Definition) setColNum(colNum int) error {
 }
 
 // SetHashes is set hashes.
-func (d *Definition) SetHashes(hashes []string) error {
+func (d *Definition) SetHashes(hashes []string) {
 	for _, hash := range hashes {
 		h := strings.SplitN(hash, ":", 2)
 		d.Hash[h[0]] = h[1]
 	}
-	return nil
 }
 
 // HashTarget is set as target of hash

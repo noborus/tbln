@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"strings"
 	"time"
+	"unicode/utf8"
 
 	"github.com/noborus/tbln"
 )
@@ -211,7 +212,11 @@ func valString(v interface{}) string {
 	case time.Time:
 		str = t.Format(time.RFC3339)
 	case []byte:
-		str = `\x` + hex.EncodeToString(t)
+		if ok := utf8.Valid(t); ok {
+			str = string(t)
+		} else {
+			str = `\x` + hex.EncodeToString(t)
+		}
 	default:
 		str = fmt.Sprint(v)
 	}
