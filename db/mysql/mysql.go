@@ -22,11 +22,11 @@ func init() {
 // GetPrimaryKey returns the primary key as a slice.
 func (c *Constr) GetPrimaryKey(conn *sql.DB, tableName string) ([]string, error) {
 	query := `SELECT  column_name
-	             FROM information_schema.columns
-				WHERE table_schema = database()
-				  AND table_name = ?
-                  AND column_key = 'PRI'
-                ORDER BY ordinal_position;`
+	            FROM information_schema.columns
+				     WHERE table_schema = database()
+				       AND table_name = ?
+               AND column_key = 'PRI'
+             ORDER BY ordinal_position;`
 	return db.GetPrimaryKey(conn, query, tableName)
 }
 
@@ -40,19 +40,19 @@ func (c *Constr) GetColumnInfo(conn *sql.DB, tableName string) (map[string][]int
 		 WHERE tc.table_name = ?
 	)
 	   SELECT column_default
-              , is_nullable
-              , data_type AS mysql_type
-              , character_maximum_length
-              , character_octet_length
-              , numeric_precision
-              , numeric_scale
-							, datetime_precision
-							, u.constraint_unique
-			 FROM information_schema.columns AS tc 
-			 LEFT JOIN u 
-				      ON (tc.table_name = u.table_name 
-				     AND tc.column_name = u.column_name ) 
-						 WHERE tc.table_name = ?
-		ORDER BY ordinal_position;`
+			  , is_nullable
+			  , data_type AS mysql_type
+			  , character_maximum_length
+			  , character_octet_length
+			  , numeric_precision
+			  , numeric_scale
+			  , datetime_precision
+			  , u.constraint_unique
+			FROM information_schema.columns AS tc
+			LEFT JOIN u
+				     ON (tc.table_name = u.table_name
+				    AND tc.column_name = u.column_name )
+		 WHERE tc.table_name = ?
+		 ORDER BY ordinal_position;`
 	return db.GetColumnInfo(conn, query, tableName, tableName)
 }

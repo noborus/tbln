@@ -22,14 +22,14 @@ func init() {
 // GetPrimaryKey returns the primary key as a slice.
 func (c *Constr) GetPrimaryKey(conn *sql.DB, tableName string) ([]string, error) {
 	query := `SELECT ccu.column_name
-	   	      FROM information_schema.table_constraints tc
-	             , information_schema.constraint_column_usage ccu
-	         WHERE tc.table_name = $1
-	           AND tc.constraint_type = 'PRIMARY KEY'
-             AND tc.table_catalog = ccu.table_catalog
-						 AND tc.table_schema = ccu.table_schema
-						 AND tc.table_name = ccu.table_name
-             AND tc.constraint_name = ccu.constraint_name;`
+	   	        FROM information_schema.table_constraints tc
+	               , information_schema.constraint_column_usage ccu
+	           WHERE tc.table_name = $1
+	             AND tc.constraint_type = 'PRIMARY KEY'
+               AND tc.table_catalog = ccu.table_catalog
+						   AND tc.table_schema = ccu.table_schema
+						   AND tc.table_name = ccu.table_name
+               AND tc.constraint_name = ccu.constraint_name;`
 	return db.GetPrimaryKey(conn, query, tableName)
 }
 
@@ -57,7 +57,7 @@ func (c *Constr) GetColumnInfo(conn *sql.DB, tableName string) (map[string][]int
 		FROM information_schema.columns AS t
 		LEFT JOIN u
 			ON (t.table_name = u.table_name AND t.column_name = u.column_name)
-		WHERE t.table_name = $1
+	 WHERE t.table_name = $1
 	 ORDER BY t.ordinal_position;`
 	return db.GetColumnInfo(conn, query, tableName)
 }
