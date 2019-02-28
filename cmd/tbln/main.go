@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github.com/noborus/tbln/cmd/tbln/cmd"
+	"github.com/noborus/tbln/cmd"
 )
 
 func main() {

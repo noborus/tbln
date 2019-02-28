@@ -37,7 +37,8 @@ func (c *Constr) GetColumnInfo(conn *sql.DB, tableName string) (map[string][]int
 			FROM information_schema.table_constraints AS tc
 			LEFT JOIN information_schema.KEY_COLUMN_USAGE AS cc
 				ON (tc.table_name = cc.table_name AND tc.constraint_type = 'UNIQUE')
-		 WHERE tc.table_name = ?
+		 WHERE tc.table_schema = database()
+		 AND tc.table_name = ?
 	)
 	   SELECT column_default
 			  , is_nullable
@@ -52,7 +53,8 @@ func (c *Constr) GetColumnInfo(conn *sql.DB, tableName string) (map[string][]int
 			LEFT JOIN u
 				     ON (tc.table_name = u.table_name
 				    AND tc.column_name = u.column_name )
-		 WHERE tc.table_name = ?
+		WHERE tc.table_schema = database()
+	      AND tc.table_name = ?
 		 ORDER BY ordinal_position;`
 	return db.GetColumnInfo(conn, query, tableName, tableName)
 }
