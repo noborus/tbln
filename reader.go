@@ -7,21 +7,21 @@ import (
 	"strings"
 )
 
-// Reader is reader struct.
+// Reader reads records from a tbln file.
 type Reader struct {
-	Definition
-	Reader *bufio.Reader
+	*Definition
+	r *bufio.Reader
 }
 
-// NewReader is returns Reader.
-func NewReader(reader io.Reader) *Reader {
+// NewReader returns a new Reader that reads from tr.
+func NewReader(r io.Reader) *Reader {
 	return &Reader{
 		Definition: NewDefinition(),
-		Reader:     bufio.NewReader(reader),
+		r:          bufio.NewReader(r),
 	}
 }
 
-// ReadRow is return one row.
+// ReadRow reads one record (a slice of fields) from tr.
 func (tr *Reader) ReadRow() ([]string, error) {
 	rec, err := tr.scanLine()
 	if err != nil || rec == nil {
@@ -34,17 +34,17 @@ func (tr *Reader) ReadRow() ([]string, error) {
 	return rec, nil
 }
 
-// ReadAll reads all io.Reader
-func ReadAll(reader io.Reader) (*Tbln, error) {
-	r := NewReader(reader)
+// ReadAll reads all the remaining records from r.
+func ReadAll(r io.Reader) (*Tbln, error) {
+	tr := NewReader(r)
 	at := &Tbln{}
 	at.Rows = make([][]string, 0)
 	for {
-		rec, err := r.ReadRow()
+		rec, err := tr.ReadRow()
 		if err != nil {
 			if err == io.EOF {
-				at.Definition = r.Definition
-				at.Hashes = r.Hashes
+				at.Definition = tr.Definition
+				at.Hashes = tr.Hashes
 				return at, nil
 			}
 			return nil, err
@@ -58,10 +58,11 @@ func ReadAll(reader io.Reader) (*Tbln, error) {
 	}
 }
 
-// Return on one line or blank line.
+// scanLine reads from tr and returns either one row or a blank line.
+// Comments and Extra lines are read until reaching a row or blank line.
 func (tr *Reader) scanLine() ([]string, error) {
 	for {
-		line, isPrefix, err := tr.Reader.ReadLine()
+		line, isPrefix, err := tr.r.ReadLine()
 		if err != nil {
 			return nil, err
 		}
@@ -75,7 +76,7 @@ func (tr *Reader) scanLine() ([]string, error) {
 		case strings.HasPrefix(str, "#"):
 			tr.Comments = append(tr.Comments, strings.TrimSpace(str[1:]))
 		case strings.HasPrefix(str, "; "):
-			err := tr.analyzeExt(str)
+			err := tr.analyzeExtra(str)
 			if err != nil {
 				return nil, err
 			}
@@ -87,7 +88,10 @@ func (tr *Reader) scanLine() ([]string, error) {
 	}
 }
 
-func (tr *Reader) analyzeExt(extstr string) error {
+// Analyze Extra.
+// Save the necessary items (name, type, TableName, Hash) in Extra in a variable.
+// Save other items in Extras.
+func (tr *Reader) analyzeExtra(extstr string) error {
 	extstr = strings.TrimLeft(extstr, "; ")
 	keypos := strings.Index(extstr, ":")
 	if keypos <= 0 {

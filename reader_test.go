@@ -10,8 +10,8 @@ import (
 
 func TestReader_scanLine(t *testing.T) {
 	type fields struct {
-		Definition Definition
-		Reader     *bufio.Reader
+		Definition *Definition
+		r          *bufio.Reader
 	}
 	tests := []struct {
 		name    string
@@ -21,31 +21,31 @@ func TestReader_scanLine(t *testing.T) {
 	}{
 		{
 			name:    "test1",
-			fields:  fields{Reader: bufio.NewReader(bytes.NewBufferString("foo\n"))},
+			fields:  fields{Definition: NewDefinition(), r: bufio.NewReader(bytes.NewBufferString("foo\n"))},
 			want:    nil,
 			wantErr: true,
 		},
 		{
 			name:    "test2",
-			fields:  fields{Reader: bufio.NewReader(bytes.NewBufferString("| 1 |\n"))},
+			fields:  fields{Definition: NewDefinition(), r: bufio.NewReader(bytes.NewBufferString("| 1 |\n"))},
 			want:    []string{"1"},
 			wantErr: false,
 		},
 		{
 			name:    "test3",
-			fields:  fields{Reader: bufio.NewReader(bytes.NewBufferString("| 1 | 2 |\n"))},
+			fields:  fields{Definition: NewDefinition(), r: bufio.NewReader(bytes.NewBufferString("| 1 | 2 |\n"))},
 			want:    []string{"1", "2"},
 			wantErr: false,
 		},
 		{
 			name:    "test4",
-			fields:  fields{Reader: bufio.NewReader(bytes.NewBufferString("# comment\n"))},
+			fields:  fields{Definition: NewDefinition(), r: bufio.NewReader(bytes.NewBufferString("# comment\n"))},
 			want:    nil,
 			wantErr: true,
 		},
 		{
 			name:    "test5",
-			fields:  fields{Reader: bufio.NewReader(bytes.NewBufferString("# comment\n| 1 |\n"))},
+			fields:  fields{Definition: NewDefinition(), r: bufio.NewReader(bytes.NewBufferString("# comment\n| 1 |\n"))},
 			want:    []string{"1"},
 			wantErr: false,
 		},
@@ -54,7 +54,7 @@ func TestReader_scanLine(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			tr := &Reader{
 				Definition: tt.fields.Definition,
-				Reader:     tt.fields.Reader,
+				r:          tt.fields.r,
 			}
 			got, err := tr.scanLine()
 			if (err != nil) != tt.wantErr {
@@ -97,10 +97,10 @@ func Test_SplitRow(t *testing.T) {
 	}
 }
 
-func TestReader_analyzeExt(t *testing.T) {
+func TestReader_analyzeExtra(t *testing.T) {
 	type fields struct {
-		Definition Definition
-		Reader     *bufio.Reader
+		Definition *Definition
+		r          *bufio.Reader
 	}
 	type args struct {
 		extstr string
@@ -134,10 +134,10 @@ func TestReader_analyzeExt(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			tr := &Reader{
 				Definition: tt.fields.Definition,
-				Reader:     tt.fields.Reader,
+				r:          tt.fields.r,
 			}
-			if err := tr.analyzeExt(tt.args.extstr); (err != nil) != tt.wantErr {
-				t.Errorf("Reader.analyzeExt() error = %v, wantErr %v", err, tt.wantErr)
+			if err := tr.analyzeExtra(tt.args.extstr); (err != nil) != tt.wantErr {
+				t.Errorf("Reader.analyzeExtra() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
 	}
@@ -145,8 +145,8 @@ func TestReader_analyzeExt(t *testing.T) {
 
 func TestReader_ReadRow(t *testing.T) {
 	type fields struct {
-		Definition Definition
-		Reader     *bufio.Reader
+		Definition *Definition
+		r          *bufio.Reader
 	}
 	tests := []struct {
 		name    string
@@ -156,19 +156,19 @@ func TestReader_ReadRow(t *testing.T) {
 	}{
 		{
 			name:    "test1",
-			fields:  fields{Reader: bufio.NewReader(bytes.NewBufferString("| a | b |"))},
+			fields:  fields{Definition: NewDefinition(), r: bufio.NewReader(bytes.NewBufferString("| a | b |"))},
 			want:    []string{"a", "b"},
 			wantErr: false,
 		},
 		{
 			name:    "test2",
-			fields:  fields{Reader: bufio.NewReader(bytes.NewBufferString("| a||b | ||b |"))},
+			fields:  fields{Definition: NewDefinition(), r: bufio.NewReader(bytes.NewBufferString("| a||b | ||b |"))},
 			want:    []string{"a|b", "|b"},
 			wantErr: false,
 		},
 		{
 			name:    "test3",
-			fields:  fields{Definition: Definition{columnNum: 2}, Reader: bufio.NewReader(bytes.NewBufferString("| a |\n"))},
+			fields:  fields{Definition: &Definition{columnNum: 2}, r: bufio.NewReader(bytes.NewBufferString("| a |\n"))},
 			want:    nil,
 			wantErr: true,
 		},
@@ -177,7 +177,7 @@ func TestReader_ReadRow(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			tr := &Reader{
 				Definition: tt.fields.Definition,
-				Reader:     tt.fields.Reader,
+				r:          tt.fields.r,
 			}
 			got, err := tr.ReadRow()
 			if (err != nil) != tt.wantErr {

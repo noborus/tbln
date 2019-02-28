@@ -7,7 +7,7 @@ import (
 
 func TestTbln_AddRows(t *testing.T) {
 	type fields struct {
-		Definition Definition
+		Definition *Definition
 		Hash       map[string]string
 		RowNum     int
 		Rows       [][]string
@@ -23,13 +23,13 @@ func TestTbln_AddRows(t *testing.T) {
 	}{
 		{
 			name:    "test1",
-			fields:  fields{Definition: Definition{columnNum: 1}},
+			fields:  fields{Definition: &Definition{columnNum: 1}},
 			args:    args{row: []string{"1"}},
 			wantErr: false,
 		},
 		{
 			name:    "test2",
-			fields:  fields{Definition: Definition{columnNum: 2}},
+			fields:  fields{Definition: &Definition{columnNum: 2}},
 			args:    args{row: []string{"1"}},
 			wantErr: true,
 		},
@@ -94,7 +94,7 @@ func Test_checkRow(t *testing.T) {
 
 func TestTbln_SumHash(t *testing.T) {
 	type fields struct {
-		Definition Definition
+		Definition *Definition
 		Hash       map[string]string
 		RowNum     int
 		Rows       [][]string
@@ -107,25 +107,25 @@ func TestTbln_SumHash(t *testing.T) {
 	}{
 		{
 			name:    "testBlank",
-			fields:  fields{},
+			fields:  fields{Definition: NewDefinition()},
 			want:    map[string]string{"sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"},
 			wantErr: false,
 		},
 		{
 			name:    "testOneRow",
-			fields:  fields{Rows: [][]string{{"1"}}, RowNum: 1},
+			fields:  fields{Definition: NewDefinition(), Rows: [][]string{{"1"}}, RowNum: 1},
 			want:    map[string]string{"sha256": "3c5c7b4b1fcd47206cbc619c23b59a27b97f730abca146d67157d2d9df8ca9dc"},
 			wantErr: false,
 		},
 		{
 			name:    "testNames",
-			fields:  fields{Definition: Definition{Extras: make(map[string]Extra), Names: []string{"id"}, columnNum: 1}, Rows: [][]string{{"1"}}, RowNum: 1},
+			fields:  fields{Definition: &Definition{Extras: make(map[string]Extra), Names: []string{"id"}, columnNum: 1}, Rows: [][]string{{"1"}}, RowNum: 1},
 			want:    map[string]string{"sha256": "e5ce5f72c836840efdbcbf7639075966944253ef438a305761d888158a6b22a8"},
 			wantErr: false,
 		},
 		{
 			name:    "testFullRow",
-			fields:  fields{Definition: Definition{Extras: make(map[string]Extra), Names: []string{"id", "name"}, Types: []string{"int", "text"}, columnNum: 2}, Rows: [][]string{{"1", "test"}}, RowNum: 1},
+			fields:  fields{Definition: &Definition{Extras: make(map[string]Extra), Names: []string{"id", "name"}, Types: []string{"int", "text"}, columnNum: 2}, Rows: [][]string{{"1", "test"}}, RowNum: 1},
 			want:    map[string]string{"sha256": "fcc150288d592d5c0cf13eed4b1054f6fadbfd2c48cde10954b44d6b7fc42623"},
 			wantErr: false,
 		},

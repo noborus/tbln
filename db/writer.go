@@ -9,16 +9,25 @@ import (
 	"github.com/noborus/tbln"
 )
 
-// Writer is writer struct.
+type CreateMode int
+
+const (
+	NotCreate = iota
+	Create
+	IfNotExists
+	ReCreate
+)
+
+// Writer writes records to database table.
 type Writer struct {
-	tbln.Definition
+	*tbln.Definition
 	*TDB
-	stmt   *sql.Stmt
-	create bool
+	stmt  *sql.Stmt
+	cmode CreateMode
 }
 
-// NewWriter is DB write struct.
-func NewWriter(tdb *TDB, definition tbln.Definition, create bool) *Writer {
+// NewWriter returns a new Writer that writes to database table.
+func NewWriter(tdb *TDB, definition *tbln.Definition, cmode CreateMode) *Writer {
 	if tdb.Tx == nil {
 		var err error
 		tdb.Tx, err = tdb.Begin()
@@ -29,23 +38,24 @@ func NewWriter(tdb *TDB, definition tbln.Definition, create bool) *Writer {
 	return &Writer{
 		Definition: definition,
 		TDB:        tdb,
-		create:     create,
+		cmode:      cmode,
 	}
 }
 
-// WriteRow is write one row.
-func (tw *Writer) WriteRow(row []string) error {
+// WriteRow writes a single tbln record to w.
+// A record is a slice of strings with each string being one field.
+func (w *Writer) WriteRow(row []string) error {
 	r := make([]interface{}, len(row))
 	for i, v := range row {
-		r[i] = tw.convertDBType(tw.Types[i], v)
+		r[i] = w.convertDBType(w.Types[i], v)
 	}
-	_, err := tw.stmt.Exec(r...)
+	_, err := w.stmt.Exec(r...)
 	return err
 }
 
 // WriteTable writes all rows to the table.
-func WriteTable(tdb *TDB, tbln *tbln.Tbln, create bool) error {
-	w := NewWriter(tdb, tbln.Definition, create)
+func WriteTable(tdb *TDB, tbln *tbln.Tbln, cmode CreateMode) error {
+	w := NewWriter(tdb, tbln.Definition, cmode)
 	err := w.WriteDefinition()
 	if err != nil {
 		return err
@@ -60,55 +70,75 @@ func WriteTable(tdb *TDB, tbln *tbln.Tbln, create bool) error {
 }
 
 // WriteDefinition is create table and insert preparation.
-func (tw *Writer) WriteDefinition() error {
-	if tw.Names == nil {
-		if tw.ColumnNum() == 0 {
+func (w *Writer) WriteDefinition() error {
+	if w.Names == nil {
+		if w.ColumnNum() == 0 {
 			return fmt.Errorf("column num is 0")
 		}
-		tw.Names = make([]string, tw.ColumnNum())
-		for i := 0; i < tw.ColumnNum(); i++ {
-			tw.Names[i] = fmt.Sprintf("c%d", i+1)
+		w.Names = make([]string, w.ColumnNum())
+		for i := 0; i < w.ColumnNum(); i++ {
+			w.Names[i] = fmt.Sprintf("c%d", i+1)
 		}
 	}
-	if tw.Types == nil {
-		if tw.ColumnNum() == 0 {
+	if w.Types == nil {
+		if w.ColumnNum() == 0 {
 			return fmt.Errorf("column num is 0")
 		}
-		tw.Types = make([]string, tw.ColumnNum())
-		for i := 0; i < tw.ColumnNum(); i++ {
-			tw.Types[i] = "text"
+		w.Types = make([]string, w.ColumnNum())
+		for i := 0; i < w.ColumnNum(); i++ {
+			w.Types[i] = "text"
 		}
 	}
-	if tw.create {
-		err := tw.createTable()
+	if w.cmode > NotCreate {
+		err := w.createTable()
 		if err != nil {
 			return err
 		}
 	}
-	return tw.prepara()
+	return w.prepara()
 }
 
-func (tw *Writer) createTable() error {
-	col := make([]string, len(tw.Names))
-	for i := 0; i < len(tw.Names); i++ {
-		col[i] = tw.quoting(tw.Names[i]) + " " + tw.Types[i]
+func (w *Writer) dropTable() error {
+	sql := fmt.Sprintf("DROP TABLE IF EXISTS %s;", w.quoting(w.TableName()))
+	_, err := w.Tx.Exec(sql)
+	fmt.Println(sql)
+	if err != nil {
+		return fmt.Errorf("%s: %s", err, sql)
 	}
-	sql := fmt.Sprintf("CREATE TABLE %s ( %s );",
-		tw.quoting(tw.TableName()), strings.Join(col, ", "))
-	_, err := tw.Tx.Exec(sql)
+	return err
+}
+
+func (w *Writer) createTable() error {
+	mode := ""
+	if w.cmode == ReCreate {
+		err := w.dropTable()
+		if err != nil {
+			return err
+		}
+	} else if w.cmode == IfNotExists {
+		mode = "IF NOT EXISTS"
+	}
+	col := make([]string, len(w.Names))
+	for i := 0; i < len(w.Names); i++ {
+		col[i] = w.quoting(w.Names[i]) + " " + w.Types[i]
+	}
+	sql := fmt.Sprintf("CREATE TABLE %s %s ( %s );",
+		mode, w.quoting(w.TableName()), strings.Join(col, ", "))
+	fmt.Println(sql)
+	_, err := w.Tx.Exec(sql)
 	if err != nil {
 		return fmt.Errorf("%s: %s", err, sql)
 	}
 	return nil
 }
 
-func (tw *Writer) prepara() error {
+func (w *Writer) prepara() error {
 	var err error
-	names := make([]string, len(tw.Names))
-	ph := make([]string, len(tw.Names))
-	for i := 0; i < len(tw.Names); i++ {
-		names[i] = tw.quoting(tw.Names[i])
-		if tw.Style.PlaceHolder == "$" {
+	names := make([]string, len(w.Names))
+	ph := make([]string, len(w.Names))
+	for i := 0; i < len(w.Names); i++ {
+		names[i] = w.quoting(w.Names[i])
+		if w.Style.PlaceHolder == "$" {
 			ph[i] = fmt.Sprintf("$%d", i+1)
 		} else {
 			ph[i] = "?"
@@ -116,18 +146,18 @@ func (tw *Writer) prepara() error {
 	}
 	insert := fmt.Sprintf(
 		"INSERT INTO %s ( %s ) VALUES ( %s );",
-		tw.quoting(tw.TableName()), strings.Join(names, ", "), strings.Join(ph, ", "))
-	tw.stmt, err = tw.Tx.Prepare(insert)
+		w.quoting(w.TableName()), strings.Join(names, ", "), strings.Join(ph, ", "))
+	w.stmt, err = w.Tx.Prepare(insert)
 	if err != nil {
 		return fmt.Errorf("%s: %s", err, insert)
 	}
 	return nil
 }
 
-func (tw *Writer) convertDBType(dbtype string, value string) interface{} {
+func (w *Writer) convertDBType(dbtype string, value string) interface{} {
 	switch strings.ToLower(dbtype) {
 	case "datetime", "timestamp":
-		if tw.TDB.Name == "mysql" {
+		if w.TDB.Name == "mysql" {
 			t, err := time.Parse(time.RFC3339, value)
 			if err != nil {
 				return nil

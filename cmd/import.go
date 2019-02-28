@@ -4,14 +4,15 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"strings"
 
 	"github.com/spf13/cobra"
 
-	// MySQL driver
 	"github.com/noborus/tbln"
 	"github.com/noborus/tbln/db"
-	_ "github.com/noborus/tbln/db/mysql"
 
+	// MySQL driver
+	_ "github.com/noborus/tbln/db/mysql"
 	// PostgreSQL driver
 	_ "github.com/noborus/tbln/db/postgres"
 	// SQLlite3 driver
@@ -24,26 +25,19 @@ var importCmd = &cobra.Command{
 	Short: "tbln import database table",
 	Long:  `tbln import database table`,
 	Run: func(cmd *cobra.Command, args []string) {
-		dbImport(args)
+		dbImport(cmd, args)
 	},
 }
 
 func init() {
+	importCmd.PersistentFlags().String("mode", "create", "create mode (NotCreate/Create/IfNotExists/ReCreate")
 	rootCmd.AddCommand(importCmd)
 }
 
-func dbImport(args []string) error {
+func dbImport(cmd *cobra.Command, args []string) error {
 	fileName := args[0]
 	if dbName == "" {
 		return fmt.Errorf("should be db name")
-	}
-	conn, err := db.Open(dbName, dsn)
-	if err != nil {
-		log.Fatal(err)
-	}
-	conn.Tx, err = conn.Begin()
-	if err != nil {
-		log.Fatal(err)
 	}
 	file, err := os.Open(fileName)
 	if err != nil {
@@ -53,7 +47,35 @@ func dbImport(args []string) error {
 	if err != nil {
 		log.Fatal(err)
 	}
-	err = db.WriteTable(conn, at, true)
+	err = file.Close()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	conn, err := db.Open(dbName, dsn)
+	if err != nil {
+		log.Fatal(err)
+	}
+	conn.Tx, err = conn.Begin()
+	if err != nil {
+		log.Fatal(err)
+	}
+	var mode db.CreateMode
+	if modeStr, err := cmd.PersistentFlags().GetString("mode"); err == nil {
+		switch strings.ToLower(modeStr) {
+		case "n":
+			mode = db.NotCreate
+		case "c":
+			mode = db.Create
+		case "i":
+			mode = db.IfNotExists
+		case "r":
+			mode = db.ReCreate
+		default:
+			mode = db.Create
+		}
+	}
+	err = db.WriteTable(conn, at, mode)
 	if err != nil {
 		log.Fatal(err)
 	}

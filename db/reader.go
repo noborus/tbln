@@ -11,9 +11,9 @@ import (
 	"github.com/noborus/tbln"
 )
 
-// Reader is DB read struct.
+// Reader reads records from database table.
 type Reader struct {
-	tbln.Definition
+	*tbln.Definition
 	query string
 	*TDB
 	rows     *sql.Rows
@@ -21,7 +21,7 @@ type Reader struct {
 	values   []interface{}
 }
 
-// ReadTable is reates a structure for reading from DB table.
+// ReadTable returns a new Reader from table name.
 func (tdb *TDB) ReadTable(tableName string, pkey []string) (*Reader, error) {
 	tr := &Reader{
 		Definition: tbln.NewDefinition(),
@@ -60,7 +60,7 @@ func (tdb *TDB) ReadTable(tableName string, pkey []string) (*Reader, error) {
 	return tr, nil
 }
 
-// ReadQuery is reates a structure for reading from query.
+// ReadQuery returns a new Reader from SQL query.
 func (tdb *TDB) ReadQuery(query string, args ...interface{}) (*Reader, error) {
 	tr := &Reader{
 		Definition: tbln.NewDefinition(),
@@ -73,7 +73,7 @@ func (tdb *TDB) ReadQuery(query string, args ...interface{}) (*Reader, error) {
 	return tr, nil
 }
 
-// ReadRow is return one row.
+// ReadRow reads one record (a slice of fields) from tr.
 func (tr *Reader) ReadRow() ([]string, error) {
 	if !tr.rows.Next() {
 		err := tr.rows.Err()
@@ -90,16 +90,16 @@ func (tr *Reader) ReadRow() ([]string, error) {
 	return rec, nil
 }
 
-// ReadTableAll reads all rows in the table.
-func ReadTableAll(tdb *TDB, TableName string) (*tbln.Tbln, error) {
-	r, err := tdb.ReadTable(TableName, nil)
+// ReadTableAll reads all the remaining records from tableName.
+func ReadTableAll(tdb *TDB, tableName string) (*tbln.Tbln, error) {
+	r, err := tdb.ReadTable(tableName, nil)
 	if err != nil {
 		return nil, err
 	}
 	return readRowsAll(r)
 }
 
-// ReadQueryAll reads all rows in the table.
+// ReadQueryAll reads all the remaining records from SQL query.
 func ReadQueryAll(tdb *TDB, query string, args ...interface{}) (*tbln.Tbln, error) {
 	r, err := tdb.ReadQuery(query, args...)
 	if err != nil {
@@ -149,7 +149,6 @@ func (tr *Reader) setExtraInfo(constraints map[string][]interface{}) {
 	}
 }
 
-// preparation is read preparation.
 func (tr *Reader) peparation(query string, args ...interface{}) error {
 	tr.query = query
 	rows, err := tr.DB.Query(query, args...)

@@ -12,7 +12,7 @@ import (
 
 // Tbln struct is tbln Definition + Tbln rows.
 type Tbln struct {
-	Definition
+	*Definition
 	RowNum int
 	Rows   [][]string
 }
@@ -36,11 +36,11 @@ type Definition struct {
 }
 
 // NewDefinition is create Definition struct.
-func NewDefinition() Definition {
+func NewDefinition() *Definition {
 	extras := make(map[string]Extra)
 	extras["created_at"] = NewExtra(time.Now().Format(time.RFC3339), false)
 	hashes := make(map[string]string)
-	return Definition{
+	return &Definition{
 		Extras: extras,
 		Hashes: hashes,
 	}

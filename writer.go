@@ -6,20 +6,20 @@ import (
 	"sort"
 )
 
-// Writer is writer struct.
+// Writer writes records to a tbln encoded file.
 type Writer struct {
 	Writer io.Writer
 }
 
-// NewWriter is Writer
-func NewWriter(writer io.Writer) *Writer {
+// NewWriter returns a new Writer that writes to w.
+func NewWriter(w io.Writer) *Writer {
 	return &Writer{
-		Writer: writer,
+		Writer: w,
 	}
 }
 
-// WriteDefinition is write tbln definition.
-func (w *Writer) WriteDefinition(d Definition) error {
+// WriteDefinition writes Definition (comment and extra) to w.
+func (w *Writer) WriteDefinition(d *Definition) error {
 	err := w.writeComment(d)
 	if err != nil {
 		return err
@@ -27,13 +27,14 @@ func (w *Writer) WriteDefinition(d Definition) error {
 	return w.writeExtra(d)
 }
 
-// WriteRow is write one row.
+// WriteRow writes a single tbln record to w along with any necessary escaping.
+// A record is a slice of strings with each string being one field.
 func (w *Writer) WriteRow(row []string) error {
 	_, err := io.WriteString(w.Writer, JoinRow(row)+"\n")
 	return err
 }
 
-// WriteAll write tbln.
+// WriteAll writes multiple tbln records to w using Write.
 func WriteAll(writer io.Writer, tbln *Tbln) error {
 	w := NewWriter(writer)
 	err := w.WriteDefinition(tbln.Definition)
@@ -49,7 +50,8 @@ func WriteAll(writer io.Writer, tbln *Tbln) error {
 	return nil
 }
 
-func (w *Writer) writeComment(d Definition) error {
+// writeComment writes comment to w.
+func (w *Writer) writeComment(d *Definition) error {
 	for _, comment := range d.Comments {
 		_, err := io.WriteString(w.Writer, fmt.Sprintf("# %s\n", comment))
 		if err != nil {
@@ -59,7 +61,9 @@ func (w *Writer) writeComment(d Definition) error {
 	return nil
 }
 
-func (w *Writer) writeExtra(d Definition) error {
+// writeExtra writes extra to w.
+// The order of writing is other than hash target, hash value, hash target.
+func (w *Writer) writeExtra(d *Definition) error {
 	err := w.writeExtraTarget(d, false)
 	if err != nil {
 		return err
@@ -73,7 +77,7 @@ func (w *Writer) writeExtra(d Definition) error {
 	return w.writeExtraTarget(d, true)
 }
 
-func (w *Writer) writeExtraTarget(d Definition, targetFlag bool) error {
+func (w *Writer) writeExtraTarget(d *Definition, targetFlag bool) error {
 	keys := make([]string, 0, len(d.Extras))
 	for k := range d.Extras {
 		keys = append(keys, k)
@@ -91,7 +95,7 @@ func (w *Writer) writeExtraTarget(d Definition, targetFlag bool) error {
 	return nil
 }
 
-func (w *Writer) writeHashes(d Definition) error {
+func (w *Writer) writeHashes(d *Definition) error {
 	hash := make([]string, 0, len(d.Hashes))
 	for k, v := range d.Hashes {
 		hash = append(hash, k+":"+v)
