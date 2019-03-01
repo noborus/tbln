@@ -78,7 +78,7 @@ func dbExport(cmd *cobra.Command, args []string) error {
 	if err != nil {
 		log.Fatal(err)
 	}
-	comment := fmt.Sprintf("DB:%s\tTable:%s", conn.Name, tableName)
+	comment := fmt.Sprintf("DB:%s", conn.Name)
 	at.Comments = []string{comment}
 	_, err = at.SumHash(sumHash)
 	if err != nil {

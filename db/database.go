@@ -5,7 +5,7 @@ import (
 	"regexp"
 )
 
-// TDB is sql.DB wrapper.
+// TDB struct is sql.DB wrapper.
 type TDB struct {
 	Name string
 	*sql.DB
