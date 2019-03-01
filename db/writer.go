@@ -101,7 +101,6 @@ func (w *Writer) WriteDefinition() error {
 func (w *Writer) dropTable() error {
 	sql := fmt.Sprintf("DROP TABLE IF EXISTS %s;", w.quoting(w.TableName()))
 	_, err := w.Tx.Exec(sql)
-	fmt.Println(sql)
 	if err != nil {
 		return fmt.Errorf("%s: %s", err, sql)
 	}
@@ -124,7 +123,6 @@ func (w *Writer) createTable() error {
 	}
 	sql := fmt.Sprintf("CREATE TABLE %s %s ( %s );",
 		mode, w.quoting(w.TableName()), strings.Join(col, ", "))
-	fmt.Println(sql)
 	_, err := w.Tx.Exec(sql)
 	if err != nil {
 		return fmt.Errorf("%s: %s", err, sql)

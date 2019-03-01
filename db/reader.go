@@ -14,7 +14,6 @@ import (
 // Reader reads records from database table.
 type Reader struct {
 	*tbln.Definition
-	query string
 	*TDB
 	rows     *sql.Rows
 	scanArgs []interface{}
@@ -35,7 +34,7 @@ func (tdb *TDB) ReadTable(tableName string, pkey []string) (*Reader, error) {
 			return nil, err
 		}
 	}
-	tr.setExtraInfo(info)
+	tr.setTableInfo(info)
 	// Primary key
 	pk, err := tr.GetPrimaryKey(tr.TDB.DB, tableName)
 	if err != nil && err != ErrorNotSupport {
@@ -52,21 +51,21 @@ func (tdb *TDB) ReadTable(tableName string, pkey []string) (*Reader, error) {
 	} else {
 		orderby = "1"
 	}
-	query := fmt.Sprintf("SELECT * FROM %s ORDER BY %s", tdb.quoting(tableName), orderby)
-	err = tr.peparation(query)
+	sql := fmt.Sprintf("SELECT * FROM %s ORDER BY %s", tdb.quoting(tableName), orderby)
+	err = tr.query(sql)
 	if err != nil {
-		return nil, fmt.Errorf("%s: [%s]", err, query)
+		return nil, fmt.Errorf("%s: [%s]", err, sql)
 	}
 	return tr, nil
 }
 
 // ReadQuery returns a new Reader from SQL query.
-func (tdb *TDB) ReadQuery(query string, args ...interface{}) (*Reader, error) {
+func (tdb *TDB) ReadQuery(sql string, args ...interface{}) (*Reader, error) {
 	tr := &Reader{
 		Definition: tbln.NewDefinition(),
 		TDB:        tdb,
 	}
-	err := tr.peparation(query, args...)
+	err := tr.query(sql, args...)
 	if err != nil {
 		return nil, err
 	}
@@ -85,42 +84,44 @@ func (tr *Reader) ReadRow() ([]string, error) {
 	}
 	rec := make([]string, len(tr.values))
 	for i, col := range tr.values {
-		rec[i] = valString(col)
+		rec[i] = toString(col)
 	}
 	return rec, nil
 }
 
 // ReadTableAll reads all the remaining records from tableName.
 func ReadTableAll(tdb *TDB, tableName string) (*tbln.Tbln, error) {
-	r, err := tdb.ReadTable(tableName, nil)
+	tr, err := tdb.ReadTable(tableName, nil)
 	if err != nil {
 		return nil, err
 	}
-	return readRowsAll(r)
+	return tr.readRowsAll()
 }
 
 // ReadQueryAll reads all the remaining records from SQL query.
 func ReadQueryAll(tdb *TDB, query string, args ...interface{}) (*tbln.Tbln, error) {
-	r, err := tdb.ReadQuery(query, args...)
+	tr, err := tdb.ReadQuery(query, args...)
 	if err != nil {
 		return nil, err
 	}
-	return readRowsAll(r)
+	return tr.readRowsAll()
 }
 
-func readRowsAll(rd *Reader) (at *tbln.Tbln, err error) {
-	at = &tbln.Tbln{}
-	at.Definition = rd.Definition
-	at.Rows = make([][]string, 0)
+func (tr *Reader) readRowsAll() (*tbln.Tbln, error) {
+	var err error
 	defer func() {
-		cerr := rd.rows.Close()
+		cerr := tr.rows.Close()
 		if err == nil {
 			err = cerr
 		}
 	}()
+
+	at := &tbln.Tbln{}
+	at.Definition = tr.Definition
+	at.Rows = make([][]string, 0)
 	for {
 		var rec []string
-		rec, err = rd.ReadRow()
+		rec, err = tr.ReadRow()
 		if err != nil {
 			return at, err
 		}
@@ -130,15 +131,15 @@ func readRowsAll(rd *Reader) (at *tbln.Tbln, err error) {
 		at.RowNum++
 		at.Rows = append(at.Rows, rec)
 	}
-	return
+	return at, err
 }
 
-func (tr *Reader) setExtraInfo(constraints map[string][]interface{}) {
+func (tr *Reader) setTableInfo(constraints map[string][]interface{}) {
 	for k, v := range constraints {
 		col := make([]string, len(v))
 		visible := false
 		for i, c := range v {
-			col[i] = valString(c)
+			col[i] = toString(c)
 			if col[i] != "" {
 				visible = true
 			}
@@ -149,13 +150,13 @@ func (tr *Reader) setExtraInfo(constraints map[string][]interface{}) {
 	}
 }
 
-func (tr *Reader) peparation(query string, args ...interface{}) error {
-	tr.query = query
+func (tr *Reader) query(query string, args ...interface{}) error {
 	rows, err := tr.DB.Query(query, args...)
 	if err != nil {
 		return err
 	}
-	err = tr.setExtra(rows)
+
+	err = tr.setRowInfo(rows)
 	if err != nil {
 		return err
 	}
@@ -168,14 +169,12 @@ func (tr *Reader) peparation(query string, args ...interface{}) error {
 	return nil
 }
 
-func (tr *Reader) setExtra(rows *sql.Rows) error {
+func (tr *Reader) setRowInfo(rows *sql.Rows) error {
 	var err error
-	tr.SetTableName(tr.TableName())
 	columns, err := rows.Columns()
 	if err != nil {
 		return err
 	}
-
 	err = tr.SetNames(columns)
 	if err != nil {
 		return err
@@ -194,14 +193,13 @@ func (tr *Reader) setExtra(rows *sql.Rows) error {
 	if err != nil {
 		return err
 	}
-	// Database type
 	if _, ok := tr.Extras[tr.Name+"_type"]; !ok {
 		tr.Extras[tr.Name+"_type"] = tbln.NewExtra(tbln.JoinRow(dbtypes), false)
 	}
 	return nil
 }
 
-func valString(v interface{}) string {
+func toString(v interface{}) string {
 	var str string
 	switch t := v.(type) {
 	case nil:

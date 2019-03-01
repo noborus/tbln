@@ -22,15 +22,16 @@ import (
 // importCmd represents the import command
 var importCmd = &cobra.Command{
 	Use:   "import",
-	Short: "tbln import database table",
-	Long:  `tbln import database table`,
+	Short: "import database table",
+	Long:  `import database table`,
 	Run: func(cmd *cobra.Command, args []string) {
 		dbImport(cmd, args)
 	},
 }
 
 func init() {
-	importCmd.PersistentFlags().String("mode", "create", "create mode (NotCreate/Create/IfNotExists/ReCreate")
+	importCmd.PersistentFlags().StringP("mode", "m", "i", "create mode (n:NotCreate/c:Create/i:IfNotExists/r:ReCreate")
+	importCmd.PersistentFlags().StringP("table", "t", "", "Table Name")
 	rootCmd.AddCommand(importCmd)
 }
 
