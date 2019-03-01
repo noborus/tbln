@@ -19,28 +19,46 @@ func init() {
 	db.Register("postgres", driver)
 }
 
+// GetSchema returns the schema string.
+func (c *Constr) GetSchema(conn *sql.DB) (string, error) {
+	query := "SELECT current_schema();"
+	row := conn.QueryRow(query)
+	schema := ""
+	if err := row.Scan(&schema); err != nil {
+		return "", err
+	}
+	return schema, nil
+}
+
 // GetPrimaryKey returns the primary key as a slice.
-func (c *Constr) GetPrimaryKey(conn *sql.DB, tableName string) ([]string, error) {
-	query := `SELECT ccu.column_name
-	   	        FROM information_schema.table_constraints tc
-	               , information_schema.constraint_column_usage ccu
-	           WHERE tc.table_name = $1
-	             AND tc.constraint_type = 'PRIMARY KEY'
-               AND tc.table_catalog = ccu.table_catalog
-						   AND tc.table_schema = ccu.table_schema
-						   AND tc.table_name = ccu.table_name
-               AND tc.constraint_name = ccu.constraint_name;`
-	return db.GetPrimaryKey(conn, query, tableName)
+func (c *Constr) GetPrimaryKey(conn *sql.DB, schema string, tableName string) ([]string, error) {
+	if schema == "" {
+		schema = "public"
+	}
+	query := `SELECT c.column_name
+	            FROM information_schema.constraint_column_usage c
+				LEFT JOIN information_schema.table_constraints t
+				       ON t.constraint_name = c.constraint_name
+				  AND t.table_schema = c.table_schema
+				  AND t.table_catalog = c.table_catalog
+			    WHERE t.table_schema = $1
+			      AND t.table_name = $2
+				  AND t.constraint_type = 'PRIMARY KEY'`
+	return db.GetPrimaryKey(conn, query, schema, tableName)
 }
 
 // GetColumnInfo returns information of a table column as an array.
-func (c *Constr) GetColumnInfo(conn *sql.DB, tableName string) (map[string][]interface{}, error) {
+func (c *Constr) GetColumnInfo(conn *sql.DB, schema string, tableName string) (map[string][]interface{}, error) {
+	if schema == "" {
+		schema = "public"
+	}
 	query := `WITH u AS (
 		SELECT DISTINCT tc.table_name, cc.column_name, 'YES' as is_unique
 			FROM information_schema.table_constraints AS tc
 			LEFT JOIN information_schema.constraint_column_usage AS cc
 				ON (tc.table_name = cc.table_name AND tc.constraint_type = 'UNIQUE')
-		 WHERE tc.table_name = $1
+		 WHERE tc.table_schema = $1
+		   AND tc.table_name = $2
 	)
 	SELECT
 			column_default
@@ -57,7 +75,8 @@ func (c *Constr) GetColumnInfo(conn *sql.DB, tableName string) (map[string][]int
 		FROM information_schema.columns AS t
 		LEFT JOIN u
 			ON (t.table_name = u.table_name AND t.column_name = u.column_name)
-	 WHERE t.table_name = $1
+	 WHERE t.table_schema = $1
+	   AND t.table_name = $2
 	 ORDER BY t.ordinal_position;`
-	return db.GetColumnInfo(conn, query, tableName)
+	return db.GetColumnInfo(conn, query, schema, tableName)
 }

@@ -21,14 +21,21 @@ type Reader struct {
 }
 
 // ReadTable returns a new Reader from table name.
-func (tdb *TDB) ReadTable(tableName string, pkey []string) (*Reader, error) {
+func (tdb *TDB) ReadTable(schema string, tableName string, pkey []string) (*Reader, error) {
 	tr := &Reader{
 		Definition: tbln.NewDefinition(),
 		TDB:        tdb,
 	}
 	tr.SetTableName(tableName)
+	var err error
+	if schema == "" {
+		schema, err = tr.GetSchema(tdb.DB)
+		if err != nil {
+			return nil, err
+		}
+	}
 	// Constraint
-	info, err := tr.GetColumnInfo(tdb.DB, tableName)
+	info, err := tr.GetColumnInfo(tdb.DB, schema, tableName)
 	if err != nil {
 		if err != ErrorNotSupport {
 			return nil, err
@@ -36,7 +43,7 @@ func (tdb *TDB) ReadTable(tableName string, pkey []string) (*Reader, error) {
 	}
 	tr.setTableInfo(info)
 	// Primary key
-	pk, err := tr.GetPrimaryKey(tr.TDB.DB, tableName)
+	pk, err := tr.GetPrimaryKey(tr.TDB.DB, schema, tableName)
 	if err != nil && err != ErrorNotSupport {
 		return nil, err
 	} else if len(pk) > 0 {
@@ -51,7 +58,11 @@ func (tdb *TDB) ReadTable(tableName string, pkey []string) (*Reader, error) {
 	} else {
 		orderby = "1"
 	}
-	sql := fmt.Sprintf("SELECT * FROM %s ORDER BY %s", tdb.quoting(tableName), orderby)
+	table := tdb.quoting(tableName)
+	if schema != "" {
+		table = tdb.quoting(schema) + "." + tdb.quoting(tableName)
+	}
+	sql := fmt.Sprintf("SELECT * FROM %s ORDER BY %s", table, orderby)
 	err = tr.query(sql)
 	if err != nil {
 		return nil, fmt.Errorf("%s: [%s]", err, sql)
@@ -90,8 +101,8 @@ func (tr *Reader) ReadRow() ([]string, error) {
 }
 
 // ReadTableAll reads all the remaining records from tableName.
-func ReadTableAll(tdb *TDB, tableName string) (*tbln.Tbln, error) {
-	tr, err := tdb.ReadTable(tableName, nil)
+func ReadTableAll(tdb *TDB, schema string, tableName string) (*tbln.Tbln, error) {
+	tr, err := tdb.ReadTable(schema, tableName, nil)
 	if err != nil {
 		return nil, err
 	}

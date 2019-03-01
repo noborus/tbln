@@ -19,14 +19,19 @@ func init() {
 	db.Register("sqlite3", driver)
 }
 
+// GetSchema returns the schema string.
+func (c *Constr) GetSchema(conn *sql.DB) (string, error) {
+	return "", nil
+}
+
 // GetPrimaryKey returns the primary key as a slice.
-func (p *Constr) GetPrimaryKey(conn *sql.DB, tableName string) ([]string, error) {
+func (c *Constr) GetPrimaryKey(conn *sql.DB, schema string, tableName string) ([]string, error) {
 	query := `SELECT name FROM PRAGMA_TABLE_INFO(?) WHERE pk = 1`
-	return db.GetPrimaryKey(conn, query, tableName)
+	return db.GetPrimaryKey(conn, query, "", tableName)
 }
 
 // GetColumnInfo returns information of a table column as an array.
-func (p *Constr) GetColumnInfo(conn *sql.DB, tableName string) (map[string][]interface{}, error) {
+func (c *Constr) GetColumnInfo(conn *sql.DB, schema string, tableName string) (map[string][]interface{}, error) {
 	query := `SELECT
 					  t.type AS sqlite3_type
 					  , t.dflt_value AS column_default

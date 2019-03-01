@@ -29,16 +29,21 @@ var exportCmd = &cobra.Command{
 }
 
 func init() {
+	exportCmd.PersistentFlags().StringP("Schema", "s", "", "Schema Name")
 	exportCmd.PersistentFlags().StringP("Table", "t", "", "Table Name")
 	exportCmd.PersistentFlags().StringP("Query", "q", "", "SQL Query")
-	exportCmd.PersistentFlags().StringP("sum", "s", "sha256", "CheckSum(sha256/sha512)")
+	exportCmd.PersistentFlags().StringP("sum", "c", "sha256", "CheckSum(sha256/sha512)")
 	rootCmd.AddCommand(exportCmd)
 }
 
 func dbExport(cmd *cobra.Command, args []string) error {
 	var err error
+	var schema string
 	var tableName string
 	var query string
+	if schema, err = cmd.PersistentFlags().GetString("Schema"); err != nil {
+		log.Fatal(err)
+	}
 	if tableName, err = cmd.PersistentFlags().GetString("Table"); err != nil {
 		log.Fatal(err)
 	}
@@ -64,7 +69,6 @@ func dbExport(cmd *cobra.Command, args []string) error {
 	if dbName == "" {
 		log.Fatal("should be db name")
 	}
-
 	conn, err := db.Open(dbName, dsn)
 	if err != nil {
 		log.Fatal(err)
@@ -73,7 +77,7 @@ func dbExport(cmd *cobra.Command, args []string) error {
 	if query != "" {
 		at, err = db.ReadQueryAll(conn, query)
 	} else {
-		at, err = db.ReadTableAll(conn, tableName)
+		at, err = db.ReadTableAll(conn, schema, tableName)
 	}
 	if err != nil {
 		log.Fatal(err)

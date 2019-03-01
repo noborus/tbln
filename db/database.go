@@ -49,8 +49,8 @@ func (tdb *TDB) quoting(name string) string {
 }
 
 // GetPrimaryKey returns the primary key as a slice.
-func GetPrimaryKey(conn *sql.DB, query string, tableName string) ([]string, error) {
-	rows, err := conn.Query(query, tableName)
+func GetPrimaryKey(conn *sql.DB, query string, schema string, tableName string) ([]string, error) {
+	rows, err := conn.Query(query, schema, tableName)
 	if err != nil {
 		return nil, err
 	}

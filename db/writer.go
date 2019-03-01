@@ -16,6 +16,7 @@ const (
 	Create
 	IfNotExists
 	ReCreate
+	CreateOnly
 )
 
 // Writer writes records to database table.
@@ -59,6 +60,9 @@ func WriteTable(tdb *TDB, tbln *tbln.Tbln, cmode CreateMode) error {
 	err := w.WriteDefinition()
 	if err != nil {
 		return err
+	}
+	if cmode == CreateOnly {
+		return nil
 	}
 	for _, row := range tbln.Rows {
 		err = w.WriteRow(row)

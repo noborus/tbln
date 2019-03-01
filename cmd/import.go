@@ -30,7 +30,7 @@ var importCmd = &cobra.Command{
 }
 
 func init() {
-	importCmd.PersistentFlags().StringP("mode", "m", "i", "create mode (n:NotCreate/c:Create/i:IfNotExists/r:ReCreate")
+	importCmd.PersistentFlags().StringP("mode", "m", "i", "create mode (a:NotCreate/c:Create/i:IfNotExists/r:ReCreate/s:CreateOnly")
 	importCmd.PersistentFlags().StringP("table", "t", "", "Table Name")
 	rootCmd.AddCommand(importCmd)
 }
@@ -64,7 +64,7 @@ func dbImport(cmd *cobra.Command, args []string) error {
 	var mode db.CreateMode
 	if modeStr, err := cmd.PersistentFlags().GetString("mode"); err == nil {
 		switch strings.ToLower(modeStr) {
-		case "n":
+		case "a":
 			mode = db.NotCreate
 		case "c":
 			mode = db.Create
@@ -72,6 +72,8 @@ func dbImport(cmd *cobra.Command, args []string) error {
 			mode = db.IfNotExists
 		case "r":
 			mode = db.ReCreate
+		case "s":
+			mode = db.CreateOnly
 		default:
 			mode = db.Create
 		}
