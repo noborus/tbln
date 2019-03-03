@@ -20,13 +20,13 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	at, err := db.ReadTableAll(conn, os.Args[1])
+	at, err := db.ReadTableAll(conn, "", os.Args[1])
 	if err != nil {
 		log.Fatal(err)
 	}
 	comment := fmt.Sprintf("DB:%s\tTable:%s", conn.Name, os.Args[1])
 	at.Comments = []string{comment}
-	_, err = at.SumHash(tbln.SHA256)
+	err = at.SumHash(tbln.SHA256)
 	if err != nil {
 		log.Fatal(err)
 	}

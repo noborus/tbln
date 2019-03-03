@@ -3,11 +3,15 @@ package tbln
 import (
 	"crypto/sha256"
 	"crypto/sha512"
+	"encoding/hex"
 	"fmt"
 	"hash"
+	"log"
 	"regexp"
 	"strings"
 	"time"
+
+	"golang.org/x/crypto/ed25519"
 )
 
 // Tbln struct is tbln Definition + Tbln rows.
@@ -32,17 +36,20 @@ type Definition struct {
 	Names     []string
 	Types     []string
 	Extras    map[string]Extra
-	Hashes    map[string]string
+	Hashes    map[string][]byte
+	Signs     map[string][]byte
 }
 
 // NewDefinition is create Definition struct.
 func NewDefinition() *Definition {
 	extras := make(map[string]Extra)
 	extras["created_at"] = NewExtra(time.Now().Format(time.RFC3339), false)
-	hashes := make(map[string]string)
+	hashes := make(map[string][]byte)
+	signs := make(map[string][]byte)
 	return &Definition{
 		Extras: extras,
 		Hashes: hashes,
+		Signs:  signs,
 	}
 }
 
@@ -58,6 +65,10 @@ func NewExtra(value interface{}, hashTarget bool) Extra {
 		value:      value,
 		hashTarget: hashTarget,
 	}
+}
+
+func (e *Extra) Value() interface{} {
+	return e.value
 }
 
 // Read is TBLN Read interface.
@@ -154,8 +165,9 @@ type HashType int
 
 // Types of supported hashes
 const (
-	SHA256 = iota // import crypto/sha256
-	SHA512        // import crypto/sha512
+	NOTSUPPORT = iota
+	SHA256     // import crypto/sha256
+	SHA512     // import crypto/sha512
 )
 
 func (h HashType) string() string {
@@ -169,11 +181,70 @@ func (h HashType) string() string {
 	}
 }
 
-// SumHash is returns the calculated checksum.
-func (t *Tbln) SumHash(hashType HashType) (map[string]string, error) {
-	if t.Hashes == nil {
-		t.Hashes = make(map[string]string)
+func hashType(hString string) HashType {
+	switch hString {
+	case "sha256":
+		return SHA256
+	case "sha512":
+		return SHA512
 	}
+	return NOTSUPPORT
+}
+
+// Sign is returns signature for hash.
+func (t *Tbln) Sign(privateKey ed25519.PrivateKey) map[string][]byte {
+	t.Signs["ED25519"] = ed25519.Sign(privateKey, t.SerialHash())
+	return t.Signs
+}
+
+// VerifySign validates the signature and hash returns the bool value.
+func (t *Tbln) VerifySign(pubKey []byte) bool {
+	sign := t.Signs["ED25519"]
+	x := ed25519.PublicKey(pubKey)
+	if ed25519.Verify(x, t.SerialHash(), sign) {
+		return t.Verify()
+	}
+	return false
+}
+
+// Verify validates the hash and returns the bool value.
+func (t *Tbln) Verify() bool {
+	for key, value := range t.Hashes {
+		orig, err := t.hash(hashType(key))
+		if err != nil {
+			log.Fatal(err)
+		}
+		if string(orig) != string(value) {
+			return false
+		}
+	}
+	return true
+}
+
+// SerialHash returns a []byte that serializes Hash's map.
+func (d *Definition) SerialHash() []byte {
+	hashes := make([]string, 0, len(d.Hashes))
+	if val, ok := d.Hashes["sha256"]; ok {
+		hashes = append(hashes, "sha256:"+fmt.Sprintf("%x", val))
+	}
+	if val, ok := d.Hashes["sha512"]; ok {
+		hashes = append(hashes, "sha512:"+fmt.Sprintf("%x", val))
+	}
+	return []byte(JoinRow(hashes))
+}
+
+// SumHash calculated checksum.
+func (t *Tbln) SumHash(hashType HashType) error {
+	h, err := t.hash(hashType)
+	if err != nil {
+		return err
+	}
+	t.Hashes[hashType.string()] = h
+	return nil
+}
+
+// hash is returns the calculated checksum.
+func (t *Tbln) hash(hashType HashType) ([]byte, error) {
 	var hash hash.Hash
 	switch hashType {
 	case SHA256:
@@ -194,8 +265,7 @@ func (t *Tbln) SumHash(hashType HashType) (map[string]string, error) {
 			return nil, err
 		}
 	}
-	t.Hashes[hashType.string()] = fmt.Sprintf("%x", hash.Sum(nil))
-	return t.Hashes, nil
+	return hash.Sum(nil), nil
 }
 
 // TableName returns the Table Name.
@@ -260,12 +330,30 @@ func (d *Definition) setColNum(colNum int) error {
 	return nil
 }
 
+// SetSignatures is set signatures.
+func (d *Definition) SetSignatures(signs []string) error {
+	for _, sign := range signs {
+		s := strings.SplitN(sign, ":", 2)
+		b, err := hex.DecodeString(s[1])
+		if err != nil {
+			return err
+		}
+		d.Signs[s[0]] = b
+	}
+	return nil
+}
+
 // SetHashes is set hashes.
-func (d *Definition) SetHashes(hashes []string) {
+func (d *Definition) SetHashes(hashes []string) error {
 	for _, hash := range hashes {
 		h := strings.SplitN(hash, ":", 2)
-		d.Hashes[h[0]] = h[1]
+		b, err := hex.DecodeString(h[1])
+		if err != nil {
+			return err
+		}
+		d.Hashes[h[0]] = b
 	}
+	return nil
 }
 
 // HashTarget is set as target of hash

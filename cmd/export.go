@@ -84,7 +84,7 @@ func dbExport(cmd *cobra.Command, args []string) error {
 	}
 	comment := fmt.Sprintf("DB:%s", conn.Name)
 	at.Comments = []string{comment}
-	_, err = at.SumHash(sumHash)
+	err = at.SumHash(sumHash)
 	if err != nil {
 		log.Fatal(err)
 	}

@@ -107,7 +107,15 @@ func (tr *Reader) analyzeExtra(extstr string) error {
 	case "TableName":
 		tr.SetTableName(value)
 	case "Hash":
-		tr.SetHashes(SplitRow(value))
+		err := tr.SetHashes(SplitRow(value))
+		if err != nil {
+			return err
+		}
+	case "Signature":
+		err := tr.SetSignatures(SplitRow(value))
+		if err != nil {
+			return err
+		}
 	default:
 		if len(tr.Hashes) > 0 {
 			tr.Extras[key] = NewExtra(value, true)

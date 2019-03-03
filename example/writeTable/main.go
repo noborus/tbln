@@ -35,7 +35,7 @@ func main() {
 		log.Fatal(err)
 	}
 	at.SetTableName(os.Args[1])
-	err = db.WriteTable(conn, at, true)
+	err = db.WriteTable(conn, at, db.IfNotExists)
 	if err != nil {
 		log.Fatal(err)
 	}
