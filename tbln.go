@@ -3,7 +3,6 @@ package tbln
 import (
 	"crypto/sha256"
 	"crypto/sha512"
-	"encoding/hex"
 	"fmt"
 	"hash"
 	"log"
@@ -210,50 +209,4 @@ func (t *Tbln) hash(hashType HashType) ([]byte, error) {
 		}
 	}
 	return hash.Sum(nil), nil
-}
-
-// ToTargetHash is set as target of hash
-func (t *Tbln) ToTargetHash(key string, target bool) {
-	if v, ok := t.Extras[key]; ok {
-		v.hashTarget = target
-		t.Extras[key] = v
-	}
-}
-
-// SerializeHash returns a []byte that serializes Hash's map.
-func (t *Tbln) SerializeHash() []byte {
-	hashes := make([]string, 0, len(t.Hashes))
-	if val, ok := t.Hashes["sha256"]; ok {
-		hashes = append(hashes, "sha256:"+fmt.Sprintf("%x", val))
-	}
-	if val, ok := t.Hashes["sha512"]; ok {
-		hashes = append(hashes, "sha512:"+fmt.Sprintf("%x", val))
-	}
-	return []byte(JoinRow(hashes))
-}
-
-// SetSignatures is set signatures.
-func (t *Tbln) SetSignatures(signs []string) error {
-	for _, sign := range signs {
-		s := strings.SplitN(sign, ":", 2)
-		b, err := hex.DecodeString(s[1])
-		if err != nil {
-			return err
-		}
-		t.Signs[s[0]] = b
-	}
-	return nil
-}
-
-// SetHashes is set hashes.
-func (t *Tbln) SetHashes(hashes []string) error {
-	for _, hash := range hashes {
-		h := strings.SplitN(hash, ":", 2)
-		b, err := hex.DecodeString(h[1])
-		if err != nil {
-			return err
-		}
-		t.Hashes[h[0]] = b
-	}
-	return nil
 }
