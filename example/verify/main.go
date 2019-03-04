@@ -27,8 +27,8 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	pubKey := getPubKey("test.pub")
-	if at.VerifySign(pubKey) {
+	// pubKey := getPubKey("test.pub")
+	if at.Verify() {
 		fmt.Println("verify")
 	} else {
 		fmt.Println("verify error")

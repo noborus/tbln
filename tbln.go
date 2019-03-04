@@ -67,6 +67,7 @@ func NewExtra(value interface{}, hashTarget bool) Extra {
 	}
 }
 
+// Value is return extra value.
 func (e *Extra) Value() interface{} {
 	return e.value
 }
@@ -221,18 +222,6 @@ func (t *Tbln) Verify() bool {
 	return true
 }
 
-// SerialHash returns a []byte that serializes Hash's map.
-func (d *Definition) SerialHash() []byte {
-	hashes := make([]string, 0, len(d.Hashes))
-	if val, ok := d.Hashes["sha256"]; ok {
-		hashes = append(hashes, "sha256:"+fmt.Sprintf("%x", val))
-	}
-	if val, ok := d.Hashes["sha512"]; ok {
-		hashes = append(hashes, "sha512:"+fmt.Sprintf("%x", val))
-	}
-	return []byte(JoinRow(hashes))
-}
-
 // SumHash calculated checksum.
 func (t *Tbln) SumHash(hashType HashType) error {
 	h, err := t.hash(hashType)
@@ -362,4 +351,16 @@ func (d *Definition) HashTarget(key string, target bool) {
 		v.hashTarget = target
 		d.Extras[key] = v
 	}
+}
+
+// SerialHash returns a []byte that serializes Hash's map.
+func (d *Definition) SerialHash() []byte {
+	hashes := make([]string, 0, len(d.Hashes))
+	if val, ok := d.Hashes["sha256"]; ok {
+		hashes = append(hashes, "sha256:"+fmt.Sprintf("%x", val))
+	}
+	if val, ok := d.Hashes["sha512"]; ok {
+		hashes = append(hashes, "sha512:"+fmt.Sprintf("%x", val))
+	}
+	return []byte(JoinRow(hashes))
 }
