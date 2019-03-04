@@ -113,7 +113,7 @@ func (w *Writer) writeSigns(d *Definition) error {
 }
 
 func (w *Writer) writeHashes(d *Definition) error {
-	hash := d.SerialHash()
+	hash := d.SerializeHash()
 	_, err := fmt.Fprintf(w.Writer, "; Hash: %s\n", string(hash))
 	if err != nil {
 		return err
