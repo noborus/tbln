@@ -146,39 +146,9 @@ func hashType(hString string) HashType {
 	return NOTSUPPORT
 }
 
-// Sign is returns signature for hash.
-func (t *Tbln) Sign(privateKey ed25519.PrivateKey) map[string][]byte {
-	t.Signs["ED25519"] = ed25519.Sign(privateKey, t.SerializeHash())
-	return t.Signs
-}
-
-// VerifySignature returns the boolean value of the signature verification and Verify().
-func (t *Tbln) VerifySignature(pubKey []byte) bool {
-	sign := t.Signs["ED25519"]
-	x := ed25519.PublicKey(pubKey)
-	if ed25519.Verify(x, t.SerializeHash(), sign) {
-		return t.Verify()
-	}
-	return false
-}
-
-// Verify returns the boolean value of the hash varification.
-func (t *Tbln) Verify() bool {
-	for key, value := range t.Hashes {
-		orig, err := t.hash(hashType(key))
-		if err != nil {
-			log.Fatal(err)
-		}
-		if string(orig) != string(value) {
-			return false
-		}
-	}
-	return true
-}
-
 // SumHash calculated checksum.
 func (t *Tbln) SumHash(hashType HashType) error {
-	h, err := t.hash(hashType)
+	h, err := t.calculateHash(hashType)
 	if err != nil {
 		return err
 	}
@@ -186,8 +156,8 @@ func (t *Tbln) SumHash(hashType HashType) error {
 	return nil
 }
 
-// hash is returns the calculated checksum.
-func (t *Tbln) hash(hashType HashType) ([]byte, error) {
+// calculateHash is returns the calculated checksum.
+func (t *Tbln) calculateHash(hashType HashType) ([]byte, error) {
 	var hash hash.Hash
 	switch hashType {
 	case SHA256:
@@ -209,4 +179,34 @@ func (t *Tbln) hash(hashType HashType) ([]byte, error) {
 		}
 	}
 	return hash.Sum(nil), nil
+}
+
+// Sign is returns signature for hash.
+func (t *Tbln) Sign(privateKey ed25519.PrivateKey) map[string][]byte {
+	t.Signs["ED25519"] = ed25519.Sign(privateKey, t.SerializeHash())
+	return t.Signs
+}
+
+// VerifySignature returns the boolean value of the signature verification and Verify().
+func (t *Tbln) VerifySignature(pubKey []byte) bool {
+	sign := t.Signs["ED25519"]
+	x := ed25519.PublicKey(pubKey)
+	if ed25519.Verify(x, t.SerializeHash(), sign) {
+		return t.Verify()
+	}
+	return false
+}
+
+// Verify returns the boolean value of the hash varification.
+func (t *Tbln) Verify() bool {
+	for name, old := range t.Hashes {
+		new, err := t.calculateHash(hashType(name))
+		if err != nil {
+			log.Fatal(err)
+		}
+		if string(old) != string(new) {
+			return false
+		}
+	}
+	return true
 }
