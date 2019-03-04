@@ -152,8 +152,8 @@ func (t *Tbln) Sign(privateKey ed25519.PrivateKey) map[string][]byte {
 	return t.Signs
 }
 
-// VerifySign validates the signature and hash returns the bool value.
-func (t *Tbln) VerifySign(pubKey []byte) bool {
+// VerifySignature returns the boolean value of the signature verification and Verify().
+func (t *Tbln) VerifySignature(pubKey []byte) bool {
 	sign := t.Signs["ED25519"]
 	x := ed25519.PublicKey(pubKey)
 	if ed25519.Verify(x, t.SerializeHash(), sign) {
@@ -162,7 +162,7 @@ func (t *Tbln) VerifySign(pubKey []byte) bool {
 	return false
 }
 
-// Verify validates the hash and returns the bool value.
+// Verify returns the boolean value of the hash varification.
 func (t *Tbln) Verify() bool {
 	for key, value := range t.Hashes {
 		orig, err := t.hash(hashType(key))

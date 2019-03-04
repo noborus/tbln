@@ -38,7 +38,7 @@ func main() {
 	pubFile.Read(data2)
 	pubKey, _ := base64.StdEncoding.DecodeString(string(data2))
 
-	if at.VerifySign(pubKey) {
+	if at.VerifySignature(pubKey) {
 		fmt.Println("verify")
 	} else {
 		fmt.Println("error")
