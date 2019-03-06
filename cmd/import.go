@@ -36,7 +36,10 @@ func init() {
 }
 
 func dbImport(cmd *cobra.Command, args []string) error {
-	fileName := args[0]
+	var fileName string
+	if len(args) > 0 {
+		fileName = args[0]
+	}
 	if dbName == "" {
 		return fmt.Errorf("should be db name")
 	}
