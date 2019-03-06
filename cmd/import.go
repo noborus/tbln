@@ -2,7 +2,6 @@ package cmd
 
 import (
 	"fmt"
-	"log"
 	"os"
 	"strings"
 
@@ -21,11 +20,12 @@ import (
 
 // importCmd represents the import command
 var importCmd = &cobra.Command{
-	Use:   "import",
-	Short: "import database table",
-	Long:  `import database table`,
-	Run: func(cmd *cobra.Command, args []string) {
-		dbImport(cmd, args)
+	Use:          "import",
+	SilenceUsage: true,
+	Short:        "import database table",
+	Long:         `import database table`,
+	RunE: func(cmd *cobra.Command, args []string) error {
+		return dbImport(cmd, args)
 	},
 }
 
@@ -41,28 +41,29 @@ func dbImport(cmd *cobra.Command, args []string) error {
 		fileName = args[0]
 	}
 	if dbName == "" {
-		return fmt.Errorf("should be db name")
+		cmd.SilenceUsage = false
+		return fmt.Errorf("must be database name")
 	}
 	file, err := os.Open(fileName)
 	if err != nil {
-		log.Fatal(err)
+		return err
 	}
 	at, err := tbln.ReadAll(file)
 	if err != nil {
-		log.Fatal(err)
+		return err
 	}
 	err = file.Close()
 	if err != nil {
-		log.Fatal(err)
+		return err
 	}
 
 	conn, err := db.Open(dbName, dsn)
 	if err != nil {
-		log.Fatal(err)
+		return err
 	}
 	conn.Tx, err = conn.Begin()
 	if err != nil {
-		log.Fatal(err)
+		return err
 	}
 	var mode db.CreateMode
 	if modeStr, err := cmd.PersistentFlags().GetString("mode"); err == nil {
@@ -83,12 +84,12 @@ func dbImport(cmd *cobra.Command, args []string) error {
 	}
 	err = db.WriteTable(conn, at, mode)
 	if err != nil {
-		log.Fatal(err)
+		return err
 	}
 	err = conn.Tx.Commit()
 	if err != nil {
-		log.Fatal(err)
+		return err
 	}
-	fmt.Println("import called")
+	fmt.Printf("%s import success", fileName)
 	return conn.Close()
 }

@@ -2,7 +2,6 @@ package cmd
 
 import (
 	"fmt"
-	"log"
 	"os"
 
 	"github.com/spf13/cobra"
@@ -20,19 +19,23 @@ import (
 
 // exportCmd represents the export command
 var exportCmd = &cobra.Command{
-	Use:   "export",
-	Short: "export database table",
-	Long:  `export database table`,
-	Run: func(cmd *cobra.Command, args []string) {
-		dbExport(cmd, args)
+	Use:          "export",
+	SilenceUsage: true,
+	Short:        "export database table or query",
+	Long:         `export database table or query`,
+	RunE: func(cmd *cobra.Command, args []string) error {
+		return dbExport(cmd, args)
 	},
 }
 
 func init() {
-	exportCmd.PersistentFlags().StringP("Schema", "s", "", "Schema Name")
+	exportCmd.PersistentFlags().StringP("Schema", "n", "", "Schema Name")
 	exportCmd.PersistentFlags().StringP("Table", "t", "", "Table Name")
 	exportCmd.PersistentFlags().StringP("Query", "q", "", "SQL Query")
 	exportCmd.PersistentFlags().StringP("sum", "c", "sha256", "CheckSum(sha256/sha512)")
+	exportCmd.PersistentFlags().BoolP("sign", "s", false, "Sign TBLN file")
+	exportCmd.PersistentFlags().StringP("key", "k", "", "Key File")
+
 	rootCmd.AddCommand(exportCmd)
 }
 
@@ -41,18 +44,45 @@ func dbExport(cmd *cobra.Command, args []string) error {
 	var schema string
 	var tableName string
 	var query string
+	var sum string
+	var keyFile string
+	var priv []byte
+	var signF bool
 	if schema, err = cmd.PersistentFlags().GetString("Schema"); err != nil {
-		log.Fatal(err)
+		return err
 	}
 	if tableName, err = cmd.PersistentFlags().GetString("Table"); err != nil {
-		log.Fatal(err)
+		return err
 	}
 	if query, err = cmd.PersistentFlags().GetString("Query"); err != nil {
-		log.Fatal(err)
+		return err
 	}
-	sum := "sha256"
+	if signF, err = cmd.PersistentFlags().GetBool("sign"); err != nil {
+		return err
+	}
+	if keyFile, err = cmd.PersistentFlags().GetString("key"); err != nil {
+		cmd.SilenceUsage = false
+		return err
+	}
+	if keyFile == "" {
+		cmd.SilenceUsage = false
+		return fmt.Errorf("must be keyFile")
+	}
+
+	if tableName == "" && len(args) >= 1 {
+		tableName = args[0]
+	}
+	if tableName == "" && query == "" {
+		cmd.SilenceUsage = false
+		return fmt.Errorf("must be Table Name or SQL Query")
+	}
+	if dbName == "" {
+		cmd.SilenceUsage = false
+		return fmt.Errorf("must be Database Driver Name")
+	}
+
 	if sum, err = cmd.PersistentFlags().GetString("sum"); err != nil {
-		log.Fatal(err)
+		return err
 	}
 	var sumHash tbln.HashType
 	if sum == "sha512" {
@@ -60,18 +90,17 @@ func dbExport(cmd *cobra.Command, args []string) error {
 	} else {
 		sumHash = tbln.SHA256
 	}
-	if tableName == "" && len(args) >= 1 {
-		tableName = args[0]
+
+	if signF {
+		priv, err = decryptPrompt(keyFile)
+		if err != nil {
+			return err
+		}
 	}
-	if tableName == "" && query == "" {
-		log.Fatal("should be table name or query")
-	}
-	if dbName == "" {
-		log.Fatal("should be db name")
-	}
+
 	conn, err := db.Open(dbName, dsn)
 	if err != nil {
-		log.Fatal(err)
+		return err
 	}
 	var at *tbln.Tbln
 	if query != "" {
@@ -80,17 +109,18 @@ func dbExport(cmd *cobra.Command, args []string) error {
 		at, err = db.ReadTableAll(conn, schema, tableName)
 	}
 	if err != nil {
-		log.Fatal(err)
+		return err
 	}
-	comment := fmt.Sprintf("DB:%s", conn.Name)
-	at.Comments = []string{comment}
 	err = at.SumHash(sumHash)
 	if err != nil {
-		log.Fatal(err)
+		return err
+	}
+	if signF {
+		at.Sign(priv)
 	}
 	err = tbln.WriteAll(os.Stdout, at)
 	if err != nil {
-		log.Fatal(err)
+		return err
 	}
 	return conn.Close()
 }
