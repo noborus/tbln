@@ -1,25 +1,41 @@
 # tbln
 
-Tbln(Table notation) format read/write library.
+tbln is a text format that represents the table.
+
+This repository has Go library and CLI tool which can read/write file and RDBMS.
 
 ## Specification
 
-1. One line ends with a line feed
+1. One line ends with a line feed.
 2. Value consists of multiple columns.
-3. Data starts with "| " (vertical bar + space).
+3. Lines begin with "| " (vertical bar + space) and end with " |" (space + vertical bar).
 4. Values are separated by " | "  (space + vertical bar + space).
-5. If you want to include "|" in the value, it is "||".
-   Increase | after | one by one.
+5. If you want to include "|" in the value, it is "||". Increase | after | one by one.
 6. Otherwise, all values are taken.
 
-## Example
+## TBLN format example
 
-| column1 | column2 | column3 |
+Simple and only data.
 
-| column| | |column2 | co|umn3 |
+```
+| 1 | Bob |
+| 2 | Alice |
+```
 
-| co || lumn | co ||| lumn | co |||| lumn |
+Add comment, column name and data type.
 
-| co\nlumn1 | column2\n | column3\n\n |
+```
+# comment
+; name: | id | name |
+; type: | int | text |
+| 1 | Bob |
+| 2 | Alice |
+```
 
-
+```
+# comment
+; name: | id | name |
+; type: | int | text |
+| 1 | B||o||b |
+| 2 | Alice |
+```
