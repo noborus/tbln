@@ -6,20 +6,14 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// global variable from global flags
-var (
-	dbName string
-	dsn    string
-)
-
 var rootCmd = &cobra.Command{
 	Use:   "tbln",
-	Short: "tbln cli tool",
+	Short: "tbln is command-line TBLN processor",
+	Long: `Import/Export TBLN file and RDBMS table.
+Also sign and verify the TBLN file.`,
 }
 
 func init() {
-	rootCmd.PersistentFlags().StringVar(&dbName, "db", "", "database name")
-	rootCmd.PersistentFlags().StringVar(&dsn, "dsn", "", "dsn name")
 	rootCmd.AddCommand()
 }
 

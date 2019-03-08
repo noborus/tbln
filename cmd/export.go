@@ -17,9 +17,15 @@ import (
 	_ "github.com/noborus/tbln/db/sqlite3"
 )
 
+// global variable from global flags
+var (
+	srcdbName string
+	srcdsn    string
+)
+
 // exportCmd represents the export command
 var exportCmd = &cobra.Command{
-	Use:          "export",
+	Use:          "export  [flags] <Table Name> or <SQL Query>",
 	SilenceUsage: true,
 	Short:        "export database table or query",
 	Long:         `export database table or query`,
@@ -29,6 +35,8 @@ var exportCmd = &cobra.Command{
 }
 
 func init() {
+	exportCmd.PersistentFlags().StringVar(&srcdbName, "db", "", "database name")
+	exportCmd.PersistentFlags().StringVar(&srcdsn, "dsn", "", "dsn name")
 	exportCmd.PersistentFlags().StringP("Schema", "n", "", "Schema Name")
 	exportCmd.PersistentFlags().StringP("Table", "t", "", "Table Name")
 	exportCmd.PersistentFlags().StringP("Query", "q", "", "SQL Query")
@@ -64,7 +72,7 @@ func dbExport(cmd *cobra.Command, args []string) error {
 		cmd.SilenceUsage = false
 		return err
 	}
-	if keyFile == "" {
+	if signF && keyFile == "" {
 		cmd.SilenceUsage = false
 		return fmt.Errorf("must be keyFile")
 	}
@@ -76,7 +84,7 @@ func dbExport(cmd *cobra.Command, args []string) error {
 		cmd.SilenceUsage = false
 		return fmt.Errorf("must be Table Name or SQL Query")
 	}
-	if dbName == "" {
+	if srcdbName == "" {
 		cmd.SilenceUsage = false
 		return fmt.Errorf("must be Database Driver Name")
 	}
@@ -98,9 +106,9 @@ func dbExport(cmd *cobra.Command, args []string) error {
 		}
 	}
 
-	conn, err := db.Open(dbName, dsn)
+	conn, err := db.Open(srcdbName, srcdsn)
 	if err != nil {
-		return err
+		return fmt.Errorf("%s: %s", srcdbName, err)
 	}
 	var at *tbln.Tbln
 	if query != "" {

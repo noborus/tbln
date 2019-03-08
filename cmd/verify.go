@@ -10,7 +10,7 @@ import (
 
 // verifyCmd represents the verify command
 var verifyCmd = &cobra.Command{
-	Use:          "verify",
+	Use:          "verify [flags] [TBLN file]",
 	SilenceUsage: true,
 	Short:        "Verify signature and checksum of TBLN file",
 	Long:         `Verify signature and checksum of TBLN file`,
@@ -24,7 +24,6 @@ func init() {
 	verifyCmd.PersistentFlags().BoolP("nosign", "", false, "ignore signature verify")
 	verifyCmd.PersistentFlags().StringP("pub", "p", "", "public Key File")
 	verifyCmd.PersistentFlags().StringP("file", "f", "", "TBLN File")
-
 	rootCmd.AddCommand(verifyCmd)
 }
 

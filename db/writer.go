@@ -23,8 +23,9 @@ const (
 type Writer struct {
 	*tbln.Definition
 	*TDB
-	stmt  *sql.Stmt
-	cmode CreateMode
+	stmt      *sql.Stmt
+	cmode     CreateMode
+	ReplaceLN bool
 }
 
 // NewWriter returns a new Writer that writes to database table.
@@ -40,6 +41,7 @@ func NewWriter(tdb *TDB, definition *tbln.Definition, cmode CreateMode) *Writer 
 		Definition: definition,
 		TDB:        tdb,
 		cmode:      cmode,
+		ReplaceLN:  true,
 	}
 }
 
@@ -48,6 +50,9 @@ func NewWriter(tdb *TDB, definition *tbln.Definition, cmode CreateMode) *Writer 
 func (w *Writer) WriteRow(row []string) error {
 	r := make([]interface{}, len(row))
 	for i, v := range row {
+		if w.ReplaceLN {
+			v = strings.ReplaceAll(v, "\\n", "\n")
+		}
 		r[i] = w.convertDBType(w.Types[i], v)
 	}
 	_, err := w.stmt.Exec(r...)
@@ -121,17 +126,63 @@ func (w *Writer) createTable() error {
 	} else if w.cmode == IfNotExists {
 		mode = "IF NOT EXISTS"
 	}
+	constraints, err := w.createConstraints()
+	if err != nil {
+		return err
+	}
+	driverName := w.TDB.Name
+	var typeNames []string
+	if _, ok := w.Extras[driverName+"_type"]; ok {
+		var charMax []string
+		if _, ok := w.Extras["character_maximum_length"]; ok {
+			charMax = tbln.SplitRow(toString(w.ExtraValue("character_maximum_length")))
+		}
+		typeNames = tbln.SplitRow(toString(w.ExtraValue(driverName + "_type")))
+		for i, cm := range charMax {
+			if cm != "" {
+				typeNames[i] = typeNames[i] + "(" + cm + ")"
+			}
+		}
+	}
+	if len(typeNames) == 0 {
+		typeNames = w.Types
+	}
 	col := make([]string, len(w.Names))
 	for i := 0; i < len(w.Names); i++ {
-		col[i] = w.quoting(w.Names[i]) + " " + w.Types[i]
+		col[i] = w.quoting(w.Names[i]) + " " + typeNames[i] + constraints[i]
 	}
 	sql := fmt.Sprintf("CREATE TABLE %s %s ( %s );",
 		mode, w.quoting(w.TableName()), strings.Join(col, ", "))
-	_, err := w.Tx.Exec(sql)
+	fmt.Println(sql)
+	_, err = w.Tx.Exec(sql)
 	if err != nil {
 		return fmt.Errorf("%s: %s", err, sql)
 	}
 	return nil
+}
+
+func (w *Writer) createConstraints() ([]string, error) {
+	pk := tbln.SplitRow(toString(w.ExtraValue("primarykey")))
+	nu := tbln.SplitRow(toString(w.ExtraValue("is_nullable")))
+	cs := make([]string, len(w.Names))
+	for i := 0; i < len(w.Names); i++ {
+		if nu[i] == "NO" {
+			cs[i] += " NOT NULL"
+		}
+		if contains(pk, w.Names[i]) {
+			cs[i] += " PRIMARY KEY"
+		}
+	}
+	return cs, nil
+}
+
+func contains(s []string, e string) bool {
+	for _, v := range s {
+		if e == v {
+			return true
+		}
+	}
+	return false
 }
 
 func (w *Writer) prepara() error {
@@ -146,9 +197,11 @@ func (w *Writer) prepara() error {
 			ph[i] = "?"
 		}
 	}
+	// TODO: upsert or replace support...
 	insert := fmt.Sprintf(
 		"INSERT INTO %s ( %s ) VALUES ( %s );",
 		w.quoting(w.TableName()), strings.Join(names, ", "), strings.Join(ph, ", "))
+	fmt.Println(insert)
 	w.stmt, err = w.Tx.Prepare(insert)
 	if err != nil {
 		return fmt.Errorf("%s: %s", err, insert)

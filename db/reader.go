@@ -78,7 +78,7 @@ func (tdb *TDB) ReadQuery(sql string, args ...interface{}) (*Reader, error) {
 	}
 	err := tr.query(sql, args...)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("%s: (%s)", err, sql)
 	}
 	return tr, nil
 }
@@ -225,6 +225,7 @@ func toString(v interface{}) string {
 		}
 	default:
 		str = fmt.Sprint(v)
+		str = strings.ReplaceAll(str, "\n", "\\n")
 	}
 	return str
 }

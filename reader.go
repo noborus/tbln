@@ -51,7 +51,11 @@ func ReadAll(r io.Reader) (*Tbln, error) {
 		}
 		// blank line
 		if rec == nil {
-			continue
+			// TODO: To be able to process the next block without ending with blank line.
+			// continue
+			at.Definition = tr.Definition
+			at.Hashes = tr.Hashes
+			return at, nil
 		}
 		at.RowNum++
 		at.Rows = append(at.Rows, rec)

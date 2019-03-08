@@ -81,12 +81,12 @@ func decryptPrompt(keyFile string) ([]byte, error) {
 
 func readPasswordPrompt(prompt string) ([]byte, error) {
 	fd := int(os.Stdin.Fd())
-	fmt.Fprintf(os.Stderr, prompt)
+	fmt.Fprint(os.Stderr, prompt)
 	password, err := terminal.ReadPassword(fd)
 	if err != nil {
 		return nil, err
 	}
-	fmt.Fprintf(os.Stderr, "\n")
+	fmt.Fprint(os.Stderr, "\n")
 	return password, nil
 }
 

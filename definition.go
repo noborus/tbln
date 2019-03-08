@@ -51,6 +51,12 @@ func (e *Extra) Value() interface{} {
 	return e.value
 }
 
+// ExtraValue is return extra value.
+func (d *Definition) ExtraValue(ekey string) interface{} {
+	ext := d.Extras[ekey]
+	return ext.Value()
+}
+
 // TableName returns the Table Name.
 func (d *Definition) TableName() string {
 	return d.tableName
