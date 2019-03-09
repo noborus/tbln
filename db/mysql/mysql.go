@@ -1,3 +1,4 @@
+// Package mysql contains MySQL specific database dialect of tbln/db.
 package mysql
 
 import (

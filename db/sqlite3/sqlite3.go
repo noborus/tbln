@@ -1,3 +1,4 @@
+// Package sqlite3 contains SQLite3 specific database dialect of tbln/db.
 package sqlite3
 
 import (

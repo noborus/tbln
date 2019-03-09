@@ -1,17 +1,54 @@
 # tbln
 
-tbln is a text format that represents the table.
+Tbln is a text format that represents the table.
 
 This repository has Go library and CLI tool which can read/write file and RDBMS.
 
+## Features
+
+Tbln can contain multiple fields like csv.
+Also, it can include checksum and signature inside.
+
 ## Specification
 
-1. One line ends with a line feed.
-2. Value consists of multiple columns.
-3. Lines begin with "| " (vertical bar + space) and end with " |" (space + vertical bar).
-4. Values are separated by " | "  (space + vertical bar + space).
-5. If you want to include "|" in the value, it is "||". Increase | after | one by one.
-6. Otherwise, all values are taken.
+* Tbln contains three types of lines: data, comments, and extras.
+* All rows end with a new line(LF).
+* The number of fields in all rows must be the same.
+
+### data
+
+```
+| fields1 | fields2 | fields3 |
+```
+
+* data begins with "| "(vertical bar + space)  and ends with " |"(space + vertical bar).
+* Multiple fields are separated by " | ".
+* White space is considered part of a field.
+* If "|" is included in the field, "|" must be duplicated.
+* Otherwise, all values are taken.
+
+```
+| -> || , || -> |||
+```
+
+### Comments
+
+```
+# Comments
+```
+
+* Comments begin with "# ".
+* Comments are not interpreted.
+
+### Extras
+
+```
+; ItemName: Value
+````
+
+* Extras begin with ";". Extras can be interpreted as a header.
+* Extras is basically written in the item name: value.
+* Extras has item names that are interpreted in some special ways.
 
 ## TBLN format example
 
