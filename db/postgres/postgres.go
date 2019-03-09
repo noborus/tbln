@@ -1,3 +1,4 @@
+// Package postgres contains PostgreSQL specific database dialect of tbln/db.
 package postgres
 
 import (

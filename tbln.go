@@ -1,3 +1,26 @@
+// Package tbln reads and writes tbln files.
+//
+// tbln can contain multiple fields like csv.
+// Also, it can include checksum and signature inside.
+// Tbln contains three types of lines: data, comments, and extras.
+// All rows end with a new line(LF).
+// The number of fields in all rows must be the same.
+//
+// Data begins with "| " and ends with " |". Multiple fields are separated by " | ".
+// (Note that the delimiter contains spaces.)
+//	| fields1 | fields2 | fields3 |
+// White space is considered part of a field.
+// If "|" is included in the field, "|" must be duplicated.
+// 	| -> || , || -> |||
+//
+// Comments begin with "# ". Comments are not interpreted.
+//	# Comments
+//
+// Extras begin with ";". extras can be interpreted as a header.
+// Extras is basically written in the item name: value.
+//	; ItemName: Value
+// Extras is optional.
+// Extras has item names that are interpreted in some special ways.
 package tbln
 
 import (
@@ -12,7 +35,7 @@ import (
 	"golang.org/x/crypto/ed25519"
 )
 
-// Tbln struct is tbln Definition + Tbln rows.
+// Tbln struct is Tbln Definition + Tbln rows.
 type Tbln struct {
 	*Definition
 	RowNum int
@@ -68,6 +91,9 @@ func escape(str string) string {
 
 // SplitRow divides a character string into a row array.
 func SplitRow(str string) []string {
+	if len(str) < 4 {
+		return nil
+	}
 	if str[:2] == "| " {
 		str = str[2:]
 	}

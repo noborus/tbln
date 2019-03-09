@@ -1,3 +1,8 @@
+// Package db translates tbln and database tables.
+//
+// Read and write the table using *sql.DB.
+// PostgreSQL, MySQL and SQLlite3 interprets SQL dialects
+// and outputs more detailed information.
 package db
 
 import (

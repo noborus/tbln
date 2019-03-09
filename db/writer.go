@@ -9,13 +9,19 @@ import (
 	"github.com/noborus/tbln"
 )
 
+// CreateMode represents the mode of table creation.
 type CreateMode int
 
 const (
+	// NotCreate does not execute CREATE TABLE
 	NotCreate = iota
+	// Create is mormal creation
 	Create
+	// IfNotExists does nothing if already exists
 	IfNotExists
+	// ReCreate erases the table and creates it again.
 	ReCreate
+	// CreateOnly does only CREATE TABLE
 	CreateOnly
 )
 
@@ -164,9 +170,12 @@ func (w *Writer) createTable() error {
 func (w *Writer) createConstraints() ([]string, error) {
 	pk := tbln.SplitRow(toString(w.ExtraValue("primarykey")))
 	nu := tbln.SplitRow(toString(w.ExtraValue("is_nullable")))
+	if len(nu) != w.ColumnNum() {
+		nu = nil
+	}
 	cs := make([]string, len(w.Names))
 	for i := 0; i < len(w.Names); i++ {
-		if nu[i] == "NO" {
+		if (nu != nil) && nu[i] == "NO" {
 			cs[i] += " NOT NULL"
 		}
 		if contains(pk, w.Names[i]) {
