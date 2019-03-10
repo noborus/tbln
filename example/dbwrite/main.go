@@ -13,6 +13,9 @@ import (
 )
 
 func main() {
+	if len(os.Args) <= 1 {
+		log.Fatal("Requires tbln file")
+	}
 	// conn, err := db.Open("postgres", "")
 	// conn, err := db.Open("mysql", "root:@/noborus")
 	conn, err := db.Open("sqlite3", "sqlite_file")
@@ -32,7 +35,7 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	err = db.WriteTable(conn, at, db.IfNotExists)
+	err = db.WriteTable(conn, at, "", db.IfNotExists)
 	if err != nil {
 		log.Fatal(err)
 	}

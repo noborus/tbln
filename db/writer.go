@@ -29,9 +29,10 @@ const (
 type Writer struct {
 	*tbln.Definition
 	*TDB
-	stmt      *sql.Stmt
-	cmode     CreateMode
-	ReplaceLN bool
+	tableFullName string // schema.table
+	stmt          *sql.Stmt
+	cmode         CreateMode
+	ReplaceLN     bool
 }
 
 // NewWriter returns a new Writer that writes to database table.
@@ -66,8 +67,13 @@ func (w *Writer) WriteRow(row []string) error {
 }
 
 // WriteTable writes all rows to the table.
-func WriteTable(tdb *TDB, tbln *tbln.Tbln, cmode CreateMode) error {
+func WriteTable(tdb *TDB, tbln *tbln.Tbln, schema string, cmode CreateMode) error {
 	w := NewWriter(tdb, tbln.Definition, cmode)
+	if schema != "" {
+		w.tableFullName = w.quoting(schema) + "." + w.quoting(w.TableName())
+	} else {
+		w.tableFullName = w.quoting(w.TableName())
+	}
 	err := w.WriteDefinition()
 	if err != nil {
 		return err
@@ -114,7 +120,7 @@ func (w *Writer) WriteDefinition() error {
 }
 
 func (w *Writer) dropTable() error {
-	sql := fmt.Sprintf("DROP TABLE IF EXISTS %s;", w.quoting(w.TableName()))
+	sql := fmt.Sprintf("DROP TABLE IF EXISTS %s;", w.tableFullName)
 	_, err := w.Tx.Exec(sql)
 	if err != nil {
 		return fmt.Errorf("%s: %s", err, sql)
@@ -158,7 +164,7 @@ func (w *Writer) createTable() error {
 		col[i] = w.quoting(w.Names[i]) + " " + typeNames[i] + constraints[i]
 	}
 	sql := fmt.Sprintf("CREATE TABLE %s %s ( %s );",
-		mode, w.quoting(w.TableName()), strings.Join(col, ", "))
+		mode, w.tableFullName, strings.Join(col, ", "))
 	fmt.Println(sql)
 	_, err = w.Tx.Exec(sql)
 	if err != nil {
@@ -209,7 +215,7 @@ func (w *Writer) prepara() error {
 	// TODO: upsert or replace support...
 	insert := fmt.Sprintf(
 		"INSERT INTO %s ( %s ) VALUES ( %s );",
-		w.quoting(w.TableName()), strings.Join(names, ", "), strings.Join(ph, ", "))
+		w.tableFullName, strings.Join(names, ", "), strings.Join(ph, ", "))
 	fmt.Println(insert)
 	w.stmt, err = w.Tx.Prepare(insert)
 	if err != nil {
