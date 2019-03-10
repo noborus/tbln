@@ -1,19 +1,20 @@
-# tbln cli tool
+# TBLN CLI tool
 
 ```
-tbln cli tool
+Import/Export TBLN file and RDBMS table.
+Also sign and verify the TBLN file.
 
 Usage:
   tbln [command]
 
 Available Commands:
-  export      export database table
+  export      export database table or query
+  genkey      generate a new key pair
   help        Help about any command
   import      import database table
+  sign        Sign a TBLN file with a private key
+  verify      Verify signature and checksum of TBLN file
 
 Flags:
-      --db string    database name
-      --dsn string   dsn name
-  -h, --help         help for tbln
-
+  -h, --help   help for tbln
 ```
