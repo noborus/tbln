@@ -1,24 +1,18 @@
 package main
 
 import (
-	"encoding/base64"
 	"fmt"
-	"io/ioutil"
 	"log"
 	"os"
 
 	"github.com/noborus/tbln"
 )
 
-func getPubKey(fileName string) []byte {
-	pubFile, _ := os.Open(fileName)
-	defer pubFile.Close()
-	pubf, _ := ioutil.ReadAll(pubFile)
-	pubKey, _ := base64.StdEncoding.DecodeString(string(pubf))
-	return pubKey
-}
-
 func main() {
+	if len(os.Args) <= 1 {
+		log.Fatal("Requires tbln file")
+	}
+
 	file, err := os.Open(os.Args[1])
 	if err != nil {
 		log.Fatal(err)
@@ -27,7 +21,6 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	// pubKey := getPubKey("test.pub")
 	if at.Verify() {
 		fmt.Println("verify")
 	} else {

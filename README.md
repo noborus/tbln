@@ -2,7 +2,7 @@
 
 TBLN is a text format that represents the table.
 
-This repository has Go library and CLI tool which can read/write file and RDBMS.
+This repository has Go library and [CLI](cmd/README.md) tool which can read/write file and [RDBMS](db/README.md).
 
 ## Features
 
@@ -65,13 +65,19 @@ Also, it can include checksum and signature inside.
 
 The order of TBLN is as follows.
 1. Comments
-2. hash excluded Extras
+2. extras hash not target
 3. signature
 4. hash value
-5. hash target
+5. extras hash target
 6. data
 
 ![simple-tbln](https://user-images.githubusercontent.com/2296563/54079389-0ba63580-431f-11e9-8c21-2ce39aeee4e3.png)
+
+The target of hash is the line below Hash.
+The signature targets the Hash value.
+
+Hash currently supports SHA 256 and SHA 512.
+Signature currently supports ED 25519.
 
 ## TBLN file example
 

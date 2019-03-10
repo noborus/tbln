@@ -1,9 +1,9 @@
 # TBLN CLI tool
 
-```
 Import/Export TBLN file and RDBMS table.
 Also sign and verify the TBLN file.
 
+```
 Usage:
   tbln [command]
 

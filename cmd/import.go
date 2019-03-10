@@ -3,6 +3,7 @@ package cmd
 import (
 	"fmt"
 	"os"
+	"path/filepath"
 	"strings"
 
 	"github.com/spf13/cobra"
@@ -38,13 +39,16 @@ var importCmd = &cobra.Command{
 func init() {
 	importCmd.PersistentFlags().StringVar(&destdbName, "db", "", "database name")
 	importCmd.PersistentFlags().StringVar(&destdsn, "dsn", "", "dsn name")
+	importCmd.PersistentFlags().StringP("Schema", "n", "", "Schema Name")
 	importCmd.PersistentFlags().StringP("mode", "m", "i", "create mode (a:NotCreate/c:Create/i:IfNotExists/r:ReCreate/s:CreateOnly")
 	importCmd.PersistentFlags().StringP("table", "t", "", "Table Name")
 	rootCmd.AddCommand(importCmd)
 }
 
 func dbImport(cmd *cobra.Command, args []string) error {
+	var err error
 	var fileName string
+
 	if len(args) > 0 {
 		fileName = args[0]
 	}
@@ -73,12 +77,19 @@ func dbImport(cmd *cobra.Command, args []string) error {
 	if err != nil {
 		return fmt.Errorf("%s: %s", destdbName, err)
 	}
+	var schema string
+	if schema, err = cmd.PersistentFlags().GetString("Schema"); err != nil {
+		return err
+	}
 	var tableName string
 	if tableName, err = cmd.PersistentFlags().GetString("table"); err != nil {
 		return err
 	}
 	if tableName != "" {
 		at.SetTableName(tableName)
+	}
+	if at.TableName() == "" {
+		at.SetTableName(filepath.Base(fileName[:len(fileName)-len(filepath.Ext(fileName))]))
 	}
 	var mode db.CreateMode
 	if modeStr, err := cmd.PersistentFlags().GetString("mode"); err == nil {
@@ -97,7 +108,7 @@ func dbImport(cmd *cobra.Command, args []string) error {
 			mode = db.Create
 		}
 	}
-	err = db.WriteTable(conn, at, mode)
+	err = db.WriteTable(conn, at, schema, mode)
 	if err != nil {
 		return err
 	}
