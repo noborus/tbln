@@ -21,14 +21,25 @@ var signCmd = &cobra.Command{
 }
 
 func init() {
+	signCmd.PersistentFlags().BoolP("sha256", "", false, "SHA256 Hash")
+	signCmd.PersistentFlags().BoolP("sha512", "", false, "SHA512 Hash")
 	signCmd.PersistentFlags().StringP("key", "k", "", "Key File")
 	signCmd.PersistentFlags().StringP("file", "f", "", "TBLN File")
 	rootCmd.AddCommand(signCmd)
 }
 
 func signFile(cmd *cobra.Command, args []string) error {
-	var fileName, keyFile string
 	var err error
+	var fileName, keyFile string
+	var sha256, sha512 bool
+	if sha256, err = cmd.PersistentFlags().GetBool("sha256"); err != nil {
+		cmd.SilenceUsage = false
+		return err
+	}
+	if sha512, err = cmd.PersistentFlags().GetBool("sha512"); err != nil {
+		cmd.SilenceUsage = false
+		return err
+	}
 	if fileName, err = cmd.PersistentFlags().GetString("file"); err != nil {
 		cmd.SilenceUsage = false
 		return err
@@ -63,9 +74,28 @@ func signFile(cmd *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
-	err = at.SumHash(tbln.SHA256)
-	if err != nil {
-		return err
+	for k := range at.Hashes {
+		if k == "sha256" {
+			sha256 = true
+		}
+		if k == "sha512" {
+			sha512 = true
+		}
+	}
+	if sha256 == false && sha512 == false {
+		sha256 = true
+	}
+	if sha256 {
+		err = at.SumHash(tbln.SHA256)
+		if err != nil {
+			return err
+		}
+	}
+	if sha512 {
+		err = at.SumHash(tbln.SHA512)
+		if err != nil {
+			return err
+		}
 	}
 	at.Sign(keyName, privKey)
 	err = tbln.WriteAll(os.Stdout, at)

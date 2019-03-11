@@ -3,7 +3,6 @@ package tbln
 import (
 	"encoding/hex"
 	"fmt"
-	"strings"
 	"time"
 )
 
@@ -150,6 +149,9 @@ func (d *Definition) SerializeHash() []byte {
 
 // SetSignatures is set signatures.
 func (d *Definition) SetSignatures(sign []string) error {
+	if len(sign) != 3 {
+		return fmt.Errorf("not analyze signature")
+	}
 	b, err := hex.DecodeString(sign[2])
 	if err != nil {
 		return err
@@ -163,13 +165,10 @@ func (d *Definition) SetSignatures(sign []string) error {
 
 // SetHashes is set hashes.
 func (d *Definition) SetHashes(hashes []string) error {
-	for _, hash := range hashes {
-		h := strings.SplitN(hash, ":", 2)
-		b, err := hex.DecodeString(h[1])
-		if err != nil {
-			return err
-		}
-		d.Hashes[h[0]] = b
+	b, err := hex.DecodeString(hashes[1])
+	if err != nil {
+		return err
 	}
+	d.Hashes[hashes[0]] = b
 	return nil
 }

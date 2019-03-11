@@ -115,10 +115,14 @@ func (w *Writer) writeSigns(d *Definition) error {
 }
 
 func (w *Writer) writeHashes(d *Definition) error {
-	hash := d.SerializeHash()
-	_, err := fmt.Fprintf(w.Writer, "; Hash: %s\n", string(hash))
-	if err != nil {
-		return err
+	for k, v := range d.Hashes {
+		hashes := make([]string, 0, 2)
+		hashes = append(hashes, k)
+		hashes = append(hashes, fmt.Sprintf("%x", v))
+		_, err := fmt.Fprintf(w.Writer, "; Hash: %s\n", JoinRow(hashes))
+		if err != nil {
+			return err
+		}
 	}
 	return nil
 }
