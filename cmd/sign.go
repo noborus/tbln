@@ -3,6 +3,7 @@ package cmd
 import (
 	"fmt"
 	"os"
+	"path/filepath"
 
 	"github.com/noborus/tbln"
 	"github.com/spf13/cobra"
@@ -44,10 +45,12 @@ func signFile(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("must be keyFile")
 	}
 
-	priv, err := decryptPrompt(keyFile)
+	privKey, err := decryptPrompt(keyFile)
 	if err != nil {
 		return err
 	}
+	keyName := filepath.Base(keyFile[:len(keyFile)-len(filepath.Ext(keyFile))])
+
 	file, err := os.Open(fileName)
 	if err != nil {
 		return err
@@ -64,7 +67,7 @@ func signFile(cmd *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
-	at.Sign(priv)
+	at.Sign(keyName, privKey)
 	err = tbln.WriteAll(os.Stdout, at)
 	if err != nil {
 		return err

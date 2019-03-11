@@ -101,13 +101,15 @@ func (w *Writer) writeExtraTarget(d *Definition, targetFlag bool) error {
 }
 
 func (w *Writer) writeSigns(d *Definition) error {
-	signs := make([]string, 0, len(d.Signs))
 	for k, v := range d.Signs {
-		signs = append(signs, k+":"+fmt.Sprintf("%x", v))
-	}
-	_, err := fmt.Fprintf(w.Writer, "; Signature: %s\n", JoinRow(signs))
-	if err != nil {
-		return err
+		signs := make([]string, 0, 3)
+		signs = append(signs, k)
+		signs = append(signs, v.algorithm)
+		signs = append(signs, fmt.Sprintf("%x", v.sign))
+		_, err := fmt.Fprintf(w.Writer, "; Signature: %s\n", JoinRow(signs))
+		if err != nil {
+			return err
+		}
 	}
 	return nil
 }

@@ -29,7 +29,7 @@ func main() {
 	data := make([]byte, size)
 	prFile.Read(data)
 	privateKey, _ := base64.StdEncoding.DecodeString(string(data))
-	at.Sign(privateKey)
+	at.Sign("test", privateKey)
 
 	err = tbln.WriteAll(os.Stdout, at)
 	if err != nil {
