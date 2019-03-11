@@ -31,15 +31,6 @@ Also, it can include checksum and signature inside.
 | -> || , || -> |||
 ```
 
-### Comments
-
-```
-# Comments
-```
-
-* Comments begin with "# ".
-* Comments are not interpreted.
-
 ### Extras
 
 ```s
@@ -78,6 +69,15 @@ The signature targets the Hash value.
 
 Hash currently supports SHA 256 and SHA 512.
 Signature currently supports ED 25519.
+
+### Comments
+
+```
+# Comments
+```
+
+* Comments begin with "#".
+* Comments are not interpreted.
 
 ## TBLN file example
 

@@ -208,17 +208,19 @@ func (t *Tbln) calculateHash(hashType HashType) ([]byte, error) {
 }
 
 // Sign is returns signature for hash.
-func (t *Tbln) Sign(privateKey ed25519.PrivateKey) map[string][]byte {
-	t.Signs["ED25519"] = ed25519.Sign(privateKey, t.SerializeHash())
+func (t *Tbln) Sign(name string, pkey ed25519.PrivateKey) map[string]Signature {
+	t.Signs[name] = Signature{sign: ed25519.Sign(pkey, t.SerializeHash()), algorithm: "ED25519"}
 	return t.Signs
 }
 
 // VerifySignature returns the boolean value of the signature verification and Verify().
-func (t *Tbln) VerifySignature(pubKey []byte) bool {
-	sign := t.Signs["ED25519"]
-	x := ed25519.PublicKey(pubKey)
-	if ed25519.Verify(x, t.SerializeHash(), sign) {
-		return t.Verify()
+func (t *Tbln) VerifySignature(name string, pubkey []byte) bool {
+	s := t.Signs[name]
+	if s.algorithm == "ED25519" {
+		x := ed25519.PublicKey(pubkey)
+		if ed25519.Verify(x, t.SerializeHash(), s.sign) {
+			return t.Verify()
+		}
 	}
 	return false
 }

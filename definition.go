@@ -3,7 +3,6 @@ package tbln
 import (
 	"encoding/hex"
 	"fmt"
-	"strings"
 	"time"
 )
 
@@ -16,7 +15,7 @@ type Definition struct {
 	Types     []string
 	Extras    map[string]Extra
 	Hashes    map[string][]byte
-	Signs     map[string][]byte
+	Signs     Signatures
 }
 
 // NewDefinition is create Definition struct.
@@ -24,7 +23,7 @@ func NewDefinition() *Definition {
 	extras := make(map[string]Extra)
 	extras["created_at"] = NewExtra(time.Now().Format(time.RFC3339), false)
 	hashes := make(map[string][]byte)
-	signs := make(map[string][]byte)
+	signs := make(Signatures)
 	return &Definition{
 		Extras: extras,
 		Hashes: hashes,
@@ -55,6 +54,15 @@ func (e *Extra) Value() interface{} {
 func (d *Definition) ExtraValue(ekey string) interface{} {
 	ext := d.Extras[ekey]
 	return ext.Value()
+}
+
+// Signatures is a map of signature name and signature.
+type Signatures map[string]Signature
+
+// Signature struct stores a signature, a name, and an algorithm.
+type Signature struct {
+	sign      []byte
+	algorithm string
 }
 
 // TableName returns the Table Name.
@@ -140,27 +148,27 @@ func (d *Definition) SerializeHash() []byte {
 }
 
 // SetSignatures is set signatures.
-func (d *Definition) SetSignatures(signs []string) error {
-	for _, sign := range signs {
-		s := strings.SplitN(sign, ":", 2)
-		b, err := hex.DecodeString(s[1])
-		if err != nil {
-			return err
-		}
-		d.Signs[s[0]] = b
+func (d *Definition) SetSignatures(sign []string) error {
+	if len(sign) != 3 {
+		return fmt.Errorf("not analyze signature")
 	}
+	b, err := hex.DecodeString(sign[2])
+	if err != nil {
+		return err
+	}
+	if sign[1] != "ED25519" {
+		return fmt.Errorf("not support algotithm: %s", sign[1])
+	}
+	d.Signs[sign[0]] = Signature{sign: b, algorithm: sign[1]}
 	return nil
 }
 
 // SetHashes is set hashes.
 func (d *Definition) SetHashes(hashes []string) error {
-	for _, hash := range hashes {
-		h := strings.SplitN(hash, ":", 2)
-		b, err := hex.DecodeString(h[1])
-		if err != nil {
-			return err
-		}
-		d.Hashes[h[0]] = b
+	b, err := hex.DecodeString(hashes[1])
+	if err != nil {
+		return err
 	}
+	d.Hashes[hashes[0]] = b
 	return nil
 }

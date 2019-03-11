@@ -76,7 +76,6 @@ func TestDefinition_TableName(t *testing.T) {
 		Types     []string
 		Extras    map[string]Extra
 		Hashes    map[string][]byte
-		Signs     map[string][]byte
 	}
 	tests := []struct {
 		name   string
@@ -95,7 +94,6 @@ func TestDefinition_TableName(t *testing.T) {
 				Types:     tt.fields.Types,
 				Extras:    tt.fields.Extras,
 				Hashes:    tt.fields.Hashes,
-				Signs:     tt.fields.Signs,
 			}
 			if got := d.TableName(); got != tt.want {
 				t.Errorf("Definition.TableName() = %v, want %v", got, tt.want)
@@ -135,7 +133,6 @@ func TestDefinition_SetTableName(t *testing.T) {
 				Types:     tt.fields.Types,
 				Extras:    tt.fields.Extras,
 				Hashes:    tt.fields.Hashes,
-				Signs:     tt.fields.Signs,
 			}
 			d.SetTableName(tt.args.name)
 		})
@@ -248,7 +245,6 @@ func TestDefinition_ColumnNum(t *testing.T) {
 				Types:     tt.fields.Types,
 				Extras:    tt.fields.Extras,
 				Hashes:    tt.fields.Hashes,
-				Signs:     tt.fields.Signs,
 			}
 			if got := d.ColumnNum(); got != tt.want {
 				t.Errorf("Definition.ColumnNum() = %v, want %v", got, tt.want)
@@ -328,7 +324,6 @@ func TestDefinition_ToTargetHash(t *testing.T) {
 				Types:     tt.fields.Types,
 				Extras:    tt.fields.Extras,
 				Hashes:    tt.fields.Hashes,
-				Signs:     tt.fields.Signs,
 			}
 			d.ToTargetHash(tt.args.key, tt.args.target)
 		})
@@ -363,7 +358,6 @@ func TestDefinition_SerializeHash(t *testing.T) {
 				Types:     tt.fields.Types,
 				Extras:    tt.fields.Extras,
 				Hashes:    tt.fields.Hashes,
-				Signs:     tt.fields.Signs,
 			}
 			if got := d.SerializeHash(); !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("Definition.SerializeHash() = %v, want %v", got, tt.want)
@@ -404,7 +398,6 @@ func TestDefinition_SetSignatures(t *testing.T) {
 				Types:     tt.fields.Types,
 				Extras:    tt.fields.Extras,
 				Hashes:    tt.fields.Hashes,
-				Signs:     tt.fields.Signs,
 			}
 			if err := d.SetSignatures(tt.args.signs); (err != nil) != tt.wantErr {
 				t.Errorf("Definition.SetSignatures() error = %v, wantErr %v", err, tt.wantErr)
@@ -445,7 +438,6 @@ func TestDefinition_SetHashes(t *testing.T) {
 				Types:     tt.fields.Types,
 				Extras:    tt.fields.Extras,
 				Hashes:    tt.fields.Hashes,
-				Signs:     tt.fields.Signs,
 			}
 			if err := d.SetHashes(tt.args.hashes); (err != nil) != tt.wantErr {
 				t.Errorf("Definition.SetHashes() error = %v, wantErr %v", err, tt.wantErr)

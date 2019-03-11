@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"bufio"
 	"bytes"
 	"crypto/aes"
 	"crypto/cipher"
@@ -10,6 +11,7 @@ import (
 	"io"
 	"io/ioutil"
 	"os"
+	"strings"
 
 	"golang.org/x/crypto/ssh/terminal"
 )
@@ -90,19 +92,30 @@ func readPasswordPrompt(prompt string) ([]byte, error) {
 	return password, nil
 }
 
-func getPublicKey(pubFileName string) ([]byte, error) {
+func getPublicKey(pubFileName string) (map[string][]byte, error) {
 	pubFile, err := os.Open(pubFileName)
 	if err != nil {
 		return nil, err
 	}
 	defer pubFile.Close()
-	data, err := ioutil.ReadAll(pubFile)
-	if err != nil {
-		return nil, err
+	pubs := make(map[string][]byte)
+	scanner := bufio.NewScanner(pubFile)
+	for scanner.Scan() {
+		txt := scanner.Text()
+		if txt == "" {
+			continue
+		}
+		data := strings.SplitN(txt, ":", 2)
+		if len(data) != 2 {
+			return nil, fmt.Errorf("public key parser error")
+		}
+		name := data[0]
+		pubEnc := data[1]
+		pubkey, err := base64.StdEncoding.DecodeString(string(pubEnc))
+		pubs[name] = pubkey
+		if err != nil {
+			return nil, err
+		}
 	}
-	pub, err := base64.StdEncoding.DecodeString(string(data))
-	if err != nil {
-		return nil, err
-	}
-	return pub, nil
+	return pubs, nil
 }

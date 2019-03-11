@@ -3,6 +3,7 @@ package cmd
 import (
 	"fmt"
 	"os"
+	"path/filepath"
 
 	"github.com/spf13/cobra"
 
@@ -53,9 +54,8 @@ func dbExport(cmd *cobra.Command, args []string) error {
 	var tableName string
 	var query string
 	var sum string
-	var keyFile string
-	var priv []byte
 	var signF bool
+	var keyFile string
 	if schema, err = cmd.PersistentFlags().GetString("Schema"); err != nil {
 		return err
 	}
@@ -99,12 +99,14 @@ func dbExport(cmd *cobra.Command, args []string) error {
 		sumHash = tbln.SHA256
 	}
 
+	var privKey []byte
 	if signF {
-		priv, err = decryptPrompt(keyFile)
+		privKey, err = decryptPrompt(keyFile)
 		if err != nil {
 			return err
 		}
 	}
+	keyName := filepath.Base(keyFile[:len(keyFile)-len(filepath.Ext(keyFile))])
 
 	conn, err := db.Open(srcdbName, srcdsn)
 	if err != nil {
@@ -124,7 +126,7 @@ func dbExport(cmd *cobra.Command, args []string) error {
 		return err
 	}
 	if signF {
-		at.Sign(priv)
+		at.Sign(keyName, privKey)
 	}
 	err = tbln.WriteAll(os.Stdout, at)
 	if err != nil {

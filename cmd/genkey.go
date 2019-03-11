@@ -72,6 +72,10 @@ func genkey(cmd *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
+	_, err = buf.WriteString("\n")
+	if err != nil {
+		return err
+	}
 	err = buf.Flush()
 	if err != nil {
 		return err
@@ -86,6 +90,10 @@ func genkey(cmd *cobra.Command, args []string) error {
 		return err
 	}
 	buf2 := bufio.NewWriter(pubFile)
+	_, err = buf2.WriteString(keyName + ":")
+	if err != nil {
+		return err
+	}
 	ps2 := base64.StdEncoding.EncodeToString([]byte(public))
 	_, err = buf2.WriteString(ps2)
 	if err != nil {

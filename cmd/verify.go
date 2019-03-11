@@ -23,14 +23,14 @@ func init() {
 	verifyCmd.PersistentFlags().BoolP("forcesign", "", false, "Force signature verification")
 	verifyCmd.PersistentFlags().BoolP("nosign", "", false, "ignore signature verify")
 	verifyCmd.PersistentFlags().StringP("pub", "p", "", "public Key File")
+	verifyCmd.PersistentFlags().StringP("keyname", "k", "", "key name")
 	verifyCmd.PersistentFlags().StringP("file", "f", "", "TBLN File")
 	rootCmd.AddCommand(verifyCmd)
 }
 
 func verify(cmd *cobra.Command, args []string) error {
 	var err error
-	var fileName, pubFileName string
-	var pub []byte
+	var fileName, keyName, pubFileName string
 	var forcesign, nosign bool
 	if len(args) <= 0 {
 		cmd.SilenceUsage = false
@@ -53,6 +53,10 @@ func verify(cmd *cobra.Command, args []string) error {
 		cmd.SilenceUsage = false
 		return err
 	}
+	if keyName, err = cmd.PersistentFlags().GetString("keyname"); err != nil {
+		cmd.SilenceUsage = false
+		return err
+	}
 	file, err := os.Open(fileName)
 	if err != nil {
 		return err
@@ -69,14 +73,18 @@ func verify(cmd *cobra.Command, args []string) error {
 		if len(pubFileName) == 0 {
 			return fmt.Errorf("must be public key file")
 		}
-		pub, err = getPublicKey(pubFileName)
+		pubs, err := getPublicKey(pubFileName)
 		if err != nil {
 			return err
 		}
-		if at.VerifySignature(pub) {
-			fmt.Println("Signature verified")
+		if pub, ok := pubs[keyName]; ok {
+			if at.VerifySignature(keyName, pub) {
+				fmt.Println("Signature verified")
+			} else {
+				return fmt.Errorf("Signature verfication failure")
+			}
 		} else {
-			return fmt.Errorf("Signature verfication failure")
+			return fmt.Errorf("not public key %s", keyName)
 		}
 	} else {
 		if at.Verify() {
