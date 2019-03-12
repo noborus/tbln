@@ -13,7 +13,7 @@ import (
 var signCmd = &cobra.Command{
 	Use:          "sign [flags] [TBLN file]",
 	SilenceUsage: true,
-	Short:        "Sign a TBLN file with a private key.",
+	Short:        "Sign a TBLN file with a private key",
 	Long: `Sign a TBLN file with a private key.
 Sign the hash value with the ED25519 private key.
 Generate hash first, if there is no hash value yet(default is SHA256).`,

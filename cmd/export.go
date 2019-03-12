@@ -29,7 +29,9 @@ var exportCmd = &cobra.Command{
 	Use:          "export  [flags] <Table Name> or <SQL Query>",
 	SilenceUsage: true,
 	Short:        "export database table or query",
-	Long:         `export database table or query`,
+	Long: `Export from the database by table or SQL Query.
+Add as much of the table information as possible including 
+the column name and column type.`,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		return dbExport(cmd, args)
 	},
@@ -52,7 +54,7 @@ func dbExport(cmd *cobra.Command, args []string) error {
 	var err error
 	var schema string
 	var tableName string
-	var query string
+	var sql string
 	var sumHash string
 	var signF bool
 	var keyFile string
@@ -62,7 +64,7 @@ func dbExport(cmd *cobra.Command, args []string) error {
 	if tableName, err = cmd.PersistentFlags().GetString("Table"); err != nil {
 		return err
 	}
-	if query, err = cmd.PersistentFlags().GetString("Query"); err != nil {
+	if sql, err = cmd.PersistentFlags().GetString("SQL"); err != nil {
 		return err
 	}
 	if signF, err = cmd.PersistentFlags().GetBool("sign"); err != nil {
@@ -80,7 +82,7 @@ func dbExport(cmd *cobra.Command, args []string) error {
 	if tableName == "" && len(args) >= 1 {
 		tableName = args[0]
 	}
-	if tableName == "" && query == "" {
+	if tableName == "" && sql == "" {
 		cmd.SilenceUsage = false
 		return fmt.Errorf("must be Table Name or SQL Query")
 	}
@@ -107,8 +109,8 @@ func dbExport(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("%s: %s", srcdbName, err)
 	}
 	var at *tbln.Tbln
-	if query != "" {
-		at, err = db.ReadQueryAll(conn, query)
+	if sql != "" {
+		at, err = db.ReadQueryAll(conn, sql)
 	} else {
 		at, err = db.ReadTableAll(conn, schema, tableName)
 	}

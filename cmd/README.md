@@ -10,9 +10,10 @@ Usage:
 Available Commands:
   export      export database table or query
   genkey      generate a new key pair
+  hash        Add hash value to TBLN file.
   help        Help about any command
   import      import database table
-  sign        Sign a TBLN file with a private key
+  sign        Sign a TBLN file with a private key.
   verify      Verify signature and checksum of TBLN file
 
 Flags:

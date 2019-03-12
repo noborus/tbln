@@ -12,9 +12,11 @@ import (
 
 // genkeyCmd represents the genkey command
 var genkeyCmd = &cobra.Command{
-	Use:   "genkey",
+	Use:   "genkey [Key Name]",
 	Short: "generate a new key pair",
-	Long:  `generate a new key pair`,
+	Long: `Generate a new Ed25519 keypair.
+Write privake key(Key Name+".key") and public key(Key Name+".pub") files
+based on the Key Name.`,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		return genkey(cmd, args)
 	},
