@@ -30,7 +30,8 @@ var importCmd = &cobra.Command{
 	Use:          "import [flags] [TBLN file]",
 	SilenceUsage: true,
 	Short:        "import database table",
-	Long:         `import database table`,
+	Long: `Import the TBL file into the database.
+<mode> specifies how to execute when there is already a table.`,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		return dbImport(cmd, args)
 	},

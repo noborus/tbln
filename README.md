@@ -62,8 +62,6 @@ The order of TBLN is as follows.
 5. extras hash target
 6. data
 
-![simple-tbln](https://user-images.githubusercontent.com/2296563/54079389-0ba63580-431f-11e9-8c21-2ce39aeee4e3.png)
-
 The target of hash is the line below Hash.
 The signature targets the Hash value.
 
@@ -98,19 +96,19 @@ Add comment, column name and data type.
 | 2 | Alice |
 ```
 
-Database export
+Database export and signature.
 
 ```
 ; TableName: simple
 ; character_octet_length: |  | 1073741824 |
-; created_at: 2019-03-10T09:56:06+09:00
+; created_at: 2019-03-12T15:41:42+09:00
 ; is_nullable: | YES | YES |
 ; numeric_precision: | 32 |  |
 ; numeric_precision_radix: | 2 |  |
 ; numeric_scale: | 0 |  |
 ; postgres_type: | integer | text |
-; Signature: | ED25519:6a693478f1aa5ff91847e2b4e7ec633358dc2f9561454791289cb1c644ef070e37e089a37e8b11324f32f12c439fd2bd6c802144ebf2686df04811455573dd05 |
-; Hash: | sha256:3191722649a6388498c435e411cb6534b740d9b3a5c7ac281dd824b4ba78e968 |
+; Signature: | test | ED25519 | dfe0077a4baa689dec15365642de8d736b30b678fc4b6725acf25cd760528ed365dc18855a11fc4473ca0a2d36499819de95caba3ac44937ac7c04465e7af901 |
+; Hash: | sha256 | 3191722649a6388498c435e411cb6534b740d9b3a5c7ac281dd824b4ba78e968 |
 ; name: | id | name |
 ; type: | int | text |
 | 1 | Bob |
