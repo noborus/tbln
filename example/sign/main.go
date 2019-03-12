@@ -22,13 +22,22 @@ func main() {
 		log.Fatal(err)
 	}
 
-	prFile, _ := os.Open("test.key")
+	prFile, err := os.Open("test.key")
+	if err != nil {
+		log.Fatal(err)
+	}
 	defer prFile.Close()
 	fi, _ := prFile.Stat()
 	size := fi.Size()
 	data := make([]byte, size)
-	prFile.Read(data)
-	privateKey, _ := base64.StdEncoding.DecodeString(string(data))
+	_, err = prFile.Read(data)
+	if err != nil {
+		log.Fatal(err)
+	}
+	privateKey, err := base64.StdEncoding.DecodeString(string(data))
+	if err != nil {
+		log.Fatal(err)
+	}
 	at.Sign("test", privateKey)
 
 	err = tbln.WriteAll(os.Stdout, at)

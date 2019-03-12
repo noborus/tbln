@@ -141,49 +141,24 @@ func checkRow(columnNum int, row []string) (int, error) {
 	return columnNum, nil
 }
 
-// HashType supports the type of hash.
-type HashType int
-
 // Types of supported hashes
 const (
-	NOTSUPPORT = iota
-	SHA256     // import crypto/sha256
-	SHA512     // import crypto/sha512
+	SHA256 = "sha256" // import crypto/sha256
+	SHA512 = "sha512" // import crypto/sha512
 )
 
-func (h HashType) string() string {
-	switch h {
-	case SHA256:
-		return "sha256"
-	case SHA512:
-		return "sha512"
-	default:
-		return ""
-	}
-}
-
-func hashType(hString string) HashType {
-	switch hString {
-	case "sha256":
-		return SHA256
-	case "sha512":
-		return SHA512
-	}
-	return NOTSUPPORT
-}
-
 // SumHash calculated checksum.
-func (t *Tbln) SumHash(hashType HashType) error {
+func (t *Tbln) SumHash(hashType string) error {
 	h, err := t.calculateHash(hashType)
 	if err != nil {
 		return err
 	}
-	t.Hashes[hashType.string()] = h
+	t.Hashes[hashType] = h
 	return nil
 }
 
 // calculateHash is returns the calculated checksum.
-func (t *Tbln) calculateHash(hashType HashType) ([]byte, error) {
+func (t *Tbln) calculateHash(hashType string) ([]byte, error) {
 	var hash hash.Hash
 	switch hashType {
 	case SHA256:
@@ -228,7 +203,7 @@ func (t *Tbln) VerifySignature(name string, pubkey []byte) bool {
 // Verify returns the boolean value of the hash varification.
 func (t *Tbln) Verify() bool {
 	for name, old := range t.Hashes {
-		new, err := t.calculateHash(hashType(name))
+		new, err := t.calculateHash(name)
 		if err != nil {
 			log.Fatal(err)
 		}

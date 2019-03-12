@@ -13,17 +13,19 @@ import (
 var signCmd = &cobra.Command{
 	Use:          "sign [flags] [TBLN file]",
 	SilenceUsage: true,
-	Short:        "Sign a TBLN file with a private key",
-	Long:         `Sign a TBLN file with a private key`,
+	Short:        "Sign a TBLN file with a private key.",
+	Long: `Sign a TBLN file with a private key.
+Sign the hash value with the ED25519 private key.
+Generate hash first, if there is no hash value yet(default is SHA256).`,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		return signFile(cmd, args)
 	},
 }
 
 func init() {
-	signCmd.PersistentFlags().BoolP("sha256", "", false, "SHA256 Hash")
-	signCmd.PersistentFlags().BoolP("sha512", "", false, "SHA512 Hash")
+	signCmd.PersistentFlags().StringSliceP("hash", "a", []string{}, "Hash algorithm(sha256 or sha512)")
 	signCmd.PersistentFlags().StringP("key", "k", "", "Key File")
+	signCmd.PersistentFlags().BoolP("quiet", "q", false, "Do not prompt for password.")
 	signCmd.PersistentFlags().StringP("file", "f", "", "TBLN File")
 	rootCmd.AddCommand(signCmd)
 }
@@ -31,12 +33,8 @@ func init() {
 func signFile(cmd *cobra.Command, args []string) error {
 	var err error
 	var fileName, keyFile string
-	var sha256, sha512 bool
-	if sha256, err = cmd.PersistentFlags().GetBool("sha256"); err != nil {
-		cmd.SilenceUsage = false
-		return err
-	}
-	if sha512, err = cmd.PersistentFlags().GetBool("sha512"); err != nil {
+	var hashes []string
+	if hashes, err = cmd.PersistentFlags().GetStringSlice("hash"); err != nil {
 		cmd.SilenceUsage = false
 		return err
 	}
@@ -55,8 +53,17 @@ func signFile(cmd *cobra.Command, args []string) error {
 		cmd.SilenceUsage = false
 		return fmt.Errorf("must be keyFile")
 	}
-
-	privKey, err := decryptPrompt(keyFile)
+	var quiet bool
+	if quiet, err = cmd.PersistentFlags().GetBool("quiet"); err != nil {
+		cmd.SilenceUsage = false
+		return err
+	}
+	var privKey []byte
+	if quiet {
+		privKey, err = decrypt([]byte(""), keyFile)
+	} else {
+		privKey, err = decryptPrompt(keyFile)
+	}
 	if err != nil {
 		return err
 	}
@@ -74,28 +81,16 @@ func signFile(cmd *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
-	for k := range at.Hashes {
-		if k == "sha256" {
-			sha256 = true
-		}
-		if k == "sha512" {
-			sha512 = true
+	if len(hashes) == 0 {
+		for k := range at.Hashes {
+			hashes = append(hashes, k)
 		}
 	}
-	if sha256 == false && sha512 == false {
-		sha256 = true
+	if len(hashes) == 0 {
+		hashes = append(hashes, "sha256")
 	}
-	if sha256 {
-		err = at.SumHash(tbln.SHA256)
-		if err != nil {
-			return err
-		}
-	}
-	if sha512 {
-		err = at.SumHash(tbln.SHA512)
-		if err != nil {
-			return err
-		}
+	for _, hash := range hashes {
+		at.SumHash(hash)
 	}
 	at.Sign(keyName, privKey)
 	err = tbln.WriteAll(os.Stdout, at)

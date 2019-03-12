@@ -41,25 +41,7 @@ func encrypt(key []byte, msg []byte) ([]byte, error) {
 	return cipherText, nil
 }
 
-func decrypt(key []byte, cipherText []byte) ([]byte, error) {
-	padkey := pad(key)
-	block, err := aes.NewCipher(padkey)
-	if err != nil {
-		return nil, err
-	}
-	aesgcm, err := cipher.NewGCM(block)
-	if err != nil {
-		return nil, err
-	}
-	nonce := cipherText[:aesgcm.NonceSize()]
-	plaintextBytes, err := aesgcm.Open(nil, nonce, cipherText[aesgcm.NonceSize():], nil)
-	if err != nil {
-		return nil, err
-	}
-	return plaintextBytes, nil
-}
-
-func decryptPrompt(keyFile string) ([]byte, error) {
+func decrypt(key []byte, keyFile string) ([]byte, error) {
 	prFile, _ := os.Open(keyFile)
 	defer prFile.Close()
 	data, err := ioutil.ReadAll(prFile)
@@ -70,11 +52,29 @@ func decryptPrompt(keyFile string) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
+	padkey := pad(key)
+	block, err := aes.NewCipher(padkey)
+	if err != nil {
+		return nil, err
+	}
+	aesgcm, err := cipher.NewGCM(block)
+	if err != nil {
+		return nil, err
+	}
+	nonce := privateKey[:aesgcm.NonceSize()]
+	plaintextBytes, err := aesgcm.Open(nil, nonce, privateKey[aesgcm.NonceSize():], nil)
+	if err != nil {
+		return nil, err
+	}
+	return plaintextBytes, nil
+}
+
+func decryptPrompt(keyFile string) ([]byte, error) {
 	password, err := readPasswordPrompt("password: ")
 	if err != nil {
 		return nil, err
 	}
-	priv, err := decrypt(password, []byte(privateKey))
+	priv, err := decrypt(password, keyFile)
 	if err != nil {
 		return nil, err
 	}
