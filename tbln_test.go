@@ -138,10 +138,16 @@ func TestTbln_SumHash(t *testing.T) {
 				RowNum:     tt.fields.RowNum,
 				Rows:       tt.fields.Rows,
 			}
-			tb.SetNames(tb.Names)
-			tb.SetTypes(tb.Types)
-			err := tb.SumHash(SHA256)
-			if (err != nil) != tt.wantErr {
+			if err := tb.SetNames(tb.Names); err != nil {
+				t.Errorf("Tbln.SetNames error = %v", err)
+				return
+
+			}
+			if err := tb.SetTypes(tb.Types); err != nil {
+				t.Errorf("Tbln.SetTypes error = %v", err)
+				return
+			}
+			if err := tb.SumHash(SHA256); (err != nil) != tt.wantErr {
 				t.Errorf("Tbln.SumHash(SHA256) error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}

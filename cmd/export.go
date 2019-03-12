@@ -40,9 +40,9 @@ func init() {
 	exportCmd.PersistentFlags().StringVar(&srcdsn, "dsn", "", "dsn name")
 	exportCmd.PersistentFlags().StringP("Schema", "n", "", "Schema Name")
 	exportCmd.PersistentFlags().StringP("Table", "t", "", "Table Name")
-	exportCmd.PersistentFlags().StringP("Query", "q", "", "SQL Query")
-	exportCmd.PersistentFlags().StringP("sum", "c", "sha256", "CheckSum(sha256/sha512)")
-	exportCmd.PersistentFlags().BoolP("sign", "s", false, "Sign TBLN file")
+	exportCmd.PersistentFlags().StringP("SQL", "", "", "SQL Query")
+	exportCmd.PersistentFlags().StringP("hash", "a", "sha256", "Hash algorithm(sha256 or sha512)")
+	exportCmd.PersistentFlags().BoolP("sign", "", false, "Sign TBLN file")
 	exportCmd.PersistentFlags().StringP("key", "k", "", "Key File")
 
 	rootCmd.AddCommand(exportCmd)
@@ -53,7 +53,7 @@ func dbExport(cmd *cobra.Command, args []string) error {
 	var schema string
 	var tableName string
 	var query string
-	var sum string
+	var sumHash string
 	var signF bool
 	var keyFile string
 	if schema, err = cmd.PersistentFlags().GetString("Schema"); err != nil {
@@ -89,14 +89,8 @@ func dbExport(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("must be Database Driver Name")
 	}
 
-	if sum, err = cmd.PersistentFlags().GetString("sum"); err != nil {
+	if sumHash, err = cmd.PersistentFlags().GetString("hash"); err != nil {
 		return err
-	}
-	var sumHash tbln.HashType
-	if sum == "sha512" {
-		sumHash = tbln.SHA512
-	} else {
-		sumHash = tbln.SHA256
 	}
 
 	var privKey []byte
