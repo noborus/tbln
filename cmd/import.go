@@ -2,13 +2,10 @@ package cmd
 
 import (
 	"fmt"
-	"os"
-	"path/filepath"
 	"strings"
 
 	"github.com/spf13/cobra"
 
-	"github.com/noborus/tbln"
 	"github.com/noborus/tbln/db"
 
 	// MySQL driver
@@ -43,33 +40,23 @@ func init() {
 	importCmd.PersistentFlags().StringP("Schema", "n", "", "Schema Name")
 	importCmd.PersistentFlags().StringP("mode", "m", "i", "create mode (a:NotCreate/c:Create/i:IfNotExists/r:ReCreate/s:CreateOnly")
 	importCmd.PersistentFlags().StringP("table", "t", "", "Table Name")
+	importCmd.PersistentFlags().BoolP("force-verify-sign", "", false, "Force signature verification")
+	importCmd.PersistentFlags().BoolP("no-verify-sign", "", false, "ignore signature verify")
+	importCmd.PersistentFlags().StringP("pub", "p", "", "public Key File")
+	importCmd.PersistentFlags().StringP("keyname", "k", "", "key name")
+	importCmd.PersistentFlags().StringP("file", "f", "", "TBLN File")
 	rootCmd.AddCommand(importCmd)
 }
 
 func dbImport(cmd *cobra.Command, args []string) error {
-	var err error
-	var fileName string
-
-	if len(args) > 0 {
-		fileName = args[0]
+	at, err := verifiedTbln(cmd, args)
+	if err != nil {
+		return err
 	}
 	if destdbName == "" {
 		cmd.SilenceUsage = false
 		return fmt.Errorf("must be database name")
 	}
-	file, err := os.Open(fileName)
-	if err != nil {
-		return fmt.Errorf("%s: %s", fileName, err)
-	}
-	at, err := tbln.ReadAll(file)
-	if err != nil {
-		return fmt.Errorf("%s: %s", fileName, err)
-	}
-	err = file.Close()
-	if err != nil {
-		return fmt.Errorf("%s: %s", fileName, err)
-	}
-
 	conn, err := db.Open(destdbName, destdsn)
 	if err != nil {
 		return fmt.Errorf("%s: %s", destdbName, err)
@@ -88,9 +75,6 @@ func dbImport(cmd *cobra.Command, args []string) error {
 	}
 	if tableName != "" {
 		at.SetTableName(tableName)
-	}
-	if at.TableName() == "" {
-		at.SetTableName(filepath.Base(fileName[:len(fileName)-len(filepath.Ext(fileName))]))
 	}
 	var mode db.CreateMode
 	if modeStr, err := cmd.PersistentFlags().GetString("mode"); err == nil {
@@ -117,6 +101,6 @@ func dbImport(cmd *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
-	fmt.Printf("%s import success\n", fileName)
+	fmt.Printf("%s import success\n", at.TableName())
 	return conn.Close()
 }
