@@ -13,8 +13,72 @@ import (
 	"os"
 	"strings"
 
+	"golang.org/x/crypto/ed25519"
 	"golang.org/x/crypto/ssh/terminal"
 )
+
+func generateKey(keyName string) error {
+	pubKeyFileName := keyName + ".pub"
+	priKeyFileName := keyName + ".key"
+	public, private, err := ed25519.GenerateKey(nil)
+	if err != nil {
+		return err
+	}
+
+	err = writePrivateFile(priKeyFileName, keyName, private)
+	if err != nil {
+		return err
+	}
+	err = writePublicKeyFile(pubKeyFileName, keyName, public)
+	if err != nil {
+		return err
+	}
+	fmt.Fprintf(os.Stderr, "write %s %s file\n", pubKeyFileName, priKeyFileName)
+	return nil
+}
+
+func writePrivateFile(privFileName string, keyName string, privkey []byte) error {
+	password, err := readPasswordPrompt("password: ")
+	if err != nil {
+		return err
+	}
+	confirm, err := readPasswordPrompt("confirm: ")
+	if err != nil {
+		return err
+	}
+	if string(password) != string(confirm) {
+		return fmt.Errorf("password invalid")
+	}
+
+	privateFile, err := os.OpenFile(privFileName, os.O_WRONLY|os.O_CREATE, 0600)
+	if err != nil {
+		return err
+	}
+	buf := bufio.NewWriter(privateFile)
+	cipherText, err := encrypt(password, privkey)
+	if err != nil {
+		return err
+	}
+	ps := base64.StdEncoding.EncodeToString(cipherText)
+	_, err = buf.WriteString(ps)
+	if err != nil {
+		return err
+	}
+	_, err = buf.WriteString("\n")
+	if err != nil {
+		return err
+	}
+	err = buf.Flush()
+	if err != nil {
+		return err
+	}
+	err = privateFile.Close()
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
 
 func pad(b []byte) []byte {
 	padSize := aes.BlockSize - (len(b) % (aes.BlockSize))
@@ -92,7 +156,48 @@ func readPasswordPrompt(prompt string) ([]byte, error) {
 	return password, nil
 }
 
-func getPublicKey(pubFileName string) (map[string][]byte, error) {
+func getPublicKey(pubFileName string, keyName string) ([]byte, error) {
+	if len(pubFileName) == 0 {
+		return nil, fmt.Errorf("must be public key file")
+	}
+	pubs, err := readPublicKeyFile(pubFileName)
+	if err != nil {
+		return nil, err
+	}
+	if pub, ok := pubs[keyName]; ok {
+		return pub, nil
+	}
+	return nil, fmt.Errorf("not public key %s", keyName)
+}
+
+func writePublicKeyFile(pubFileName string, keyName string, pubkey []byte) error {
+	pubFile, err := os.OpenFile(keyName, os.O_WRONLY|os.O_CREATE, 0666)
+	if err != nil {
+		return err
+	}
+	buf2 := bufio.NewWriter(pubFile)
+	_, err = buf2.WriteString(keyName + ":")
+	if err != nil {
+		return err
+	}
+	ps2 := base64.StdEncoding.EncodeToString([]byte(pubkey))
+	_, err = buf2.WriteString(ps2)
+	if err != nil {
+		return err
+	}
+	err = buf2.Flush()
+	if err != nil {
+		return err
+	}
+
+	err = pubFile.Close()
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func readPublicKeyFile(pubFileName string) (map[string][]byte, error) {
 	pubFile, err := os.Open(pubFileName)
 	if err != nil {
 		return nil, err
