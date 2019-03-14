@@ -24,7 +24,7 @@ func init() {
 	verifyCmd.PersistentFlags().BoolP("force-verify-sign", "", false, "Force signature verification")
 	verifyCmd.PersistentFlags().BoolP("no-verify-sign", "", false, "ignore signature verify")
 	verifyCmd.PersistentFlags().StringP("pub", "p", "", "public Key File")
-	verifyCmd.PersistentFlags().StringP("keyname", "k", "", "key name")
+	verifyCmd.PersistentFlags().StringP("keyname", "k", "", "Key name")
 	verifyCmd.PersistentFlags().StringP("file", "f", "", "TBLN File")
 	rootCmd.AddCommand(verifyCmd)
 }

@@ -1,7 +1,6 @@
 package cmd
 
 import (
-	"bufio"
 	"bytes"
 	"crypto/aes"
 	"crypto/cipher"
@@ -9,10 +8,9 @@ import (
 	"encoding/base64"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"os"
-	"strings"
 
+	"github.com/noborus/tbln"
 	"golang.org/x/crypto/ed25519"
 	"golang.org/x/crypto/ssh/terminal"
 )
@@ -54,21 +52,28 @@ func writePrivateFile(privFileName string, keyName string, privkey []byte) error
 	if err != nil {
 		return err
 	}
-	buf := bufio.NewWriter(privateFile)
+
 	cipherText, err := encrypt(password, privkey)
 	if err != nil {
 		return err
 	}
-	ps := base64.StdEncoding.EncodeToString(cipherText)
-	_, err = buf.WriteString(ps)
+
+	t := tbln.NewTbln()
+	t.Comments = []string{fmt.Sprintf("TBLN Pvivate key")}
+	psEnc := base64.StdEncoding.EncodeToString(cipherText)
+	err = t.SetNames([]string{"keyname", "alogrithm", "privatekey"})
 	if err != nil {
 		return err
 	}
-	_, err = buf.WriteString("\n")
+	err = t.SetTypes([]string{"text", "text", "text"})
 	if err != nil {
 		return err
 	}
-	err = buf.Flush()
+	err = t.AddRows([]string{keyName, tbln.ED25519, psEnc})
+	if err != nil {
+		return err
+	}
+	err = tbln.WriteAll(privateFile, t)
 	if err != nil {
 		return err
 	}
@@ -105,17 +110,30 @@ func encrypt(key []byte, msg []byte) ([]byte, error) {
 	return cipherText, nil
 }
 
-func decrypt(key []byte, keyFile string) ([]byte, error) {
-	prFile, _ := os.Open(keyFile)
-	defer prFile.Close()
-	data, err := ioutil.ReadAll(prFile)
+func getPrivateKeyFile(privKeyFile string, keyName string) ([]byte, error) {
+	privFile, err := os.Open(privKeyFile)
 	if err != nil {
 		return nil, err
 	}
-	privateKey, err := base64.StdEncoding.DecodeString(string(data))
+	defer privFile.Close()
+
+	t, err := tbln.ReadAll(privFile)
 	if err != nil {
 		return nil, err
 	}
+	for _, row := range t.Rows {
+		if row[0] == keyName {
+			privateKey, err := base64.StdEncoding.DecodeString(string(row[2]))
+			if err != nil {
+				return nil, err
+			}
+			return privateKey, nil
+		}
+	}
+	return nil, fmt.Errorf("not private key :%s", keyName)
+}
+
+func decrypt(key []byte, privKey []byte) ([]byte, error) {
 	padkey := pad(key)
 	block, err := aes.NewCipher(padkey)
 	if err != nil {
@@ -125,20 +143,20 @@ func decrypt(key []byte, keyFile string) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	nonce := privateKey[:aesgcm.NonceSize()]
-	plaintextBytes, err := aesgcm.Open(nil, nonce, privateKey[aesgcm.NonceSize():], nil)
+	nonce := privKey[:aesgcm.NonceSize()]
+	plaintextBytes, err := aesgcm.Open(nil, nonce, privKey[aesgcm.NonceSize():], nil)
 	if err != nil {
 		return nil, err
 	}
 	return plaintextBytes, nil
 }
 
-func decryptPrompt(keyFile string) ([]byte, error) {
+func decryptPrompt(privKey []byte) ([]byte, error) {
 	password, err := readPasswordPrompt("password: ")
 	if err != nil {
 		return nil, err
 	}
-	priv, err := decrypt(password, keyFile)
+	priv, err := decrypt(password, privKey)
 	if err != nil {
 		return nil, err
 	}
@@ -156,36 +174,28 @@ func readPasswordPrompt(prompt string) ([]byte, error) {
 	return password, nil
 }
 
-func getPublicKey(pubFileName string, keyName string) ([]byte, error) {
-	if len(pubFileName) == 0 {
-		return nil, fmt.Errorf("must be public key file")
-	}
-	pubs, err := readPublicKeyFile(pubFileName)
-	if err != nil {
-		return nil, err
-	}
-	if pub, ok := pubs[keyName]; ok {
-		return pub, nil
-	}
-	return nil, fmt.Errorf("not public key %s", keyName)
-}
-
 func writePublicKeyFile(pubFileName string, keyName string, pubkey []byte) error {
-	pubFile, err := os.OpenFile(keyName, os.O_WRONLY|os.O_CREATE, 0666)
+	pubFile, err := os.OpenFile(pubFileName, os.O_WRONLY|os.O_CREATE, 0666)
 	if err != nil {
 		return err
 	}
-	buf2 := bufio.NewWriter(pubFile)
-	_, err = buf2.WriteString(keyName + ":")
+
+	t := tbln.NewTbln()
+	t.Comments = []string{fmt.Sprintf("TBLN Public key")}
+	pubEnc := base64.StdEncoding.EncodeToString([]byte(pubkey))
+	err = t.SetNames([]string{"keyname", "alogrithm", "publickey"})
 	if err != nil {
 		return err
 	}
-	ps2 := base64.StdEncoding.EncodeToString([]byte(pubkey))
-	_, err = buf2.WriteString(ps2)
+	err = t.SetTypes([]string{"text", "text", "text"})
 	if err != nil {
 		return err
 	}
-	err = buf2.Flush()
+	err = t.AddRows([]string{keyName, tbln.ED25519, pubEnc})
+	if err != nil {
+		return err
+	}
+	err = tbln.WriteAll(pubFile, t)
 	if err != nil {
 		return err
 	}
@@ -197,30 +207,23 @@ func writePublicKeyFile(pubFileName string, keyName string, pubkey []byte) error
 	return nil
 }
 
-func readPublicKeyFile(pubFileName string) (map[string][]byte, error) {
+func getPublicKey(pubFileName string, keyName string) ([]byte, error) {
+	if len(pubFileName) == 0 {
+		return nil, fmt.Errorf("must be public key file")
+	}
 	pubFile, err := os.Open(pubFileName)
 	if err != nil {
 		return nil, err
 	}
 	defer pubFile.Close()
-	pubs := make(map[string][]byte)
-	scanner := bufio.NewScanner(pubFile)
-	for scanner.Scan() {
-		txt := scanner.Text()
-		if txt == "" {
-			continue
-		}
-		data := strings.SplitN(txt, ":", 2)
-		if len(data) != 2 {
-			return nil, fmt.Errorf("public key parser error")
-		}
-		name := data[0]
-		pubEnc := data[1]
-		pubkey, err := base64.StdEncoding.DecodeString(string(pubEnc))
-		pubs[name] = pubkey
-		if err != nil {
-			return nil, err
+	pt, err := tbln.ReadAll(pubFile)
+	if err != nil {
+		return nil, err
+	}
+	for _, row := range pt.Rows {
+		if row[0] == keyName {
+			return base64.StdEncoding.DecodeString(string(row[2]))
 		}
 	}
-	return pubs, nil
+	return nil, fmt.Errorf("not public key %s", keyName)
 }
