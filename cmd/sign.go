@@ -88,7 +88,10 @@ func signFile(cmd *cobra.Command, args []string) error {
 		hashes = append(hashes, "sha256")
 	}
 	for _, hash := range hashes {
-		at.SumHash(hash)
+		err = at.SumHash(hash)
+		if err != nil {
+			return err
+		}
 	}
 	at.Sign(keyname, priv)
 	err = tbln.WriteAll(os.Stdout, at)
