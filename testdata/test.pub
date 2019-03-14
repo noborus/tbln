@@ -1,0 +1,5 @@
+# TBLN Public key
+; created_at: 2019-03-14T17:09:14+09:00
+; name: | keyname | algorithm | publickey |
+; type: | text | text | text |
+| test | ED25519 | 7kDELAUpmRy/ZMo7cTNZAnSbGzOlSwxWS31plbl9bO0= |

@@ -1,8 +1,6 @@
 package cmd
 
 import (
-	"fmt"
-
 	"github.com/spf13/cobra"
 )
 
@@ -19,24 +17,15 @@ based on the Key Name.`,
 }
 
 func init() {
-	genkeyCmd.PersistentFlags().StringP("keyName", "k", "", "Key Name")
 	rootCmd.AddCommand(genkeyCmd)
 }
 
 func genkey(cmd *cobra.Command, args []string) error {
-	var keyName string
 	var err error
-	if keyName, err = cmd.PersistentFlags().GetString("keyName"); err != nil {
-		return err
+	if len(args) > 0 {
+		keyname = args[0]
 	}
-	if keyName == "" && len(args) > 0 {
-		keyName = args[0]
-	}
-	if keyName == "" {
-		return fmt.Errorf("must be Key Name")
-	}
-
-	err = generateKey(keyName)
+	err = generateKey(keyname)
 	if err != nil {
 		return err
 	}

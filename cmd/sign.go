@@ -3,7 +3,6 @@ package cmd
 import (
 	"fmt"
 	"os"
-	"path/filepath"
 
 	"github.com/noborus/tbln"
 	"github.com/spf13/cobra"
@@ -24,7 +23,6 @@ Generate hash first, if there is no hash value yet(default is SHA256).`,
 
 func init() {
 	signCmd.PersistentFlags().StringSliceP("hash", "a", []string{}, "Hash algorithm(sha256 or sha512)")
-	signCmd.PersistentFlags().StringP("key", "k", "", "Key File")
 	signCmd.PersistentFlags().BoolP("quiet", "q", false, "Do not prompt for password.")
 	signCmd.PersistentFlags().StringP("file", "f", "", "TBLN File")
 	rootCmd.AddCommand(signCmd)
@@ -32,7 +30,7 @@ func init() {
 
 func signFile(cmd *cobra.Command, args []string) error {
 	var err error
-	var fileName, keyFile string
+	var fileName string
 	var hashes []string
 	if hashes, err = cmd.PersistentFlags().GetStringSlice("hash"); err != nil {
 		cmd.SilenceUsage = false
@@ -45,29 +43,29 @@ func signFile(cmd *cobra.Command, args []string) error {
 	if len(args) > 0 {
 		fileName = args[0]
 	}
-	if keyFile, err = cmd.PersistentFlags().GetString("key"); err != nil {
+	if seckey == "" {
 		cmd.SilenceUsage = false
-		return err
-	}
-	if keyFile == "" {
-		cmd.SilenceUsage = false
-		return fmt.Errorf("must be keyFile")
+		return fmt.Errorf("must be secret key File")
 	}
 	var quiet bool
 	if quiet, err = cmd.PersistentFlags().GetBool("quiet"); err != nil {
 		cmd.SilenceUsage = false
 		return err
 	}
-	var privKey []byte
+
+	privKey, err := getPrivateKeyFile(seckey, keyname)
+	if err != nil {
+		return err
+	}
+	var priv []byte
 	if quiet {
-		privKey, err = decrypt([]byte(""), keyFile)
+		priv, err = decrypt([]byte(""), privKey)
 	} else {
-		privKey, err = decryptPrompt(keyFile)
+		priv, err = decryptPrompt(privKey)
 	}
 	if err != nil {
 		return err
 	}
-	keyName := filepath.Base(keyFile[:len(keyFile)-len(filepath.Ext(keyFile))])
 
 	file, err := os.Open(fileName)
 	if err != nil {
@@ -90,9 +88,12 @@ func signFile(cmd *cobra.Command, args []string) error {
 		hashes = append(hashes, "sha256")
 	}
 	for _, hash := range hashes {
-		at.SumHash(hash)
+		err = at.SumHash(hash)
+		if err != nil {
+			return err
+		}
 	}
-	at.Sign(keyName, privKey)
+	at.Sign(keyname, priv)
 	err = tbln.WriteAll(os.Stdout, at)
 	if err != nil {
 		return err

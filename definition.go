@@ -56,6 +56,11 @@ func (d *Definition) ExtraValue(ekey string) interface{} {
 	return ext.Value()
 }
 
+// Signature algorithm
+const (
+	ED25519 = "ED25519"
+)
+
 // Signatures is a map of signature name and signature.
 type Signatures map[string]Signature
 
@@ -156,7 +161,7 @@ func (d *Definition) SetSignatures(sign []string) error {
 	if err != nil {
 		return err
 	}
-	if sign[1] != "ED25519" {
+	if sign[1] != ED25519 {
 		return fmt.Errorf("not support algotithm: %s", sign[1])
 	}
 	d.Signs[sign[0]] = Signature{sign: b, algorithm: sign[1]}

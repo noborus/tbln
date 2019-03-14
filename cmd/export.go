@@ -3,7 +3,6 @@ package cmd
 import (
 	"fmt"
 	"os"
-	"path/filepath"
 
 	"github.com/spf13/cobra"
 
@@ -40,49 +39,46 @@ the column name and column type.`,
 func init() {
 	exportCmd.PersistentFlags().StringVar(&srcdbName, "db", "", "database name")
 	exportCmd.PersistentFlags().StringVar(&srcdsn, "dsn", "", "dsn name")
-	exportCmd.PersistentFlags().StringP("Schema", "n", "", "Schema Name")
-	exportCmd.PersistentFlags().StringP("Table", "t", "", "Table Name")
-	exportCmd.PersistentFlags().StringP("SQL", "", "", "SQL Query")
+	exportCmd.PersistentFlags().StringP("schema", "n", "", "Schema Name")
+	exportCmd.PersistentFlags().StringP("table", "t", "", "Table Name")
+	exportCmd.PersistentFlags().StringP("query", "", "", "SQL Query")
 	exportCmd.PersistentFlags().StringP("hash", "a", "sha256", "Hash algorithm(sha256 or sha512)")
 	exportCmd.PersistentFlags().BoolP("sign", "", false, "Sign TBLN file")
 	exportCmd.PersistentFlags().BoolP("quiet", "q", false, "Do not prompt for password.")
-	exportCmd.PersistentFlags().StringP("key", "k", "", "Key File")
 
 	rootCmd.AddCommand(exportCmd)
 }
 
 func dbExport(cmd *cobra.Command, args []string) error {
 	var err error
+
 	var schema string
 	var tableName string
-	var sql string
+	var query string
 	var sumHash string
+
 	var signF bool
-	var keyFile string
-	if schema, err = cmd.PersistentFlags().GetString("Schema"); err != nil {
+
+	if schema, err = cmd.PersistentFlags().GetString("schema"); err != nil {
 		return err
 	}
-	if tableName, err = cmd.PersistentFlags().GetString("Table"); err != nil {
+	if tableName, err = cmd.PersistentFlags().GetString("table"); err != nil {
 		return err
 	}
-	if sql, err = cmd.PersistentFlags().GetString("SQL"); err != nil {
+	if query, err = cmd.PersistentFlags().GetString("query"); err != nil {
 		return err
 	}
 	if signF, err = cmd.PersistentFlags().GetBool("sign"); err != nil {
 		return err
 	}
-	if keyFile, err = cmd.PersistentFlags().GetString("key"); err != nil {
-		cmd.SilenceUsage = false
-		return err
-	}
-	if signF && keyFile == "" {
+	if signF && seckey == "" {
 		cmd.SilenceUsage = false
 		return fmt.Errorf("must be keyFile")
 	}
 	if tableName == "" && len(args) >= 1 {
 		tableName = args[0]
 	}
-	if tableName == "" && sql == "" {
+	if tableName == "" && query == "" {
 		cmd.SilenceUsage = false
 		return fmt.Errorf("must be Table Name or SQL Query")
 	}
@@ -90,19 +86,22 @@ func dbExport(cmd *cobra.Command, args []string) error {
 		cmd.SilenceUsage = false
 		return fmt.Errorf("must be Database Driver Name")
 	}
-
+	var quiet bool
+	if quiet, err = cmd.PersistentFlags().GetBool("quiet"); err != nil {
+		cmd.SilenceUsage = false
+		return err
+	}
 	if sumHash, err = cmd.PersistentFlags().GetString("hash"); err != nil {
 		return err
 	}
-	keyName := filepath.Base(keyFile[:len(keyFile)-len(filepath.Ext(keyFile))])
 
 	conn, err := db.Open(srcdbName, srcdsn)
 	if err != nil {
 		return fmt.Errorf("%s: %s", srcdbName, err)
 	}
 	var at *tbln.Tbln
-	if sql != "" {
-		at, err = db.ReadQueryAll(conn, sql)
+	if query != "" {
+		at, err = db.ReadQueryAll(conn, query)
 	} else {
 		at, err = db.ReadTableAll(conn, schema, tableName)
 	}
@@ -114,21 +113,20 @@ func dbExport(cmd *cobra.Command, args []string) error {
 		return err
 	}
 	if signF {
-		var quiet bool
-		if quiet, err = cmd.PersistentFlags().GetBool("quiet"); err != nil {
-			cmd.SilenceUsage = false
+		privKey, err := getPrivateKeyFile(seckey, keyname)
+		if err != nil {
 			return err
 		}
-		var privKey []byte
+		var priv []byte
 		if quiet {
-			privKey, err = decrypt([]byte(""), keyFile)
+			priv, err = decrypt([]byte(""), privKey)
 		} else {
-			privKey, err = decryptPrompt(keyFile)
+			priv, err = decryptPrompt(privKey)
 		}
 		if err != nil {
 			return err
 		}
-		at.Sign(keyName, privKey)
+		at.Sign(keyname, priv)
 	}
 	err = tbln.WriteAll(os.Stdout, at)
 	if err != nil {
