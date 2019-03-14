@@ -132,11 +132,10 @@ func (t *Tbln) AddRows(row []string) error {
 
 func checkRow(columnNum int, row []string) (int, error) {
 	if columnNum == 0 {
-		columnNum = len(row)
-	} else {
-		if len(row) != columnNum {
-			return columnNum, fmt.Errorf("invalid column num (%d!=%d) %s", columnNum, len(row), row)
-		}
+		return len(row), nil
+	}
+	if len(row) != columnNum {
+		return columnNum, fmt.Errorf("invalid column num (%d!=%d) %s", columnNum, len(row), row)
 	}
 	return columnNum, nil
 }
@@ -200,7 +199,7 @@ func (t *Tbln) VerifySignature(name string, pubkey []byte) bool {
 	return false
 }
 
-// Verify returns the boolean value of the hash varification.
+// Verify returns the boolean value of the hash verification.
 func (t *Tbln) Verify() bool {
 	for name, old := range t.Hashes {
 		new, err := t.calculateHash(name)

@@ -114,8 +114,8 @@ func encrypt(key []byte, msg []byte) ([]byte, error) {
 	return cipherText, nil
 }
 
-func getPrivateKeyFile(privKeyFile string, keyName string) ([]byte, error) {
-	privFile, err := os.Open(privKeyFile)
+func getPrivateKeyFile(privFileName string, keyName string) ([]byte, error) {
+	privFile, err := os.Open(privFileName)
 	if err != nil {
 		return nil, err
 	}
@@ -127,14 +127,14 @@ func getPrivateKeyFile(privKeyFile string, keyName string) ([]byte, error) {
 	}
 	for _, row := range t.Rows {
 		if row[0] == keyName {
-			privateKey, err := base64.StdEncoding.DecodeString(string(row[2]))
+			privateKey, err := base64.StdEncoding.DecodeString(row[2])
 			if err != nil {
 				return nil, err
 			}
 			return privateKey, nil
 		}
 	}
-	return nil, fmt.Errorf("not private key :%s", keyName)
+	return nil, fmt.Errorf("no matching secret key found: %s", keyName)
 }
 
 func decrypt(key []byte, privKey []byte) ([]byte, error) {
@@ -186,7 +186,7 @@ func writePublicKeyFile(pubFileName string, keyName string, pubkey []byte) error
 
 	t := tbln.NewTbln()
 	t.Comments = []string{fmt.Sprintf("TBLN Public key")}
-	pubEnc := base64.StdEncoding.EncodeToString([]byte(pubkey))
+	pubEnc := base64.StdEncoding.EncodeToString(pubkey)
 	err = t.SetNames([]string{"keyname", "algorithm", "publickey"})
 	if err != nil {
 		return err
@@ -213,7 +213,7 @@ func writePublicKeyFile(pubFileName string, keyName string, pubkey []byte) error
 
 func getPublicKey(pubFileName string, keyName string) ([]byte, error) {
 	if len(pubFileName) == 0 {
-		return nil, fmt.Errorf("must be public key file")
+		return nil, fmt.Errorf("requires public key file")
 	}
 	pubFile, err := os.Open(pubFileName)
 	if err != nil {
@@ -226,8 +226,8 @@ func getPublicKey(pubFileName string, keyName string) ([]byte, error) {
 	}
 	for _, row := range pt.Rows {
 		if row[0] == keyName {
-			return base64.StdEncoding.DecodeString(string(row[2]))
+			return base64.StdEncoding.DecodeString(row[2])
 		}
 	}
-	return nil, fmt.Errorf("not public key %s", keyName)
+	return nil, fmt.Errorf("no matching public key found: %s", keyName)
 }

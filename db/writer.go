@@ -3,6 +3,7 @@ package db
 import (
 	"database/sql"
 	"fmt"
+	"os"
 	"strings"
 	"time"
 
@@ -165,7 +166,7 @@ func (w *Writer) createTable() error {
 	}
 	sql := fmt.Sprintf("CREATE TABLE %s %s ( %s );",
 		mode, w.tableFullName, strings.Join(col, ", "))
-	fmt.Println(sql)
+	fmt.Fprintln(os.Stderr, sql)
 	_, err = w.Tx.Exec(sql)
 	if err != nil {
 		return fmt.Errorf("%s: %s", err, sql)
@@ -216,7 +217,7 @@ func (w *Writer) prepara() error {
 	insert := fmt.Sprintf(
 		"INSERT INTO %s ( %s ) VALUES ( %s );",
 		w.tableFullName, strings.Join(names, ", "), strings.Join(ph, ", "))
-	fmt.Println(insert)
+	fmt.Fprintln(os.Stderr, insert)
 	w.stmt, err = w.Tx.Prepare(insert)
 	if err != nil {
 		return fmt.Errorf("%s: %s", err, insert)

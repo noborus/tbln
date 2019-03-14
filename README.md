@@ -2,7 +2,9 @@
 
 TBLN is a text format that represents the table.
 
-This repository has Go library and [CLI](cmd/README.md) tool which can read/write file and [RDBMS](db/README.md).
+This repository contains Go library for reading and writing files,
+and Go library for reading and writing [RDBMS] (db/README.md) tables.
+There is also a [CLI] (cmd/README.md) tool that uses them.
 
 ## Features
 
