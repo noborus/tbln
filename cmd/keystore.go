@@ -16,22 +16,26 @@ import (
 )
 
 func generateKey(keyName string) error {
-	pubKeyFileName := keyName + ".pub"
-	priKeyFileName := keyName + ".key"
+	if _, err := os.Stat(keypath); os.IsNotExist(err) {
+		err := os.Mkdir(keypath, 0777)
+		if err != nil {
+			return err
+		}
+	}
 	public, private, err := ed25519.GenerateKey(nil)
 	if err != nil {
 		return err
 	}
 
-	err = writePrivateFile(priKeyFileName, keyName, private)
+	err = writePrivateFile(seckey, keyName, private)
 	if err != nil {
 		return err
 	}
-	err = writePublicKeyFile(pubKeyFileName, keyName, public)
+	err = writePublicKeyFile(pubfile, keyName, public)
 	if err != nil {
 		return err
 	}
-	fmt.Fprintf(os.Stderr, "write %s %s file\n", pubKeyFileName, priKeyFileName)
+	fmt.Fprintf(os.Stderr, "write %s %s file\n", pubfile, seckey)
 	return nil
 }
 
@@ -61,7 +65,7 @@ func writePrivateFile(privFileName string, keyName string, privkey []byte) error
 	t := tbln.NewTbln()
 	t.Comments = []string{fmt.Sprintf("TBLN Pvivate key")}
 	psEnc := base64.StdEncoding.EncodeToString(cipherText)
-	err = t.SetNames([]string{"keyname", "alogrithm", "privatekey"})
+	err = t.SetNames([]string{"keyname", "algorithm", "privatekey"})
 	if err != nil {
 		return err
 	}
@@ -183,7 +187,7 @@ func writePublicKeyFile(pubFileName string, keyName string, pubkey []byte) error
 	t := tbln.NewTbln()
 	t.Comments = []string{fmt.Sprintf("TBLN Public key")}
 	pubEnc := base64.StdEncoding.EncodeToString([]byte(pubkey))
-	err = t.SetNames([]string{"keyname", "alogrithm", "publickey"})
+	err = t.SetNames([]string{"keyname", "algorithm", "publickey"})
 	if err != nil {
 		return err
 	}

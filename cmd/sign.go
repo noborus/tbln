@@ -23,8 +23,6 @@ Generate hash first, if there is no hash value yet(default is SHA256).`,
 
 func init() {
 	signCmd.PersistentFlags().StringSliceP("hash", "a", []string{}, "Hash algorithm(sha256 or sha512)")
-	signCmd.PersistentFlags().StringP("private", "s", "", "Private Key File")
-	signCmd.PersistentFlags().StringP("keyname", "k", "", "Key name")
 	signCmd.PersistentFlags().BoolP("quiet", "q", false, "Do not prompt for password.")
 	signCmd.PersistentFlags().StringP("file", "f", "", "TBLN File")
 	rootCmd.AddCommand(signCmd)
@@ -32,7 +30,7 @@ func init() {
 
 func signFile(cmd *cobra.Command, args []string) error {
 	var err error
-	var fileName, keyName, privFile string
+	var fileName string
 	var hashes []string
 	if hashes, err = cmd.PersistentFlags().GetStringSlice("hash"); err != nil {
 		cmd.SilenceUsage = false
@@ -45,17 +43,9 @@ func signFile(cmd *cobra.Command, args []string) error {
 	if len(args) > 0 {
 		fileName = args[0]
 	}
-	if privFile, err = cmd.PersistentFlags().GetString("private"); err != nil {
+	if seckey == "" {
 		cmd.SilenceUsage = false
-		return err
-	}
-	if keyName, err = cmd.PersistentFlags().GetString("keyname"); err != nil {
-		cmd.SilenceUsage = false
-		return err
-	}
-	if privFile == "" {
-		cmd.SilenceUsage = false
-		return fmt.Errorf("must be Private key File")
+		return fmt.Errorf("must be secret key File")
 	}
 	var quiet bool
 	if quiet, err = cmd.PersistentFlags().GetBool("quiet"); err != nil {
@@ -63,7 +53,7 @@ func signFile(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	privKey, err := getPrivateKeyFile(privFile, keyName)
+	privKey, err := getPrivateKeyFile(seckey, keyname)
 	if err != nil {
 		return err
 	}
@@ -100,7 +90,7 @@ func signFile(cmd *cobra.Command, args []string) error {
 	for _, hash := range hashes {
 		at.SumHash(hash)
 	}
-	at.Sign(keyName, priv)
+	at.Sign(keyname, priv)
 	err = tbln.WriteAll(os.Stdout, at)
 	if err != nil {
 		return err
