@@ -23,6 +23,7 @@ var verifyCmd = &cobra.Command{
 func init() {
 	verifyCmd.PersistentFlags().BoolP("force-verify-sign", "", false, "Force signature verification")
 	verifyCmd.PersistentFlags().BoolP("no-verify-sign", "", false, "ignore signature verify")
+	verifyCmd.PersistentFlags().StringP("output", "o", "", "Write to file instead of stdout")
 	verifyCmd.PersistentFlags().StringP("file", "f", "", "TBLN File")
 	rootCmd.AddCommand(verifyCmd)
 }
@@ -36,16 +37,16 @@ func verifiedTbln(cmd *cobra.Command, args []string) (*tbln.Tbln, error) {
 	var err error
 	var fileName string
 	var forcesign, nosign bool
-	if len(args) <= 0 {
-		cmd.SilenceUsage = false
-		return nil, fmt.Errorf("require filename")
-	}
 	if fileName, err = cmd.PersistentFlags().GetString("file"); err != nil {
 		cmd.SilenceUsage = false
 		return nil, err
 	}
 	if fileName == "" && len(args) > 0 {
 		fileName = args[0]
+	}
+	if fileName == "" {
+		cmd.SilenceUsage = false
+		return nil, fmt.Errorf("require filename")
 	}
 	if nosign, err = cmd.PersistentFlags().GetBool("no-verify-sign"); err != nil {
 		return nil, err
@@ -75,14 +76,14 @@ func verifiedTbln(cmd *cobra.Command, args []string) (*tbln.Tbln, error) {
 			return nil, err
 		}
 		if !at.VerifySignature(keyname, pub) {
-			return nil, fmt.Errorf("Signature verfication failure")
+			return nil, fmt.Errorf("signature verification failure")
 		}
-		fmt.Println("Signature verified")
+		fmt.Fprintln(os.Stderr, "Signature verification successful")
 	} else {
 		if !at.Verify() {
-			return nil, fmt.Errorf("Verfication failure")
+			return nil, fmt.Errorf("verification failure")
 		}
-		fmt.Println("Verified")
+		fmt.Fprintln(os.Stderr, "Verification successful")
 	}
 	return at, nil
 }

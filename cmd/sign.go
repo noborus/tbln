@@ -25,17 +25,23 @@ func init() {
 	signCmd.PersistentFlags().StringSliceP("hash", "a", []string{}, "Hash algorithm(sha256 or sha512)")
 	signCmd.PersistentFlags().BoolP("quiet", "q", false, "Do not prompt for password.")
 	signCmd.PersistentFlags().StringP("file", "f", "", "TBLN File")
+	signCmd.PersistentFlags().StringP("output", "o", "", "Write to file instead of stdout")
+
 	rootCmd.AddCommand(signCmd)
 }
 
 func signFile(cmd *cobra.Command, args []string) error {
 	var err error
-	var fileName string
 	var hashes []string
 	if hashes, err = cmd.PersistentFlags().GetStringSlice("hash"); err != nil {
 		cmd.SilenceUsage = false
 		return err
 	}
+	var output string
+	if output, err = cmd.PersistentFlags().GetString("output"); err != nil {
+		return err
+	}
+	var fileName string
 	if fileName, err = cmd.PersistentFlags().GetString("file"); err != nil {
 		cmd.SilenceUsage = false
 		return err
@@ -43,16 +49,15 @@ func signFile(cmd *cobra.Command, args []string) error {
 	if len(args) > 0 {
 		fileName = args[0]
 	}
-	if seckey == "" {
+	if fileName == "" {
 		cmd.SilenceUsage = false
-		return fmt.Errorf("must be secret key File")
+		return fmt.Errorf("require filename")
 	}
 	var quiet bool
 	if quiet, err = cmd.PersistentFlags().GetBool("quiet"); err != nil {
 		cmd.SilenceUsage = false
 		return err
 	}
-
 	privKey, err := getPrivateKeyFile(seckey, keyname)
 	if err != nil {
 		return err
@@ -94,10 +99,16 @@ func signFile(cmd *cobra.Command, args []string) error {
 		}
 	}
 	at.Sign(keyname, priv)
-	err = tbln.WriteAll(os.Stdout, at)
-	if err != nil {
-		return err
-	}
 
-	return nil
+	var out *os.File
+	if output == "" {
+		out = os.Stdout
+	} else {
+		out, err = os.Create(output)
+		if err != nil {
+			return err
+		}
+		defer out.Close()
+	}
+	return tbln.WriteAll(out, at)
 }

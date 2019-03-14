@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"fmt"
+	"os"
 	"strings"
 
 	"github.com/spf13/cobra"
@@ -53,7 +54,7 @@ func dbImport(cmd *cobra.Command, args []string) error {
 	}
 	if destdbName == "" {
 		cmd.SilenceUsage = false
-		return fmt.Errorf("must be database name")
+		return fmt.Errorf("requires database driver name")
 	}
 	conn, err := db.Open(destdbName, destdsn)
 	if err != nil {
@@ -99,6 +100,6 @@ func dbImport(cmd *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
-	fmt.Printf("%s import success\n", at.TableName())
+	fmt.Fprintf(os.Stderr, "%s import success\n", at.TableName())
 	return conn.Close()
 }
