@@ -43,7 +43,9 @@ func init() {
 	exportCmd.PersistentFlags().StringP("table", "t", "", "Table Name")
 	exportCmd.PersistentFlags().StringP("query", "", "", "SQL Query")
 	exportCmd.PersistentFlags().StringP("output", "o", "", "Write to file instead of stdout")
-	exportCmd.PersistentFlags().StringP("hash", "a", "sha256", "Hash algorithm(sha256 or sha512)")
+	exportCmd.PersistentFlags().StringSliceP("hash", "a", []string{"sha256"}, "Hash algorithm(sha256 or sha512)")
+	exportCmd.PersistentFlags().StringSliceP("enable-target", "", nil, "Hash target extra item (all or each name)")
+	exportCmd.PersistentFlags().StringSliceP("disable-target", "", nil, "Hash extra items not to be targeted (all or each name)")
 	exportCmd.PersistentFlags().BoolP("sign", "", false, "Sign TBLN file")
 	exportCmd.PersistentFlags().BoolP("quiet", "q", false, "Do not prompt for password.")
 
@@ -80,10 +82,6 @@ func dbExport(cmd *cobra.Command, args []string) error {
 	if output, err = cmd.PersistentFlags().GetString("output"); err != nil {
 		return err
 	}
-	var sumHash string
-	if sumHash, err = cmd.PersistentFlags().GetString("hash"); err != nil {
-		return err
-	}
 	var signF bool
 	if signF, err = cmd.PersistentFlags().GetBool("sign"); err != nil {
 		return err
@@ -112,8 +110,7 @@ func dbExport(cmd *cobra.Command, args []string) error {
 		return err
 	}
 	conn.Close()
-
-	err = at.SumHash(sumHash)
+	err = hash(at, cmd, args)
 	if err != nil {
 		return err
 	}

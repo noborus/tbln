@@ -152,7 +152,11 @@ func (t *Tbln) SumHash(hashType string) error {
 	if err != nil {
 		return err
 	}
-	t.Hashes[hashType] = h
+	if string(t.Hashes[hashType]) != string(h) {
+		t.Hashes[hashType] = h
+		// Delete signature
+		t.Signs = make(map[string]Signature)
+	}
 	return nil
 }
 
