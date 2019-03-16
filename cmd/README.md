@@ -8,14 +8,18 @@ Usage:
   tbln [command]
 
 Available Commands:
-  export      export database table or query
-  genkey      generate a new key pair
-  hash        Add hash value to TBLN file.
+  export      Export database table or query
+  genkey      Generate a new key pair
+  hash        Add hash value to TBLN file
   help        Help about any command
-  import      import database table
-  sign        Sign a TBLN file with a private key.
+  import      Import database table
+  sign        Sign a TBLN file with a private key
   verify      Verify signature and checksum of TBLN file
 
 Flags:
-  -h, --help   help for tbln
+  -h, --help             help for tbln
+  -k, --keyname string   key name
+      --keypath string   key store path
+      --pubfile string   public Key File
+      --seckey string    Secret Key File
 ```

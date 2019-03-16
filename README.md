@@ -1,10 +1,13 @@
 # TBLN
 
-TBLN is a text format that represents the table.
+[![GoDoc](https://godoc.org/github.com/noborus/tbln?status.svg)](https://godoc.org/github.com/noborus/tbln)
+[![Build Status](https://travis-ci.org/noborus/tbln.svg?branch=master)](https://travis-ci.org/noborus/tbln)
+
+[TBLN](https://tbln.dev) is a text format that represents the table.
 
 This repository contains Go library for reading and writing files,
-and Go library for reading and writing [RDBMS] (db/README.md) tables.
-There is also a [CLI] (cmd/README.md) tool that uses them.
+and Go library for reading and writing [RDBMS](db/README.md) tables.
+There is also a [CLI](cmd/README.md) tool that uses them.
 
 ## Features
 

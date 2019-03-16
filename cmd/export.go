@@ -27,7 +27,7 @@ var (
 var exportCmd = &cobra.Command{
 	Use:          "export  [flags] <Table Name> or <SQL Query>",
 	SilenceUsage: true,
-	Short:        "export database table or query",
+	Short:        "Export database table or query",
 	Long: `Export from the database by table or SQL Query.
 Add as much of the table information as possible including 
 the column name and column type.`,

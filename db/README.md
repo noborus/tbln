@@ -1,4 +1,6 @@
-# TBLN/db
+# tbln/db
+
+[![GoDoc](https://godoc.org/github.com/noborus/tbln/db?status.svg)](https://godoc.org/github.com/noborus/tbln/db)
 
 This library import/export database table.
 

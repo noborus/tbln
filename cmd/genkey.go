@@ -7,7 +7,7 @@ import (
 // genkeyCmd represents the generate key pair command
 var genkeyCmd = &cobra.Command{
 	Use:   "genkey [Key Name]",
-	Short: "generate a new key pair",
+	Short: "Generate a new key pair",
 	Long: `Generate a new Ed25519 keypair.
 Write privake key(Key Name+".key") and public key(Key Name+".pub") files
 based on the Key Name.`,
