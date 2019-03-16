@@ -2,6 +2,7 @@
 
 [![GoDoc](https://godoc.org/github.com/noborus/tbln?status.svg)](https://godoc.org/github.com/noborus/tbln)
 [![Build Status](https://travis-ci.org/noborus/tbln.svg?branch=master)](https://travis-ci.org/noborus/tbln)
+[![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2Fnoborus%2Ftbln.svg?type=shield)](https://app.fossa.io/projects/git%2Bgithub.com%2Fnoborus%2Ftbln?ref=badge_shield)
 
 [TBLN](https://tbln.dev) is a text format that represents the table.
 
@@ -119,3 +120,7 @@ Database export and signature.
 | 1 | Bob |
 | 2 | Alice |
 ```
+
+
+## License
+[![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2Fnoborus%2Ftbln.svg?type=large)](https://app.fossa.io/projects/git%2Bgithub.com%2Fnoborus%2Ftbln?ref=badge_large)
