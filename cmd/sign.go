@@ -22,7 +22,9 @@ Generate hash first, if there is no hash value yet(default is SHA256).`,
 }
 
 func init() {
-	signCmd.PersistentFlags().StringSliceP("hash", "a", []string{}, "Hash algorithm(sha256 or sha512)")
+	signCmd.PersistentFlags().StringSliceP("hash", "a", []string{"sha256"}, "Hash algorithm(sha256 or sha512)")
+	signCmd.PersistentFlags().StringSliceP("enable-target", "", nil, "Hash target extra item (all or each name)")
+	signCmd.PersistentFlags().StringSliceP("disable-target", "", nil, "Hash extra items not to be targeted (all or each name)")
 	signCmd.PersistentFlags().BoolP("quiet", "q", false, "Do not prompt for password.")
 	signCmd.PersistentFlags().StringP("file", "f", "", "TBLN File")
 	signCmd.PersistentFlags().StringP("output", "o", "", "Write to file instead of stdout")
@@ -32,11 +34,6 @@ func init() {
 
 func signFile(cmd *cobra.Command, args []string) error {
 	var err error
-	var hashes []string
-	if hashes, err = cmd.PersistentFlags().GetStringSlice("hash"); err != nil {
-		cmd.SilenceUsage = false
-		return err
-	}
 	var output string
 	if output, err = cmd.PersistentFlags().GetString("output"); err != nil {
 		return err
@@ -84,20 +81,7 @@ func signFile(cmd *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
-	if len(hashes) == 0 {
-		for k := range at.Hashes {
-			hashes = append(hashes, k)
-		}
-	}
-	if len(hashes) == 0 {
-		hashes = append(hashes, "sha256")
-	}
-	for _, hash := range hashes {
-		err = at.SumHash(hash)
-		if err != nil {
-			return err
-		}
-	}
+	hash(at, cmd, args)
 	at.Sign(keyname, priv)
 
 	var out *os.File

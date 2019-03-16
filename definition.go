@@ -140,6 +140,14 @@ func (d *Definition) ToTargetHash(key string, target bool) {
 	}
 }
 
+// AllTargetHash is set all target of hash
+func (d *Definition) AllTargetHash(target bool) {
+	for k, v := range d.Extras {
+		v.hashTarget = target
+		d.Extras[k] = v
+	}
+}
+
 // SerializeHash returns a []byte that serializes Hash's map.
 func (d *Definition) SerializeHash() []byte {
 	hashes := make([]string, 0, len(d.Hashes))
