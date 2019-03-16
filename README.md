@@ -71,8 +71,8 @@ The order of TBLN is as follows.
 The target of hash is the line below Hash.
 The signature targets the Hash value.
 
-Hash currently supports SHA 256 and SHA 512.
-Signature currently supports ED 25519.
+Hash currently supports SHA256 and SHA512.
+Signature currently supports ED25519.
 
 ### Comments
 

@@ -1,11 +1,13 @@
-# TBLN
-
-TBLN is a text format that represents the table.
-
-## Features
+## Overview
 
 TBLN can contain multiple columns like CSV.
 Also, it can include checksum and signature inside.
+
+## Products
+
+* [tbln](https://github.com/noborus/tbln) Go library for reading and writing files.
+* [tbln/db](https://github.com/noborus/tbln/db) Go library for reading and writing RDBMS.
+* [tbln cli tool](https://github.com/noborus/tbln/cmd ) Import/Export TBLN file and RDBMS table.
 
 ## Specification
 
@@ -63,8 +65,8 @@ The order of TBLN is as follows.
 The target of hash is the line below Hash.
 The signature targets the Hash value.
 
-Hash currently supports SHA 256 and SHA 512.
-Signature currently supports ED 25519.
+Hash currently supports SHA256 and SHA512.
+Signature currently supports ED25519.
 
 ### Comments
 
