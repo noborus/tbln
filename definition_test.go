@@ -5,43 +5,6 @@ import (
 	"testing"
 )
 
-func TestNewDefinition(t *testing.T) {
-	tests := []struct {
-		name string
-		want *Definition
-	}{
-		// TODO: Add test cases.
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			if got := NewDefinition(); !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("NewDefinition() = %v, want %v", got, tt.want)
-			}
-		})
-	}
-}
-
-func TestNewExtra(t *testing.T) {
-	type args struct {
-		value      interface{}
-		hashTarget bool
-	}
-	tests := []struct {
-		name string
-		args args
-		want Extra
-	}{
-		// TODO: Add test cases.
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			if got := NewExtra(tt.args.value, tt.args.hashTarget); !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("NewExtra() = %v, want %v", got, tt.want)
-			}
-		})
-	}
-}
-
 func TestExtra_Value(t *testing.T) {
 	type fields struct {
 		value      interface{}
@@ -52,7 +15,7 @@ func TestExtra_Value(t *testing.T) {
 		fields fields
 		want   interface{}
 	}{
-		// TODO: Add test cases.
+		{name: "test1", fields: fields{value: "test1", hashTarget: false}, want: "test1"},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -63,78 +26,6 @@ func TestExtra_Value(t *testing.T) {
 			if got := e.Value(); !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("Extra.Value() = %v, want %v", got, tt.want)
 			}
-		})
-	}
-}
-
-func TestDefinition_TableName(t *testing.T) {
-	type fields struct {
-		columnNum int
-		tableName string
-		Comments  []string
-		Names     []string
-		Types     []string
-		Extras    map[string]Extra
-		Hashes    map[string][]byte
-	}
-	tests := []struct {
-		name   string
-		fields fields
-		want   string
-	}{
-		// TODO: Add test cases.
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			d := &Definition{
-				columnNum: tt.fields.columnNum,
-				tableName: tt.fields.tableName,
-				Comments:  tt.fields.Comments,
-				Names:     tt.fields.Names,
-				Types:     tt.fields.Types,
-				Extras:    tt.fields.Extras,
-				Hashes:    tt.fields.Hashes,
-			}
-			if got := d.TableName(); got != tt.want {
-				t.Errorf("Definition.TableName() = %v, want %v", got, tt.want)
-			}
-		})
-	}
-}
-
-func TestDefinition_SetTableName(t *testing.T) {
-	type fields struct {
-		columnNum int
-		tableName string
-		Comments  []string
-		Names     []string
-		Types     []string
-		Extras    map[string]Extra
-		Hashes    map[string][]byte
-		Signs     map[string][]byte
-	}
-	type args struct {
-		name string
-	}
-	tests := []struct {
-		name   string
-		fields fields
-		args   args
-	}{
-		// TODO: Add test cases.
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			d := &Definition{
-				columnNum: tt.fields.columnNum,
-				tableName: tt.fields.tableName,
-				Comments:  tt.fields.Comments,
-				Names:     tt.fields.Names,
-				Types:     tt.fields.Types,
-				Extras:    tt.fields.Extras,
-				Hashes:    tt.fields.Hashes,
-			}
-			d.SetTableName(tt.args.name)
 		})
 	}
 }
@@ -181,8 +72,6 @@ func TestDefinition_SetNames(t *testing.T) {
 func TestDefinition_SetTypes(t *testing.T) {
 	type fields struct {
 		columnNum int
-		tableName string
-		Comments  []string
 		Names     []string
 		Types     []string
 		Extras    map[string]Extra
@@ -204,243 +93,12 @@ func TestDefinition_SetTypes(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			d := &Definition{
 				columnNum: tt.fields.columnNum,
-				tableName: tt.fields.tableName,
-				Comments:  tt.fields.Comments,
 				Names:     tt.fields.Names,
 				Types:     tt.fields.Types,
 				Extras:    tt.fields.Extras,
 			}
 			if err := d.SetTypes(tt.args.types); (err != nil) != tt.wantErr {
 				t.Errorf("Definition.SetTypes() error = %v, wantErr %v", err, tt.wantErr)
-			}
-		})
-	}
-}
-
-func TestDefinition_ColumnNum(t *testing.T) {
-	type fields struct {
-		columnNum int
-		tableName string
-		Comments  []string
-		Names     []string
-		Types     []string
-		Extras    map[string]Extra
-		Hashes    map[string][]byte
-		Signs     map[string][]byte
-	}
-	tests := []struct {
-		name   string
-		fields fields
-		want   int
-	}{
-		// TODO: Add test cases.
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			d := &Definition{
-				columnNum: tt.fields.columnNum,
-				tableName: tt.fields.tableName,
-				Comments:  tt.fields.Comments,
-				Names:     tt.fields.Names,
-				Types:     tt.fields.Types,
-				Extras:    tt.fields.Extras,
-				Hashes:    tt.fields.Hashes,
-			}
-			if got := d.ColumnNum(); got != tt.want {
-				t.Errorf("Definition.ColumnNum() = %v, want %v", got, tt.want)
-			}
-		})
-	}
-}
-
-func TestDefinition_setColNum(t *testing.T) {
-	type fields struct {
-		columnNum int
-		tableName string
-		Comments  []string
-		Names     []string
-		Types     []string
-		Extras    map[string]Extra
-	}
-	type args struct {
-		colNum int
-	}
-	tests := []struct {
-		name    string
-		fields  fields
-		args    args
-		wantErr bool
-	}{
-		{name: "test1", args: args{colNum: 2}, wantErr: false},
-		{name: "test2", fields: fields{columnNum: 3}, args: args{colNum: 3}, wantErr: false},
-		{name: "test3", fields: fields{columnNum: 2}, args: args{colNum: 3}, wantErr: true},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			d := &Definition{
-				columnNum: tt.fields.columnNum,
-				tableName: tt.fields.tableName,
-				Comments:  tt.fields.Comments,
-				Names:     tt.fields.Names,
-				Types:     tt.fields.Types,
-				Extras:    tt.fields.Extras,
-			}
-			if err := d.setColNum(tt.args.colNum); (err != nil) != tt.wantErr {
-				t.Errorf("Definition.setColNum() error = %v, wantErr %v", err, tt.wantErr)
-			}
-		})
-	}
-}
-
-func TestDefinition_ToTargetHash(t *testing.T) {
-	type fields struct {
-		columnNum int
-		tableName string
-		Comments  []string
-		Names     []string
-		Types     []string
-		Extras    map[string]Extra
-		Hashes    map[string][]byte
-		Signs     map[string][]byte
-	}
-	type args struct {
-		key    string
-		target bool
-	}
-	tests := []struct {
-		name   string
-		fields fields
-		args   args
-	}{
-		// TODO: Add test cases.
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			d := &Definition{
-				columnNum: tt.fields.columnNum,
-				tableName: tt.fields.tableName,
-				Comments:  tt.fields.Comments,
-				Names:     tt.fields.Names,
-				Types:     tt.fields.Types,
-				Extras:    tt.fields.Extras,
-				Hashes:    tt.fields.Hashes,
-			}
-			d.ToTargetHash(tt.args.key, tt.args.target)
-		})
-	}
-}
-
-func TestDefinition_SerializeHash(t *testing.T) {
-	type fields struct {
-		columnNum int
-		tableName string
-		Comments  []string
-		Names     []string
-		Types     []string
-		Extras    map[string]Extra
-		Hashes    map[string][]byte
-		Signs     map[string][]byte
-	}
-	tests := []struct {
-		name   string
-		fields fields
-		want   []byte
-	}{
-		// TODO: Add test cases.
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			d := &Definition{
-				columnNum: tt.fields.columnNum,
-				tableName: tt.fields.tableName,
-				Comments:  tt.fields.Comments,
-				Names:     tt.fields.Names,
-				Types:     tt.fields.Types,
-				Extras:    tt.fields.Extras,
-				Hashes:    tt.fields.Hashes,
-			}
-			if got := d.SerializeHash(); !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("Definition.SerializeHash() = %v, want %v", got, tt.want)
-			}
-		})
-	}
-}
-
-func TestDefinition_SetSignatures(t *testing.T) {
-	type fields struct {
-		columnNum int
-		tableName string
-		Comments  []string
-		Names     []string
-		Types     []string
-		Extras    map[string]Extra
-		Hashes    map[string][]byte
-		Signs     map[string][]byte
-	}
-	type args struct {
-		signs []string
-	}
-	tests := []struct {
-		name    string
-		fields  fields
-		args    args
-		wantErr bool
-	}{
-		// TODO: Add test cases.
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			d := &Definition{
-				columnNum: tt.fields.columnNum,
-				tableName: tt.fields.tableName,
-				Comments:  tt.fields.Comments,
-				Names:     tt.fields.Names,
-				Types:     tt.fields.Types,
-				Extras:    tt.fields.Extras,
-				Hashes:    tt.fields.Hashes,
-			}
-			if err := d.SetSignatures(tt.args.signs); (err != nil) != tt.wantErr {
-				t.Errorf("Definition.SetSignatures() error = %v, wantErr %v", err, tt.wantErr)
-			}
-		})
-	}
-}
-
-func TestDefinition_SetHashes(t *testing.T) {
-	type fields struct {
-		columnNum int
-		tableName string
-		Comments  []string
-		Names     []string
-		Types     []string
-		Extras    map[string]Extra
-		Hashes    map[string][]byte
-		Signs     map[string][]byte
-	}
-	type args struct {
-		hashes []string
-	}
-	tests := []struct {
-		name    string
-		fields  fields
-		args    args
-		wantErr bool
-	}{
-		// TODO: Add test cases.
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			d := &Definition{
-				columnNum: tt.fields.columnNum,
-				tableName: tt.fields.tableName,
-				Comments:  tt.fields.Comments,
-				Names:     tt.fields.Names,
-				Types:     tt.fields.Types,
-				Extras:    tt.fields.Extras,
-				Hashes:    tt.fields.Hashes,
-			}
-			if err := d.SetHashes(tt.args.hashes); (err != nil) != tt.wantErr {
-				t.Errorf("Definition.SetHashes() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
 	}

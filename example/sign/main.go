@@ -38,7 +38,10 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	at.Sign("test", privateKey)
+	_, err = at.Sign("test", privateKey)
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	err = tbln.WriteAll(os.Stdout, at)
 	if err != nil {

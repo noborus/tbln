@@ -128,7 +128,10 @@ func dbExport(cmd *cobra.Command, args []string) error {
 		if err != nil {
 			return err
 		}
-		at.Sign(keyname, priv)
+		_, err = at.Sign(keyname, priv)
+		if err != nil {
+			return err
+		}
 	}
 
 	var out *os.File

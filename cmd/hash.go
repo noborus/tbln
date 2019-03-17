@@ -100,7 +100,10 @@ func addHash(cmd *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
-	hash(at, cmd, args)
+	err = hash(at, cmd, args)
+	if err != nil {
+		return err
+	}
 	err = tbln.WriteAll(os.Stdout, at)
 	if err != nil {
 		return err

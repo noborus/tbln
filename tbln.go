@@ -186,9 +186,12 @@ func (t *Tbln) calculateHash(hashType string) ([]byte, error) {
 }
 
 // Sign is returns signature for hash.
-func (t *Tbln) Sign(name string, pkey ed25519.PrivateKey) map[string]Signature {
+func (t *Tbln) Sign(name string, pkey []byte) (map[string]Signature, error) {
+	if t.algorithm != ED25519 {
+		return nil, fmt.Errorf("unsupported algorithm")
+	}
 	t.Signs[name] = Signature{sign: ed25519.Sign(pkey, t.SerializeHash()), algorithm: ED25519}
-	return t.Signs
+	return t.Signs, nil
 }
 
 // VerifySignature returns the boolean value of the signature verification and Verify().

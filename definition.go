@@ -10,6 +10,7 @@ import (
 type Definition struct {
 	columnNum int
 	tableName string
+	algorithm string
 	Comments  []string
 	Names     []string
 	Types     []string
@@ -25,9 +26,10 @@ func NewDefinition() *Definition {
 	hashes := make(map[string][]byte)
 	signs := make(Signatures)
 	return &Definition{
-		Extras: extras,
-		Hashes: hashes,
-		Signs:  signs,
+		algorithm: ED25519,
+		Extras:    extras,
+		Hashes:    hashes,
+		Signs:     signs,
 	}
 }
 
