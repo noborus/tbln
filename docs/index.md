@@ -21,10 +21,10 @@ Also, it can include checksum and signature inside.
 | column1 | column2 | column3 |
 ```
 
-* data begins with "| "(vertical bar + space)  and ends with " |"(space + vertical bar).
-* Multiple columns are separated by " | "(space + vertical bar + space).
+* data begins with "\| "(vertical bar + space)  and ends with " \|"(space + vertical bar).
+* Multiple columns are separated by " \| "(space + vertical bar + space).
 * White space is considered part of a column.
-* If "|" is included in the column, "|" must be duplicated.
+* If "\|" is included in the column, "\|" must be duplicated.
 * Otherwise, all values are taken.
 
 ```
@@ -51,6 +51,31 @@ Also, it can include checksum and signature inside.
 | type      | column type |
 | Hash      | data and extras checksum hash |
 | Signature | signature for hash |
+
+#### TableName
+
+TableName is used as a table name when importing into the database.
+
+#### name
+
+name is the column name.
+Same as data, it is written in the form of | name1 | name2 | ... |.
+
+#### type
+
+type is the data type of the column.
+It is expressed in the form of | int | text | ... |.
+
+#### Hash
+
+Hash is a Hash value of SHA256 or SHA512.
+The hash value of Extras below the data and Hash items.
+Comments and items above the Extras hash are outside the Hash calculation.
+Therefore, the hash value does not change even if you change it.
+
+#### Signature
+
+Signature is a signature of ED25519 format for Hash value.
 
 #### The order of Extras
 

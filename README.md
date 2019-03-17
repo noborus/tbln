@@ -27,10 +27,10 @@ Also, it can include checksum and signature inside.
 | column1 | column2 | column3 |
 ```
 
-* data begins with "| "(vertical bar + space)  and ends with " |"(space + vertical bar).
-* Multiple columns are separated by " | "(space + vertical bar + space).
+* data begins with "\| "(vertical bar + space)  and ends with " \|"(space + vertical bar).
+* Multiple columns are separated by " \| "(space + vertical bar + space).
 * White space is considered part of a column.
-* If "|" is included in the column, "|" must be duplicated.
+* If "|" is included in the column, "\|" must be duplicated.
 * Otherwise, all values are taken.
 
 ```
