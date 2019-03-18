@@ -20,9 +20,9 @@ Select SHA256, SHA512, or both HASH values to the TBLN file.`,
 }
 
 func init() {
-	hashCmd.PersistentFlags().StringSliceP("hash", "a", []string{"sha256"}, "Hash algorithm(sha256 or sha512)")
-	hashCmd.PersistentFlags().StringSliceP("enable-target", "", nil, "Hash target extra item (all or each name)")
-	hashCmd.PersistentFlags().StringSliceP("disable-target", "", nil, "Hash extra items not to be targeted (all or each name)")
+	hashCmd.PersistentFlags().StringSliceP("hash", "a", []string{"sha256"}, "hash algorithm(sha256 or sha512)")
+	hashCmd.PersistentFlags().StringSliceP("enable-target", "", nil, "hash target extra item (all or each name)")
+	hashCmd.PersistentFlags().StringSliceP("disable-target", "", nil, "hash extra items not to be targeted (all or each name)")
 	hashCmd.PersistentFlags().StringP("file", "f", "", "TBLN File")
 	rootCmd.AddCommand(hashCmd)
 }

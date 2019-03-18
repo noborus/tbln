@@ -22,7 +22,7 @@ var rootCmd = &cobra.Command{
 	Use:   "tbln",
 	Short: "tbln is command-line TBLN processor",
 	Long: `Import/Export TBLN file and RDBMS table.
-Also sign and verify the TBLN file.`,
+Supports digital signatures and verification for TBLN files.`,
 }
 
 func init() {

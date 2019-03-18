@@ -22,12 +22,12 @@ Generate hash first, if there is no hash value yet(default is SHA256).`,
 }
 
 func init() {
-	signCmd.PersistentFlags().StringSliceP("hash", "a", []string{"sha256"}, "Hash algorithm(sha256 or sha512)")
-	signCmd.PersistentFlags().StringSliceP("enable-target", "", nil, "Hash target extra item (all or each name)")
-	signCmd.PersistentFlags().StringSliceP("disable-target", "", nil, "Hash extra items not to be targeted (all or each name)")
-	signCmd.PersistentFlags().BoolP("quiet", "q", false, "Do not prompt for password.")
+	signCmd.PersistentFlags().StringSliceP("hash", "a", []string{"sha256"}, "hash algorithm(sha256 or sha512)")
+	signCmd.PersistentFlags().StringSliceP("enable-target", "", nil, "hash target extra item (all or each name)")
+	signCmd.PersistentFlags().StringSliceP("disable-target", "", nil, "hash extra items not to be targeted (all or each name)")
+	signCmd.PersistentFlags().BoolP("quiet", "q", false, "do not prompt for password.")
 	signCmd.PersistentFlags().StringP("file", "f", "", "TBLN File")
-	signCmd.PersistentFlags().StringP("output", "o", "", "Write to file instead of stdout")
+	signCmd.PersistentFlags().StringP("output", "o", "", "write to file instead of stdout")
 
 	rootCmd.AddCommand(signCmd)
 }

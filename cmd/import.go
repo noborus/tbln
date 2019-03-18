@@ -28,8 +28,7 @@ var importCmd = &cobra.Command{
 	Use:          "import [flags] [TBLN file]",
 	SilenceUsage: true,
 	Short:        "Import database table",
-	Long: `Import the TBL file into the database.
-<mode> specifies how to execute when there is already a table.`,
+	Long:         `Import the TBL file into the database.`,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		return dbImport(cmd, args)
 	},
@@ -38,10 +37,16 @@ var importCmd = &cobra.Command{
 func init() {
 	importCmd.PersistentFlags().StringVar(&destdbName, "db", "", "database name")
 	importCmd.PersistentFlags().StringVar(&destdsn, "dsn", "", "dsn name")
-	importCmd.PersistentFlags().StringP("Schema", "n", "", "Schema Name")
-	importCmd.PersistentFlags().StringP("mode", "m", "i", "create mode (a:NotCreate/c:Create/i:IfNotExists/r:ReCreate/s:CreateOnly")
-	importCmd.PersistentFlags().StringP("table", "t", "", "Table Name")
-	importCmd.PersistentFlags().BoolP("force-verify-sign", "", false, "Force signature verification")
+	importCmd.PersistentFlags().StringP("Schema", "n", "", "schema Name")
+	importCmd.PersistentFlags().StringP("mode", "m", "create", `create mode
+ no		- Insert without creating a table.
+ create	- Normal create.
+ ifnot	- If the table does not exist, it will be created.
+ recreate	- Drop and re-create the table.
+ only	- Only create a table, do not insert data.
+ `)
+	importCmd.PersistentFlags().StringP("table", "t", "", "table name")
+	importCmd.PersistentFlags().BoolP("force-verify-sign", "", false, "force signature verification")
 	importCmd.PersistentFlags().BoolP("no-verify-sign", "", false, "ignore signature verify")
 	importCmd.PersistentFlags().StringP("file", "f", "", "TBLN File")
 	rootCmd.AddCommand(importCmd)
@@ -78,15 +83,15 @@ func dbImport(cmd *cobra.Command, args []string) error {
 	var mode db.CreateMode
 	if modeStr, err := cmd.PersistentFlags().GetString("mode"); err == nil {
 		switch strings.ToLower(modeStr) {
-		case "a":
+		case "no":
 			mode = db.NotCreate
-		case "c":
+		case "create":
 			mode = db.Create
-		case "i":
+		case "ifnot":
 			mode = db.IfNotExists
-		case "r":
+		case "recreate":
 			mode = db.ReCreate
-		case "s":
+		case "only":
 			mode = db.CreateOnly
 		default:
 			mode = db.Create

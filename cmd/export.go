@@ -25,7 +25,7 @@ var (
 
 // exportCmd represents the export command
 var exportCmd = &cobra.Command{
-	Use:          "export  [flags] <Table Name> or <SQL Query>",
+	Use:          "export [flags] <Table Name> or <SQL Query>",
 	SilenceUsage: true,
 	Short:        "Export database table or query",
 	Long: `Export from the database by table or SQL Query.
@@ -39,15 +39,15 @@ the column name and column type.`,
 func init() {
 	exportCmd.PersistentFlags().StringVar(&srcdbName, "db", "", "database name")
 	exportCmd.PersistentFlags().StringVar(&srcdsn, "dsn", "", "dsn name")
-	exportCmd.PersistentFlags().StringP("schema", "n", "", "Schema Name")
-	exportCmd.PersistentFlags().StringP("table", "t", "", "Table Name")
-	exportCmd.PersistentFlags().StringP("query", "", "", "SQL Query")
-	exportCmd.PersistentFlags().StringP("output", "o", "", "Write to file instead of stdout")
-	exportCmd.PersistentFlags().StringSliceP("hash", "a", []string{"sha256"}, "Hash algorithm(sha256 or sha512)")
-	exportCmd.PersistentFlags().StringSliceP("enable-target", "", nil, "Hash target extra item (all or each name)")
-	exportCmd.PersistentFlags().StringSliceP("disable-target", "", nil, "Hash extra items not to be targeted (all or each name)")
-	exportCmd.PersistentFlags().BoolP("sign", "", false, "Sign TBLN file")
-	exportCmd.PersistentFlags().BoolP("quiet", "q", false, "Do not prompt for password.")
+	exportCmd.PersistentFlags().StringP("schema", "n", "", "schema name")
+	exportCmd.PersistentFlags().StringP("table", "t", "", "table name")
+	exportCmd.PersistentFlags().StringP("query", "", "", "SQL query")
+	exportCmd.PersistentFlags().StringP("output", "o", "", "write to file instead of stdout")
+	exportCmd.PersistentFlags().StringSliceP("hash", "a", []string{"sha256"}, "hash algorithm(sha256 or sha512)")
+	exportCmd.PersistentFlags().StringSliceP("enable-target", "", nil, "hash target extra item (all or each name)")
+	exportCmd.PersistentFlags().StringSliceP("disable-target", "", nil, "hash extra items not to be targeted (all or each name)")
+	exportCmd.PersistentFlags().BoolP("sign", "", false, "sign TBLN file")
+	exportCmd.PersistentFlags().BoolP("quiet", "q", false, "do not prompt for password.")
 
 	rootCmd.AddCommand(exportCmd)
 }
