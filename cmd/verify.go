@@ -21,9 +21,9 @@ var verifyCmd = &cobra.Command{
 }
 
 func init() {
-	verifyCmd.PersistentFlags().BoolP("force-verify-sign", "", false, "Force signature verification")
-	verifyCmd.PersistentFlags().BoolP("no-verify-sign", "", false, "ignore signature verify")
-	verifyCmd.PersistentFlags().StringP("output", "o", "", "Write to file instead of stdout")
+	verifyCmd.PersistentFlags().BoolP("force-verify-sign", "", false, "force signature verification")
+	verifyCmd.PersistentFlags().BoolP("no-verify-sign", "", false, "ignore signature verification")
+	verifyCmd.PersistentFlags().StringP("output", "o", "", "write to file instead of stdout")
 	verifyCmd.PersistentFlags().StringP("file", "f", "", "TBLN File")
 	rootCmd.AddCommand(verifyCmd)
 }
