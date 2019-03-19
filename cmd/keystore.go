@@ -15,69 +15,36 @@ import (
 	"golang.org/x/crypto/ssh/terminal"
 )
 
-func generateKey(keyName string) error {
+func generateKey(keyName string, overwrite bool) error {
 	if _, err := os.Stat(keypath); os.IsNotExist(err) {
 		err := os.Mkdir(keypath, 0777)
 		if err != nil {
 			return err
 		}
 	}
+	_, err := os.Stat(seckey)
+	if !os.IsNotExist(err) && !overwrite {
+		return fmt.Errorf("%s file already exists", seckey)
+	}
+	_, err = os.Stat(pubfile)
+	if !os.IsNotExist(err) && !overwrite {
+		return fmt.Errorf("%s file already exists", pubfile)
+	}
+
 	public, private, err := ed25519.GenerateKey(nil)
 	if err != nil {
 		return err
 	}
 
-	err = writePrivateFile(seckey, keyName, private)
+	privateFile, err := os.OpenFile(seckey, os.O_WRONLY|os.O_CREATE, 0600)
 	if err != nil {
 		return err
 	}
-	err = writePublicKeyFile(pubfile, keyName, public)
+	kt, err := generatePrivate(keyName, private)
 	if err != nil {
 		return err
 	}
-	fmt.Fprintf(os.Stderr, "write %s %s file\n", pubfile, seckey)
-	return nil
-}
-
-func writePrivateFile(privFileName string, keyName string, privkey []byte) error {
-	password, err := readPasswordPrompt("password: ")
-	if err != nil {
-		return err
-	}
-	confirm, err := readPasswordPrompt("confirm: ")
-	if err != nil {
-		return err
-	}
-	if string(password) != string(confirm) {
-		return fmt.Errorf("password invalid")
-	}
-
-	privateFile, err := os.OpenFile(privFileName, os.O_WRONLY|os.O_CREATE, 0600)
-	if err != nil {
-		return err
-	}
-
-	cipherText, err := encrypt(password, privkey)
-	if err != nil {
-		return err
-	}
-
-	t := tbln.NewTbln()
-	t.Comments = []string{fmt.Sprintf("TBLN Pvivate key")}
-	psEnc := base64.StdEncoding.EncodeToString(cipherText)
-	err = t.SetNames([]string{"keyname", "algorithm", "privatekey"})
-	if err != nil {
-		return err
-	}
-	err = t.SetTypes([]string{"text", "text", "text"})
-	if err != nil {
-		return err
-	}
-	err = t.AddRows([]string{keyName, tbln.ED25519, psEnc})
-	if err != nil {
-		return err
-	}
-	err = tbln.WriteAll(privateFile, t)
+	err = tbln.WriteAll(privateFile, kt)
 	if err != nil {
 		return err
 	}
@@ -86,7 +53,59 @@ func writePrivateFile(privFileName string, keyName string, privkey []byte) error
 		return err
 	}
 
+	pubFile, err := os.OpenFile(pubfile, os.O_WRONLY|os.O_CREATE, 0644)
+	if err != nil {
+		return err
+	}
+	pt, err := generatePublic(keyName, public)
+	err = tbln.WriteAll(pubFile, pt)
+	if err != nil {
+		return err
+	}
+	err = pubFile.Close()
+	if err != nil {
+		return err
+	}
+
+	fmt.Fprintf(os.Stderr, "write %s %s file\n", pubfile, seckey)
 	return nil
+}
+
+func generatePrivate(keyName string, privkey []byte) (*tbln.Tbln, error) {
+	password, err := readPasswordPrompt("password: ")
+	if err != nil {
+		return nil, err
+	}
+	confirm, err := readPasswordPrompt("confirm: ")
+	if err != nil {
+		return nil, err
+	}
+	if string(password) != string(confirm) {
+		return nil, fmt.Errorf("password invalid")
+	}
+
+	cipherText, err := encrypt(password, privkey)
+	if err != nil {
+		return nil, err
+	}
+
+	t := tbln.NewTbln()
+	t.Comments = []string{fmt.Sprintf("TBLN Pvivate key")}
+	psEnc := base64.StdEncoding.EncodeToString(cipherText)
+	err = t.SetNames([]string{"keyname", "algorithm", "privatekey"})
+	if err != nil {
+		return nil, err
+	}
+	err = t.SetTypes([]string{"text", "text", "text"})
+	if err != nil {
+		return nil, err
+	}
+	err = t.AddRows([]string{keyName, tbln.ED25519, psEnc})
+	if err != nil {
+		return nil, err
+	}
+
+	return t, nil
 }
 
 func pad(b []byte) []byte {
@@ -178,37 +197,24 @@ func readPasswordPrompt(prompt string) ([]byte, error) {
 	return password, nil
 }
 
-func writePublicKeyFile(pubFileName string, keyName string, pubkey []byte) error {
-	pubFile, err := os.OpenFile(pubFileName, os.O_WRONLY|os.O_CREATE, 0666)
-	if err != nil {
-		return err
-	}
-
+func generatePublic(keyName string, pubkey []byte) (*tbln.Tbln, error) {
+	var err error
 	t := tbln.NewTbln()
 	t.Comments = []string{fmt.Sprintf("TBLN Public key")}
 	pubEnc := base64.StdEncoding.EncodeToString(pubkey)
 	err = t.SetNames([]string{"keyname", "algorithm", "publickey"})
 	if err != nil {
-		return err
+		return nil, err
 	}
 	err = t.SetTypes([]string{"text", "text", "text"})
 	if err != nil {
-		return err
+		return nil, err
 	}
 	err = t.AddRows([]string{keyName, tbln.ED25519, pubEnc})
 	if err != nil {
-		return err
+		return nil, err
 	}
-	err = tbln.WriteAll(pubFile, t)
-	if err != nil {
-		return err
-	}
-
-	err = pubFile.Close()
-	if err != nil {
-		return err
-	}
-	return nil
+	return t, nil
 }
 
 func getPublicKey(pubFileName string, keyName string) ([]byte, error) {
