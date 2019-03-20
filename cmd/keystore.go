@@ -8,6 +8,7 @@ import (
 	"encoding/base64"
 	"fmt"
 	"io"
+	"log"
 	"os"
 
 	"github.com/noborus/tbln"
@@ -16,19 +17,20 @@ import (
 )
 
 func generateKey(keyName string, overwrite bool) error {
-	if _, err := os.Stat(keypath); os.IsNotExist(err) {
-		err := os.Mkdir(keypath, 0777)
+	if _, err := os.Stat(KeyPath); os.IsNotExist(err) {
+		log.Printf("mkdir [%s]", KeyPath)
+		err := os.Mkdir(KeyPath, 0700)
 		if err != nil {
 			return err
 		}
 	}
-	_, err := os.Stat(seckey)
+	_, err := os.Stat(SecKey)
 	if !os.IsNotExist(err) && !overwrite {
-		return fmt.Errorf("%s file already exists", seckey)
+		return fmt.Errorf("%s file already exists", SecKey)
 	}
-	_, err = os.Stat(pubfile)
+	_, err = os.Stat(PubFile)
 	if !os.IsNotExist(err) && !overwrite {
-		return fmt.Errorf("%s file already exists", pubfile)
+		return fmt.Errorf("%s file already exists", PubFile)
 	}
 
 	public, private, err := ed25519.GenerateKey(nil)
@@ -36,38 +38,41 @@ func generateKey(keyName string, overwrite bool) error {
 		return err
 	}
 
-	privateFile, err := os.OpenFile(seckey, os.O_WRONLY|os.O_CREATE, 0600)
+	privateFile, err := os.OpenFile(SecKey, os.O_WRONLY|os.O_CREATE, 0600)
 	if err != nil {
-		return err
+		return fmt.Errorf("private key create error: %s: %s", SecKey, err)
 	}
 	kt, err := generatePrivate(keyName, private)
 	if err != nil {
-		return err
+		return fmt.Errorf("generate private error: %s: %s", SecKey, err)
 	}
 	err = tbln.WriteAll(privateFile, kt)
 	if err != nil {
-		return err
+		return fmt.Errorf("private key write error: %s: %s", SecKey, err)
 	}
 	err = privateFile.Close()
 	if err != nil {
-		return err
+		return fmt.Errorf("private key write error: %s: %s", SecKey, err)
 	}
+	log.Printf("write %s file\n", SecKey)
 
-	pubFile, err := os.OpenFile(pubfile, os.O_WRONLY|os.O_CREATE, 0644)
+	pub, err := os.OpenFile(PubFile, os.O_WRONLY|os.O_CREATE, 0644)
 	if err != nil {
 		return err
 	}
 	pt, err := generatePublic(keyName, public)
-	err = tbln.WriteAll(pubFile, pt)
 	if err != nil {
-		return err
+		return fmt.Errorf("generate key create: %s: %s", PubFile, err)
 	}
-	err = pubFile.Close()
+	err = tbln.WriteAll(pub, pt)
 	if err != nil {
-		return err
+		return fmt.Errorf("public key write error: %s: %s", PubFile, err)
 	}
-
-	fmt.Fprintf(os.Stderr, "write %s %s file\n", pubfile, seckey)
+	err = pub.Close()
+	if err != nil {
+		return fmt.Errorf("public key write error: %s: %s", PubFile, err)
+	}
+	log.Printf("write %s file\n", PubFile)
 	return nil
 }
 
@@ -142,7 +147,7 @@ func getPrivateKeyFile(privFileName string, keyName string) ([]byte, error) {
 
 	t, err := tbln.ReadAll(privFile)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("private key read error %s: %s", privFileName, err)
 	}
 	for _, row := range t.Rows {
 		if row[0] == keyName {
@@ -177,7 +182,7 @@ func decrypt(key []byte, privKey []byte) ([]byte, error) {
 func decryptPrompt(privKey []byte) ([]byte, error) {
 	password, err := readPasswordPrompt("password: ")
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("read password :%s", err)
 	}
 	priv, err := decrypt(password, privKey)
 	if err != nil {
@@ -223,12 +228,12 @@ func getPublicKey(pubFileName string, keyName string) ([]byte, error) {
 	}
 	pubFile, err := os.Open(pubFileName)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("%s: %s", pubFileName, err)
 	}
 	defer pubFile.Close()
 	pt, err := tbln.ReadAll(pubFile)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("public key read error %s: %s", pubFileName, err)
 	}
 	for _, row := range pt.Rows {
 		if row[0] == keyName {

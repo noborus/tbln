@@ -2,7 +2,7 @@ package cmd
 
 import (
 	"fmt"
-	"os"
+	"log"
 	"strings"
 
 	"github.com/spf13/cobra"
@@ -105,6 +105,6 @@ func dbImport(cmd *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
-	fmt.Fprintf(os.Stderr, "%s import success\n", at.TableName())
+	log.Printf("%s import success\n", at.TableName())
 	return conn.Close()
 }
