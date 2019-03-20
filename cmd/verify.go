@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"fmt"
+	"log"
 	"os"
 	"path/filepath"
 
@@ -71,19 +72,22 @@ func verifiedTbln(cmd *cobra.Command, args []string) (*tbln.Tbln, error) {
 		at.SetTableName(filepath.Base(fileName[:len(fileName)-len(filepath.Ext(fileName))]))
 	}
 	if forcesign || (!nosign && (len(at.Signs) != 0)) {
-		pub, err := getPublicKey(pubfile, keyname)
-		if err != nil {
-			return nil, err
+		for kname := range at.Signs {
+			pubFile := filepath.Join(KeyPath, kname+".pub")
+			pub, err := getPublicKey(pubFile, kname)
+			if err != nil {
+				return nil, err
+			}
+			if !at.VerifySignature(kname, pub) {
+				return nil, fmt.Errorf("signature verification failure")
+			}
 		}
-		if !at.VerifySignature(keyname, pub) {
-			return nil, fmt.Errorf("signature verification failure")
-		}
-		fmt.Fprintln(os.Stderr, "Signature verification successful")
+		log.Println("Signature verification successful")
 	} else {
 		if !at.Verify() {
 			return nil, fmt.Errorf("verification failure")
 		}
-		fmt.Fprintln(os.Stderr, "Verification successful")
+		log.Println("Verification successful")
 	}
 	return at, nil
 }

@@ -26,13 +26,13 @@ func init() {
 func genkey(cmd *cobra.Command, args []string) error {
 	var err error
 	if len(args) > 0 {
-		keyname = args[0]
+		KeyName = args[0]
 	}
 	var overwrite bool
 	if overwrite, err = cmd.PersistentFlags().GetBool("force"); err != nil {
 		return err
 	}
-	err = generateKey(keyname, overwrite)
+	err = generateKey(KeyName, overwrite)
 	if err != nil {
 		return err
 	}

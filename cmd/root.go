@@ -1,7 +1,7 @@
 package cmd
 
 import (
-	"fmt"
+	"log"
 	"os"
 	"os/user"
 	"path/filepath"
@@ -12,10 +12,12 @@ import (
 
 // global variable from global flags
 var (
-	keypath string
-	seckey  string
-	pubfile string
-	keyname string
+	KeyPath string
+	SecKey  string
+	PubFile string
+	KeyName string
+
+	Verbose bool
 )
 
 var rootCmd = &cobra.Command{
@@ -27,49 +29,47 @@ Supports digital signatures and verification for TBLN files.`,
 
 func init() {
 	cobra.OnInitialize(initConfig)
-	rootCmd.PersistentFlags().StringVarP(&keypath, "keypath", "", "", "key store path")
-	rootCmd.PersistentFlags().StringVarP(&seckey, "seckey", "", "", "Secret Key File")
-	rootCmd.PersistentFlags().StringVarP(&pubfile, "pubfile", "", "", "public Key File")
-	rootCmd.PersistentFlags().StringVarP(&keyname, "keyname", "k", "", "key name")
+	rootCmd.PersistentFlags().StringVarP(&KeyPath, "keypath", "", "", "key store path")
+	rootCmd.PersistentFlags().StringVarP(&SecKey, "seckey", "", "", "secret Key File")
+	rootCmd.PersistentFlags().StringVarP(&PubFile, "PubFile", "", "", "public Key File")
+	rootCmd.PersistentFlags().StringVarP(&KeyName, "keyname", "k", "", "key name")
 	rootCmd.AddCommand()
 }
 
 func initConfig() {
-	keyPathStr := os.Getenv("TBLN_KEYPATH")
-	if keyPathStr != "" {
-		keypath = keyPathStr
+	KeyPathStr := os.Getenv("TBLN_KEYPATH")
+	if KeyPathStr != "" {
+		KeyPath = KeyPathStr
 	}
-	if keypath == "" {
+	if KeyPath == "" {
 		home, err := homedir.Dir()
 		if err != nil {
-			fmt.Fprintln(os.Stderr, err)
-			os.Exit(1)
+			log.Fatal(err)
 		}
-		keypath = filepath.Join(home, `.tbln`)
+		KeyPath = filepath.Join(home, `.tbln`)
 	}
 	kname := ""
-	if keyname != "" {
-		kname = keyname
+	if KeyName != "" {
+		kname = KeyName
 	} else {
 		user, err := user.Current()
 		if err != nil {
-			fmt.Fprintln(os.Stderr, err)
-			os.Exit(1)
+			log.Fatal(err)
 		}
 		kname = user.Username
 	}
-	if seckey == "" {
-		seckey = filepath.Join(keypath, kname+".key")
+	if SecKey == "" {
+		SecKey = filepath.Join(KeyPath, kname+".key")
 	} else {
-		kname = filepath.Base(seckey[:len(seckey)-len(filepath.Ext(seckey))])
+		kname = filepath.Base(SecKey[:len(SecKey)-len(filepath.Ext(SecKey))])
 	}
-	if pubfile == "" {
-		pubfile = filepath.Join(keypath, kname+".pub")
+	if PubFile == "" {
+		PubFile = filepath.Join(KeyPath, kname+".pub")
 	} else {
-		kname = filepath.Base(pubfile[:len(pubfile)-len(filepath.Ext(pubfile))])
+		kname = filepath.Base(PubFile[:len(PubFile)-len(filepath.Ext(PubFile))])
 	}
-	if keyname == "" {
-		keyname = kname
+	if KeyName == "" {
+		KeyName = kname
 	}
 }
 

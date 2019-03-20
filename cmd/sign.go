@@ -55,7 +55,7 @@ func signFile(cmd *cobra.Command, args []string) error {
 		cmd.SilenceUsage = false
 		return err
 	}
-	privKey, err := getPrivateKeyFile(seckey, keyname)
+	privKey, err := getPrivateKeyFile(SecKey, KeyName)
 	if err != nil {
 		return err
 	}
@@ -85,7 +85,7 @@ func signFile(cmd *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
-	_, err = at.Sign(keyname, priv)
+	_, err = at.Sign(KeyName, priv)
 	if err != nil {
 		return err
 	}
