@@ -72,7 +72,32 @@ func generateKey(keyName string, overwrite bool) error {
 	if err != nil {
 		return fmt.Errorf("public key write error: %s: %s", PubFile, err)
 	}
-	log.Printf("write %s file\n", PubFile)
+
+	/* regist public keys */
+	pubk, err := os.OpenFile(PubKeys, os.O_RDWR, 0644)
+	if err != nil {
+		return err
+	}
+	defer pubk.Close()
+
+	pkeys, err := tbln.ReadAll(pubk)
+	if err != nil {
+		return fmt.Errorf("public keys read error %s: %s", PubKeys, err)
+	}
+	pkeys, err = registPublicKey(pkeys, pt)
+	if err != nil {
+		return fmt.Errorf("resist public keys %s: %s", PubKeys, err)
+	}
+	_, err = pubk.Seek(0, io.SeekStart)
+	if err != nil {
+		return fmt.Errorf("public keys write error: %s: %s", PubKeys, err)
+	}
+	err = tbln.WriteAll(pubk, pkeys)
+	if err != nil {
+		return fmt.Errorf("public keys write error: %s: %s", PubKeys, err)
+	}
+
+	log.Printf("write %s file\n", PubKeys)
 	return nil
 }
 
@@ -222,18 +247,23 @@ func generatePublic(keyName string, pubkey []byte) (*tbln.Tbln, error) {
 	return t, nil
 }
 
-func getPublicKey(pubFileName string, keyName string) ([]byte, error) {
-	if len(pubFileName) == 0 {
-		return nil, fmt.Errorf("requires public key file")
+func registPublicKey(pkeys *tbln.Tbln, addkey *tbln.Tbln) (*tbln.Tbln, error) {
+	pkeys.Comments = []string{fmt.Sprintf("TBLN Public keys")}
+	for _, row := range addkey.Rows {
+		pkeys.AddRows(row)
 	}
-	pubFile, err := os.Open(pubFileName)
+	return pkeys, nil
+}
+
+func getPublicKey(keyName string) ([]byte, error) {
+	pubFile, err := os.Open(PubKeys)
 	if err != nil {
-		return nil, fmt.Errorf("%s: %s", pubFileName, err)
+		return nil, fmt.Errorf("%s: %s", PubKeys, err)
 	}
 	defer pubFile.Close()
 	pt, err := tbln.ReadAll(pubFile)
 	if err != nil {
-		return nil, fmt.Errorf("public key read error %s: %s", pubFileName, err)
+		return nil, fmt.Errorf("public keys read error %s: %s", PubKeys, err)
 	}
 	for _, row := range pt.Rows {
 		if row[0] == keyName {

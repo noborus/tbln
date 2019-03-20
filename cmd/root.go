@@ -10,14 +10,20 @@ import (
 	"github.com/spf13/cobra"
 )
 
+const (
+	// KeyPathFolder is the folder name of the default key path.
+	KeyPathFolder = ".tbln"
+	// DefaultPubilcKeys is the storage file name of publickeys.
+	DefaultPubilcKeys = "publickeys.tbln"
+)
+
 // global variable from global flags
 var (
 	KeyPath string
 	SecKey  string
 	PubFile string
+	PubKeys string
 	KeyName string
-
-	Verbose bool
 )
 
 var rootCmd = &cobra.Command{
@@ -31,7 +37,8 @@ func init() {
 	cobra.OnInitialize(initConfig)
 	rootCmd.PersistentFlags().StringVarP(&KeyPath, "keypath", "", "", "key store path")
 	rootCmd.PersistentFlags().StringVarP(&SecKey, "seckey", "", "", "secret Key File")
-	rootCmd.PersistentFlags().StringVarP(&PubFile, "PubFile", "", "", "public Key File")
+	rootCmd.PersistentFlags().StringVarP(&PubFile, "pubfile", "", "", "public Key File")
+	rootCmd.PersistentFlags().StringVarP(&PubKeys, "pubkeys", "", "", "verify Keys File")
 	rootCmd.PersistentFlags().StringVarP(&KeyName, "keyname", "k", "", "key name")
 	rootCmd.AddCommand()
 }
@@ -46,7 +53,7 @@ func initConfig() {
 		if err != nil {
 			log.Fatal(err)
 		}
-		KeyPath = filepath.Join(home, `.tbln`)
+		KeyPath = filepath.Join(home, KeyPathFolder)
 	}
 	kname := ""
 	if KeyName != "" {
@@ -70,6 +77,9 @@ func initConfig() {
 	}
 	if KeyName == "" {
 		KeyName = kname
+	}
+	if PubKeys == "" {
+		PubKeys = filepath.Join(KeyPath, DefaultPubilcKeys)
 	}
 }
 

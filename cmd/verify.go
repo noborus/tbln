@@ -73,8 +73,7 @@ func verifiedTbln(cmd *cobra.Command, args []string) (*tbln.Tbln, error) {
 	}
 	if forcesign || (!nosign && (len(at.Signs) != 0)) {
 		for kname := range at.Signs {
-			pubFile := filepath.Join(KeyPath, kname+".pub")
-			pub, err := getPublicKey(pubFile, kname)
+			pub, err := getPublicKey(kname)
 			if err != nil {
 				return nil, err
 			}
