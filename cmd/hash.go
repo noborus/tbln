@@ -4,6 +4,7 @@ import (
 	"os"
 
 	"github.com/noborus/tbln"
+
 	"github.com/spf13/cobra"
 )
 
@@ -24,6 +25,8 @@ func init() {
 	hashCmd.PersistentFlags().StringSliceP("enable-target", "", nil, "hash target extra item (all or each name)")
 	hashCmd.PersistentFlags().StringSliceP("disable-target", "", nil, "hash extra items not to be targeted (all or each name)")
 	hashCmd.PersistentFlags().StringP("file", "f", "", "TBLN File")
+	hashCmd.PersistentFlags().StringP("output", "o", "", "write to file instead of stdout")
+
 	rootCmd.AddCommand(hashCmd)
 }
 
@@ -82,6 +85,10 @@ func hash(at *tbln.Tbln, cmd *cobra.Command, args []string) error {
 
 func addHash(cmd *cobra.Command, args []string) error {
 	var err error
+	var output string
+	if output, err = cmd.PersistentFlags().GetString("output"); err != nil {
+		return err
+	}
 
 	var fileName string
 	if len(args) > 0 {
@@ -104,10 +111,15 @@ func addHash(cmd *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
-	err = tbln.WriteAll(os.Stdout, at)
-	if err != nil {
-		return err
+	var out *os.File
+	if output == "" {
+		out = os.Stdout
+	} else {
+		out, err = os.Create(output)
+		if err != nil {
+			return err
+		}
+		defer out.Close()
 	}
-
-	return nil
+	return tbln.WriteAll(out, at)
 }

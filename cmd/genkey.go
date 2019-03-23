@@ -1,7 +1,15 @@
 package cmd
 
 import (
+	"fmt"
+	"log"
+	"os"
+
+	"github.com/noborus/tbln/cmd/key"
+	"github.com/noborus/tbln/cmd/keystore"
+
 	"github.com/spf13/cobra"
+	"golang.org/x/crypto/ed25519"
 )
 
 // genkeyCmd represents the generate key pair command
@@ -36,5 +44,47 @@ func genkey(cmd *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
+	return nil
+}
+
+func generateKey(keyName string, overwrite bool) error {
+	if _, err := os.Stat(KeyPath); os.IsNotExist(err) {
+		log.Printf("mkdir [%s]", KeyPath)
+		err := os.Mkdir(KeyPath, 0700)
+		if err != nil {
+			return err
+		}
+	}
+	_, err := os.Stat(SecFile)
+	if !os.IsNotExist(err) && !overwrite {
+		return fmt.Errorf("%s file already exists", SecFile)
+	}
+	_, err = os.Stat(PubFile)
+	if !os.IsNotExist(err) && !overwrite {
+		return fmt.Errorf("%s file already exists", PubFile)
+	}
+
+	public, private, err := ed25519.GenerateKey(nil)
+	if err != nil {
+		return err
+	}
+
+	err = key.WritePrivateFile(SecFile, keyName, private)
+	if err != nil {
+		return fmt.Errorf("%s: %s", SecFile, err)
+	}
+	log.Printf("write %s file\n", SecFile)
+
+	err = key.WritePublicFile(PubFile, keyName, public)
+	if err != nil {
+		return fmt.Errorf("generate key create: %s: %s", PubFile, err)
+	}
+	log.Printf("write %s file\n", PubFile)
+
+	err = keystore.Regist(KeyStore, keyName, public)
+	if err != nil {
+		return err
+	}
+	log.Printf("regist %s file\n", KeyStore)
 	return nil
 }

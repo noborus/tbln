@@ -10,14 +10,20 @@ import (
 	"github.com/spf13/cobra"
 )
 
+const (
+	// KeyPathFolder is the folder name of the default key path.
+	KeyPathFolder = ".tbln"
+	// DefaultKeyStore is the storage file name of keystore.
+	DefaultKeyStore = "keystore.tbln"
+)
+
 // global variable from global flags
 var (
-	KeyPath string
-	SecKey  string
-	PubFile string
-	KeyName string
-
-	Verbose bool
+	KeyPath  string
+	SecFile  string
+	PubFile  string
+	KeyStore string
+	KeyName  string
 )
 
 var rootCmd = &cobra.Command{
@@ -30,8 +36,9 @@ Supports digital signatures and verification for TBLN files.`,
 func init() {
 	cobra.OnInitialize(initConfig)
 	rootCmd.PersistentFlags().StringVarP(&KeyPath, "keypath", "", "", "key store path")
-	rootCmd.PersistentFlags().StringVarP(&SecKey, "seckey", "", "", "secret Key File")
-	rootCmd.PersistentFlags().StringVarP(&PubFile, "PubFile", "", "", "public Key File")
+	rootCmd.PersistentFlags().StringVarP(&SecFile, "secfile", "", "", "secret Key file")
+	rootCmd.PersistentFlags().StringVarP(&PubFile, "pubfile", "", "", "public Key file")
+	rootCmd.PersistentFlags().StringVarP(&KeyStore, "keystore", "", "", "keystore file")
 	rootCmd.PersistentFlags().StringVarP(&KeyName, "keyname", "k", "", "key name")
 	rootCmd.AddCommand()
 }
@@ -46,7 +53,7 @@ func initConfig() {
 		if err != nil {
 			log.Fatal(err)
 		}
-		KeyPath = filepath.Join(home, `.tbln`)
+		KeyPath = filepath.Join(home, KeyPathFolder)
 	}
 	kname := ""
 	if KeyName != "" {
@@ -58,10 +65,10 @@ func initConfig() {
 		}
 		kname = user.Username
 	}
-	if SecKey == "" {
-		SecKey = filepath.Join(KeyPath, kname+".key")
+	if SecFile == "" {
+		SecFile = filepath.Join(KeyPath, kname+".key")
 	} else {
-		kname = filepath.Base(SecKey[:len(SecKey)-len(filepath.Ext(SecKey))])
+		kname = filepath.Base(SecFile[:len(SecFile)-len(filepath.Ext(SecFile))])
 	}
 	if PubFile == "" {
 		PubFile = filepath.Join(KeyPath, kname+".pub")
@@ -70,6 +77,9 @@ func initConfig() {
 	}
 	if KeyName == "" {
 		KeyName = kname
+	}
+	if KeyStore == "" {
+		KeyStore = filepath.Join(KeyPath, DefaultKeyStore)
 	}
 }
 

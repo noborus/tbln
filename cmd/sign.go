@@ -5,6 +5,8 @@ import (
 	"os"
 
 	"github.com/noborus/tbln"
+	"github.com/noborus/tbln/cmd/key"
+
 	"github.com/spf13/cobra"
 )
 
@@ -55,16 +57,7 @@ func signFile(cmd *cobra.Command, args []string) error {
 		cmd.SilenceUsage = false
 		return err
 	}
-	privKey, err := getPrivateKeyFile(SecKey, KeyName)
-	if err != nil {
-		return err
-	}
-	var priv []byte
-	if quiet {
-		priv, err = decrypt([]byte(""), privKey)
-	} else {
-		priv, err = decryptPrompt(privKey)
-	}
+	privKey, err := key.GetPrivateKey(SecFile, KeyName, !quiet)
 	if err != nil {
 		return err
 	}
@@ -85,7 +78,7 @@ func signFile(cmd *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
-	_, err = at.Sign(KeyName, priv)
+	_, err = at.Sign(KeyName, privKey)
 	if err != nil {
 		return err
 	}
