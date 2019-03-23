@@ -5,9 +5,9 @@ import (
 	"log"
 	"strings"
 
-	"github.com/spf13/cobra"
-
 	"github.com/noborus/tbln/db"
+
+	"github.com/spf13/cobra"
 
 	// MySQL driver
 	_ "github.com/noborus/tbln/db/mysql"

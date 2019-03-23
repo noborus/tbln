@@ -20,7 +20,7 @@ func WritePrivateFile(fileName string, keyName string, privateKey []byte) error 
 	if err != nil {
 		return fmt.Errorf("private key create error: %s", err)
 	}
-	kt, err := generatePrivate(keyName, privateKey)
+	kt, err := GeneratePrivate(keyName, privateKey)
 	if err != nil {
 		return fmt.Errorf("generate private key: %s", err)
 	}
@@ -41,7 +41,8 @@ func WritePublicFile(fileName string, keyName string, public []byte) error {
 	if err != nil {
 		return fmt.Errorf("public key file create: %s", err)
 	}
-	pt, err := generatePublic(keyName, public)
+	pt, err := GeneratePublic(keyName, public)
+	pt.Comments = []string{fmt.Sprintf("TBLN Public key")}
 	if err != nil {
 		return fmt.Errorf("generate public key: %s", err)
 	}
@@ -93,12 +94,28 @@ func GetPrivateKey(privFileName string, keyName string, prompt bool) ([]byte, er
 	return priv, nil
 }
 
-// PubEncode returns a base64 encoded key
-func PubEncode(key []byte) string {
-	return base64.StdEncoding.EncodeToString(key)
+// GeneratePublic write public key in TBLN file format.
+func GeneratePublic(keyName string, pubkey []byte) (*tbln.Tbln, error) {
+	var err error
+	t := tbln.NewTbln()
+	err = t.SetNames([]string{"keyname", "algorithm", "publickey"})
+	if err != nil {
+		return nil, err
+	}
+	err = t.SetTypes([]string{"text", "text", "text"})
+	if err != nil {
+		return nil, err
+	}
+	pEnc := base64.StdEncoding.EncodeToString(pubkey)
+	err = t.AddRows([]string{keyName, tbln.ED25519, pEnc})
+	if err != nil {
+		return nil, err
+	}
+	return t, nil
 }
 
-func generatePrivate(keyName string, privkey []byte) (*tbln.Tbln, error) {
+// GeneratePrivate write private key in TBLN file format.
+func GeneratePrivate(keyName string, privkey []byte) (*tbln.Tbln, error) {
 	password, err := readPasswordPrompt("password: ")
 	if err != nil {
 		return nil, err
@@ -199,32 +216,4 @@ func readPasswordPrompt(prompt string) ([]byte, error) {
 	}
 	fmt.Fprint(os.Stderr, "\n")
 	return password, nil
-}
-
-func generatePublic(keyName string, pubkey []byte) (*tbln.Tbln, error) {
-	var err error
-	t := tbln.NewTbln()
-	t.Comments = []string{fmt.Sprintf("TBLN Public key")}
-	pubEnc := base64.StdEncoding.EncodeToString(pubkey)
-	err = t.SetNames([]string{"keyname", "algorithm", "publickey"})
-	if err != nil {
-		return nil, err
-	}
-	err = t.SetTypes([]string{"text", "text", "text"})
-	if err != nil {
-		return nil, err
-	}
-	err = t.AddRows([]string{keyName, tbln.ED25519, pubEnc})
-	if err != nil {
-		return nil, err
-	}
-	return t, nil
-}
-
-func registPublicKey(pkeys *tbln.Tbln, addkey *tbln.Tbln) (*tbln.Tbln, error) {
-	pkeys.Comments = []string{fmt.Sprintf("TBLN Public keys")}
-	for _, row := range addkey.Rows {
-		pkeys.AddRows(row)
-	}
-	return pkeys, nil
 }

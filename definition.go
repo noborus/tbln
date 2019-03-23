@@ -110,11 +110,7 @@ func (d *Definition) SetTypes(types []string) error {
 		return err
 	}
 	d.Types = types
-	if types != nil {
-		d.Extras["type"] = NewExtra(JoinRow(types), true)
-	} else {
-		delete(d.Extras, "type")
-	}
+	d.Extras["type"] = NewExtra(JoinRow(types), true)
 	return nil
 }
 

@@ -6,6 +6,7 @@ import (
 
 	"github.com/noborus/tbln"
 	"github.com/noborus/tbln/cmd/key"
+
 	"github.com/spf13/cobra"
 )
 

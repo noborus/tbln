@@ -7,6 +7,7 @@ import (
 
 	"github.com/noborus/tbln/cmd/key"
 	"github.com/noborus/tbln/cmd/keystore"
+
 	"github.com/spf13/cobra"
 	"golang.org/x/crypto/ed25519"
 )

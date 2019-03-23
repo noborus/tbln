@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"time"
 
 	"github.com/noborus/tbln"
 	"github.com/noborus/tbln/cmd/key"
@@ -12,25 +13,51 @@ import (
 
 // Regist registers public key in keystore
 func Regist(keyStore string, keyName string, pubkey []byte) error {
-	pubk, err := os.OpenFile(keyStore, os.O_RDWR, 0644)
+	if _, err := os.Stat(keyStore); os.IsNotExist(err) {
+		return newKeyStore(keyStore, keyName, pubkey)
+	}
+	return addKeyStore(keyStore, keyName, pubkey)
+}
+
+func newKeyStore(keyStore string, keyName string, pubkey []byte) error {
+	file, err := os.OpenFile(keyStore, os.O_WRONLY|os.O_CREATE, 0644)
 	if err != nil {
 		return err
 	}
-	defer pubk.Close()
+	t, err := key.GeneratePublic(keyName, pubkey)
+	if err != nil {
+		return err
+	}
+	t.Comments = []string{fmt.Sprintf("TBLN KeyStore")}
+	err = tbln.WriteAll(file, t)
+	if err != nil {
+		return fmt.Errorf("KeyStore write: %s", err)
+	}
+	return nil
+}
 
-	pkeys, err := tbln.ReadAll(pubk)
+func addKeyStore(keyStore string, keyName string, pubkey []byte) error {
+	file, err := os.OpenFile(keyStore, os.O_RDWR, 0644)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+
+	pkeys, err := tbln.ReadAll(file)
 	if err != nil {
 		return fmt.Errorf("KeyStore read: %s", err)
 	}
-	err = pkeys.AddRows([]string{keyName, tbln.ED25519, key.PubEncode(pubkey)})
+	pkeys.Extras["updated_at"] = tbln.NewExtra(time.Now().Format(time.RFC3339), false)
+	pEnc := base64.StdEncoding.EncodeToString(pubkey)
+	err = pkeys.AddRows([]string{keyName, tbln.ED25519, pEnc})
 	if err != nil {
 		return err
 	}
-	_, err = pubk.Seek(0, io.SeekStart)
+	_, err = file.Seek(0, io.SeekStart)
 	if err != nil {
 		return fmt.Errorf("KeyStore seek: %s", err)
 	}
-	err = tbln.WriteAll(pubk, pkeys)
+	err = tbln.WriteAll(file, pkeys)
 	if err != nil {
 		return fmt.Errorf("KeyStore write: %s", err)
 	}
