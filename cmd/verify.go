@@ -7,6 +7,7 @@ import (
 	"path/filepath"
 
 	"github.com/noborus/tbln"
+	"github.com/noborus/tbln/cmd/keystore"
 	"github.com/spf13/cobra"
 )
 
@@ -73,7 +74,7 @@ func verifiedTbln(cmd *cobra.Command, args []string) (*tbln.Tbln, error) {
 	}
 	if forcesign || (!nosign && (len(at.Signs) != 0)) {
 		for kname := range at.Signs {
-			pub, err := getPublicKey(kname)
+			pub, err := keystore.Search(KeyStore, kname)
 			if err != nil {
 				return nil, err
 			}

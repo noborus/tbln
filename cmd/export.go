@@ -7,6 +7,7 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/noborus/tbln"
+	"github.com/noborus/tbln/cmd/key"
 	"github.com/noborus/tbln/db"
 
 	// MySQL driver
@@ -86,7 +87,7 @@ func dbExport(cmd *cobra.Command, args []string) error {
 	if signF, err = cmd.PersistentFlags().GetBool("sign"); err != nil {
 		return err
 	}
-	if signF && SecKey == "" {
+	if signF && SecFile == "" {
 		cmd.SilenceUsage = false
 		return fmt.Errorf("requires secret key file")
 	}
@@ -115,20 +116,11 @@ func dbExport(cmd *cobra.Command, args []string) error {
 		return err
 	}
 	if signF {
-		privKey, err := getPrivateKeyFile(SecKey, KeyName)
+		privKey, err := key.GetPrivateKey(SecFile, KeyName, !quiet)
 		if err != nil {
 			return err
 		}
-		var priv []byte
-		if quiet {
-			priv, err = decrypt([]byte(""), privKey)
-		} else {
-			priv, err = decryptPrompt(privKey)
-		}
-		if err != nil {
-			return err
-		}
-		_, err = at.Sign(KeyName, priv)
+		_, err = at.Sign(KeyName, privKey)
 		if err != nil {
 			return err
 		}

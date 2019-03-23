@@ -1,4 +1,4 @@
-package cmd
+package key
 
 import (
 	"bytes"
@@ -8,97 +8,94 @@ import (
 	"encoding/base64"
 	"fmt"
 	"io"
-	"log"
 	"os"
 
 	"github.com/noborus/tbln"
-	"golang.org/x/crypto/ed25519"
 	"golang.org/x/crypto/ssh/terminal"
 )
 
-func generateKey(keyName string, overwrite bool) error {
-	if _, err := os.Stat(KeyPath); os.IsNotExist(err) {
-		log.Printf("mkdir [%s]", KeyPath)
-		err := os.Mkdir(KeyPath, 0700)
-		if err != nil {
-			return err
-		}
+// WritePrivateFile writes a private key.
+func WritePrivateFile(fileName string, keyName string, privateKey []byte) error {
+	file, err := os.OpenFile(fileName, os.O_WRONLY|os.O_CREATE, 0600)
+	if err != nil {
+		return fmt.Errorf("private key create error: %s", err)
 	}
-	_, err := os.Stat(SecKey)
-	if !os.IsNotExist(err) && !overwrite {
-		return fmt.Errorf("%s file already exists", SecKey)
+	kt, err := generatePrivate(keyName, privateKey)
+	if err != nil {
+		return fmt.Errorf("generate private key: %s", err)
 	}
-	_, err = os.Stat(PubFile)
-	if !os.IsNotExist(err) && !overwrite {
-		return fmt.Errorf("%s file already exists", PubFile)
+	err = tbln.WriteAll(file, kt)
+	if err != nil {
+		return fmt.Errorf("private key write: %s", err)
 	}
+	err = file.Close()
+	if err != nil {
+		return fmt.Errorf("private key close: %s", err)
+	}
+	return nil
+}
 
-	public, private, err := ed25519.GenerateKey(nil)
+// WritePublicFile writes a publickey.
+func WritePublicFile(fileName string, keyName string, public []byte) error {
+	file, err := os.OpenFile(fileName, os.O_WRONLY|os.O_CREATE, 0644)
 	if err != nil {
-		return err
-	}
-
-	privateFile, err := os.OpenFile(SecKey, os.O_WRONLY|os.O_CREATE, 0600)
-	if err != nil {
-		return fmt.Errorf("private key create error: %s: %s", SecKey, err)
-	}
-	kt, err := generatePrivate(keyName, private)
-	if err != nil {
-		return fmt.Errorf("generate private error: %s: %s", SecKey, err)
-	}
-	err = tbln.WriteAll(privateFile, kt)
-	if err != nil {
-		return fmt.Errorf("private key write error: %s: %s", SecKey, err)
-	}
-	err = privateFile.Close()
-	if err != nil {
-		return fmt.Errorf("private key write error: %s: %s", SecKey, err)
-	}
-	log.Printf("write %s file\n", SecKey)
-
-	pub, err := os.OpenFile(PubFile, os.O_WRONLY|os.O_CREATE, 0644)
-	if err != nil {
-		return err
+		return fmt.Errorf("public key file create: %s", err)
 	}
 	pt, err := generatePublic(keyName, public)
 	if err != nil {
-		return fmt.Errorf("generate key create: %s: %s", PubFile, err)
+		return fmt.Errorf("generate public key: %s", err)
 	}
-	err = tbln.WriteAll(pub, pt)
+	err = tbln.WriteAll(file, pt)
 	if err != nil {
-		return fmt.Errorf("public key write error: %s: %s", PubFile, err)
+		return fmt.Errorf("public key write: %s", err)
 	}
-	err = pub.Close()
+	err = file.Close()
 	if err != nil {
-		return fmt.Errorf("public key write error: %s: %s", PubFile, err)
+		return fmt.Errorf("public key close: %s", err)
 	}
-
-	/* regist public keys */
-	pubk, err := os.OpenFile(PubKeys, os.O_RDWR, 0644)
-	if err != nil {
-		return err
-	}
-	defer pubk.Close()
-
-	pkeys, err := tbln.ReadAll(pubk)
-	if err != nil {
-		return fmt.Errorf("public keys read error %s: %s", PubKeys, err)
-	}
-	pkeys, err = registPublicKey(pkeys, pt)
-	if err != nil {
-		return fmt.Errorf("resist public keys %s: %s", PubKeys, err)
-	}
-	_, err = pubk.Seek(0, io.SeekStart)
-	if err != nil {
-		return fmt.Errorf("public keys write error: %s: %s", PubKeys, err)
-	}
-	err = tbln.WriteAll(pubk, pkeys)
-	if err != nil {
-		return fmt.Errorf("public keys write error: %s: %s", PubKeys, err)
-	}
-
-	log.Printf("write %s file\n", PubKeys)
 	return nil
+}
+
+// GetPrivateKey gets the private key.
+func GetPrivateKey(privFileName string, keyName string, prompt bool) ([]byte, error) {
+	privFile, err := os.Open(privFileName)
+	if err != nil {
+		return nil, err
+	}
+	defer privFile.Close()
+
+	t, err := tbln.ReadAll(privFile)
+	if err != nil {
+		return nil, fmt.Errorf("private key read error %s: %s", privFileName, err)
+	}
+	var privateKey []byte
+	for _, row := range t.Rows {
+		if row[0] == keyName {
+			privateKey, err = base64.StdEncoding.DecodeString(row[2])
+			if err != nil {
+				return nil, err
+			}
+			break
+		}
+	}
+	if privateKey == nil {
+		return nil, fmt.Errorf("no matching secret key found: %s", keyName)
+	}
+	var priv []byte
+	if prompt {
+		priv, err = decryptPrompt(privateKey)
+	} else {
+		priv, err = decrypt([]byte(""), privateKey)
+	}
+	if err != nil {
+		return nil, err
+	}
+	return priv, nil
+}
+
+// PubEncode returns a base64 encoded key
+func PubEncode(key []byte) string {
+	return base64.StdEncoding.EncodeToString(key)
 }
 
 func generatePrivate(keyName string, privkey []byte) (*tbln.Tbln, error) {
@@ -161,29 +158,6 @@ func encrypt(key []byte, msg []byte) ([]byte, error) {
 	cipherText := aesgcm.Seal(nil, nonce, msg, nil)
 	cipherText = append(nonce, cipherText...)
 	return cipherText, nil
-}
-
-func getPrivateKeyFile(privFileName string, keyName string) ([]byte, error) {
-	privFile, err := os.Open(privFileName)
-	if err != nil {
-		return nil, err
-	}
-	defer privFile.Close()
-
-	t, err := tbln.ReadAll(privFile)
-	if err != nil {
-		return nil, fmt.Errorf("private key read error %s: %s", privFileName, err)
-	}
-	for _, row := range t.Rows {
-		if row[0] == keyName {
-			privateKey, err := base64.StdEncoding.DecodeString(row[2])
-			if err != nil {
-				return nil, err
-			}
-			return privateKey, nil
-		}
-	}
-	return nil, fmt.Errorf("no matching secret key found: %s", keyName)
 }
 
 func decrypt(key []byte, privKey []byte) ([]byte, error) {
@@ -253,22 +227,4 @@ func registPublicKey(pkeys *tbln.Tbln, addkey *tbln.Tbln) (*tbln.Tbln, error) {
 		pkeys.AddRows(row)
 	}
 	return pkeys, nil
-}
-
-func getPublicKey(keyName string) ([]byte, error) {
-	pubFile, err := os.Open(PubKeys)
-	if err != nil {
-		return nil, fmt.Errorf("%s: %s", PubKeys, err)
-	}
-	defer pubFile.Close()
-	pt, err := tbln.ReadAll(pubFile)
-	if err != nil {
-		return nil, fmt.Errorf("public keys read error %s: %s", PubKeys, err)
-	}
-	for _, row := range pt.Rows {
-		if row[0] == keyName {
-			return base64.StdEncoding.DecodeString(row[2])
-		}
-	}
-	return nil, fmt.Errorf("no matching public key found: %s", keyName)
 }
