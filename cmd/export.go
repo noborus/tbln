@@ -43,6 +43,7 @@ func init() {
 	exportCmd.PersistentFlags().StringP("schema", "n", "", "schema name")
 	exportCmd.PersistentFlags().StringP("table", "t", "", "table name")
 	exportCmd.PersistentFlags().StringP("query", "", "", "SQL query")
+	exportCmd.PersistentFlags().BoolP("schema-only", "", false, "table schema only. no data")
 	exportCmd.PersistentFlags().StringP("output", "o", "", "write to file instead of stdout")
 	exportCmd.PersistentFlags().StringSliceP("hash", "a", []string{"sha256"}, "hash algorithm(sha256 or sha512)")
 	exportCmd.PersistentFlags().StringSliceP("enable-target", "", nil, "hash target extra item (all or each name)")
@@ -55,21 +56,29 @@ func init() {
 
 func dbExport(cmd *cobra.Command, args []string) error {
 	var err error
-	var schema string
-	var tableName string
-	var query string
 
+	var schema string
 	if schema, err = cmd.PersistentFlags().GetString("schema"); err != nil {
 		return err
 	}
+	var tableName string
 	if tableName, err = cmd.PersistentFlags().GetString("table"); err != nil {
 		return err
 	}
+	var query string
 	if query, err = cmd.PersistentFlags().GetString("query"); err != nil {
+		return err
+	}
+	var schemaOnly bool
+	if schemaOnly, err = cmd.PersistentFlags().GetBool("schema-only"); err != nil {
 		return err
 	}
 	if tableName == "" && len(args) >= 1 {
 		tableName = args[0]
+	}
+	if schemaOnly && tableName == "" {
+		cmd.SilenceUsage = false
+		return fmt.Errorf("requires table name, in the case of schema-only option")
 	}
 	if tableName == "" && query == "" {
 		cmd.SilenceUsage = false
@@ -102,9 +111,12 @@ func dbExport(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("%s: %s", srcdbName, err)
 	}
 	var at *tbln.Tbln
-	if query != "" {
+	switch {
+	case query != "":
 		at, err = db.ReadQueryAll(conn, query)
-	} else {
+	case schemaOnly:
+		at, err = db.GetTableInfo(conn, schema, tableName)
+	default:
 		at, err = db.ReadTableAll(conn, schema, tableName)
 	}
 	if err != nil {
