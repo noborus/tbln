@@ -45,6 +45,9 @@ func init() {
  recreate	- Drop and re-create the table.
  only	- Only create a table, do not insert data.
  `)
+	importCmd.PersistentFlags().StringP("conflict", "", "normal", `insert mode
+ ignore - Ignores at insert conflict
+ `)
 	importCmd.PersistentFlags().StringP("table", "t", "", "table name")
 	importCmd.PersistentFlags().BoolP("force-verify-sign", "", false, "force signature verification")
 	importCmd.PersistentFlags().BoolP("no-verify-sign", "", false, "ignore signature verify")
@@ -80,24 +83,33 @@ func dbImport(cmd *cobra.Command, args []string) error {
 	if tableName != "" {
 		at.SetTableName(tableName)
 	}
-	var mode db.CreateMode
+	var cmode db.CreateMode
 	if modeStr, err := cmd.PersistentFlags().GetString("mode"); err == nil {
 		switch strings.ToLower(modeStr) {
 		case "no":
-			mode = db.NotCreate
+			cmode = db.NotCreate
 		case "create":
-			mode = db.Create
+			cmode = db.Create
 		case "ifnot":
-			mode = db.IfNotExists
+			cmode = db.IfNotExists
 		case "recreate":
-			mode = db.ReCreate
+			cmode = db.ReCreate
 		case "only":
-			mode = db.CreateOnly
+			cmode = db.CreateOnly
 		default:
-			mode = db.Create
+			cmode = db.Create
 		}
 	}
-	err = db.WriteTable(conn, at, schema, mode)
+	var conflict string
+	if conflict, err = cmd.PersistentFlags().GetString("conflict"); err != nil {
+		return err
+	}
+	var imode db.InsertMode
+	imode = db.Normal
+	if conflict == "ignore" {
+		imode = db.OrIgnore
+	}
+	err = db.WriteTable(conn, at, schema, cmode, imode)
 	if err != nil {
 		return err
 	}
