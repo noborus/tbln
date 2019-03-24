@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"log"
 	"os"
-	"path/filepath"
 
 	"github.com/noborus/tbln"
 	"github.com/noborus/tbln/cmd/keystore"
@@ -70,10 +69,10 @@ func verifiedTbln(cmd *cobra.Command, args []string) (*tbln.Tbln, error) {
 	if err != nil {
 		return nil, err
 	}
-	if at.TableName() == "" {
-		at.SetTableName(filepath.Base(fileName[:len(fileName)-len(filepath.Ext(fileName))]))
+	if forcesign && len(at.Signs) == 0 {
+		return nil, fmt.Errorf("signature verification failure")
 	}
-	if forcesign || (!nosign && (len(at.Signs) != 0)) {
+	if !nosign && (len(at.Signs) != 0) {
 		for kname := range at.Signs {
 			pub, err := keystore.Search(KeyStore, kname)
 			if err != nil {
