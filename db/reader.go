@@ -100,6 +100,17 @@ func (tr *Reader) ReadRow() ([]string, error) {
 	return rec, nil
 }
 
+// GetTableInfo returns only the information of table.
+func GetTableInfo(tdb *TDB, schema string, tableName string) (*tbln.Tbln, error) {
+	tr, err := tdb.ReadTable(schema, tableName, nil)
+	if err != nil {
+		return nil, err
+	}
+	at := &tbln.Tbln{}
+	at.Definition = tr.Definition
+	return at, nil
+}
+
 // ReadTableAll reads all the remaining records from tableName.
 func ReadTableAll(tdb *TDB, schema string, tableName string) (*tbln.Tbln, error) {
 	tr, err := tdb.ReadTable(schema, tableName, nil)
