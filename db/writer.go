@@ -16,14 +16,24 @@ type CreateMode int
 const (
 	// NotCreate does not execute CREATE TABLE
 	NotCreate = iota
-	// Create is mormal creation
+	// Create is mormal creation.
 	Create
-	// IfNotExists does nothing if already exists
+	// IfNotExists does nothing if already exists.
 	IfNotExists
 	// ReCreate erases the table and creates it again.
 	ReCreate
-	// CreateOnly does only CREATE TABLE
+	// CreateOnly does only CREATE TABLE.
 	CreateOnly
+)
+
+// InsertMode represents the mode of insert conflicts.
+type InsertMode int
+
+const (
+	// Normal does normal insert.
+	Normal = iota
+	// OrIgnore  ignores at insert conflict.
+	OrIgnore
 )
 
 // Writer writes records to database table.
@@ -33,6 +43,7 @@ type Writer struct {
 	tableFullName string // schema.table
 	stmt          *sql.Stmt
 	cmode         CreateMode
+	imode         InsertMode
 	ReplaceLN     bool
 }
 
@@ -68,14 +79,14 @@ func (w *Writer) WriteRow(row []string) error {
 }
 
 // WriteTable writes all rows to the table.
-func WriteTable(tdb *TDB, tbln *tbln.Tbln, schema string, cmode CreateMode) error {
+func WriteTable(tdb *TDB, tbln *tbln.Tbln, schema string, cmode CreateMode, imode InsertMode) error {
 	w := NewWriter(tdb, tbln.Definition, cmode)
 	if schema != "" {
 		w.tableFullName = w.quoting(schema) + "." + w.quoting(w.TableName())
 	} else {
 		w.tableFullName = w.quoting(w.TableName())
 	}
-	err := w.WriteDefinition()
+	err := w.WriteDefinition(imode)
 	if err != nil {
 		return err
 	}
@@ -91,8 +102,8 @@ func WriteTable(tdb *TDB, tbln *tbln.Tbln, schema string, cmode CreateMode) erro
 	return nil
 }
 
-// WriteDefinition is create table and insert preparation.
-func (w *Writer) WriteDefinition() error {
+// WriteDefinition is create table and insert prepare.
+func (w *Writer) WriteDefinition(imode InsertMode) error {
 	if w.Names == nil {
 		if w.ColumnNum() == 0 {
 			return fmt.Errorf("column num is 0")
@@ -117,7 +128,7 @@ func (w *Writer) WriteDefinition() error {
 			return err
 		}
 	}
-	return w.prepara()
+	return w.prepare(imode)
 }
 
 func (w *Writer) dropTable() error {
@@ -201,7 +212,7 @@ func contains(s []string, e string) bool {
 	return false
 }
 
-func (w *Writer) prepara() error {
+func (w *Writer) prepare(imode InsertMode) error {
 	var err error
 	names := make([]string, len(w.Names))
 	ph := make([]string, len(w.Names))
@@ -213,10 +224,25 @@ func (w *Writer) prepara() error {
 			ph[i] = "?"
 		}
 	}
-	// TODO: upsert or replace support...
+
+	ignore := "" // MySQL and SQLlite3
+	onconf := "" // PostgreSQL
+	if imode == OrIgnore {
+		switch w.TDB.Name {
+		case "mysql":
+			ignore = "IGNORE"
+		case "sqlite3":
+			ignore = "OR IGNORE"
+		case "postgres":
+			onconf = "ON CONFLICT DO NOTHING"
+		}
+	}
+
 	insert := fmt.Sprintf(
-		"INSERT INTO %s ( %s ) VALUES ( %s );",
-		w.tableFullName, strings.Join(names, ", "), strings.Join(ph, ", "))
+		"INSERT %s INTO %s ( %s ) VALUES ( %s ) %s;",
+		ignore,
+		w.tableFullName, strings.Join(names, ", "), strings.Join(ph, ", "),
+		onconf)
 	log.Println(insert)
 	w.stmt, err = w.Tx.Prepare(insert)
 	if err != nil {
