@@ -147,6 +147,8 @@ func TestTbln_SumHash(t *testing.T) {
 				t.Errorf("Tbln.SetTypes error = %v", err)
 				return
 			}
+			tb.ToTargetHash("name", true)
+			tb.ToTargetHash("type", true)
 			if err := tb.SumHash(SHA256); (err != nil) != tt.wantErr {
 				t.Errorf("Tbln.SumHash(SHA256) error = %v, wantErr %v", err, tt.wantErr)
 				return

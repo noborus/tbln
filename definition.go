@@ -80,7 +80,7 @@ func (d *Definition) TableName() string {
 // SetExtra is set Extra of the Definition.
 func (d *Definition) SetExtra(keyName string, value string) {
 	target := false
-	if len(keyName) != 0 {
+	if len(value) != 0 {
 		if len(d.Hashes) > 0 {
 			target = true
 		}
@@ -98,8 +98,10 @@ func (d *Definition) SetTableName(name string) {
 
 // SetNames is set Column Name to the Table.
 func (d *Definition) SetNames(names []string) error {
-	if err := d.setColNum(len(names)); err != nil {
-		return err
+	if names != nil {
+		if err := d.setColNum(len(names)); err != nil {
+			return err
+		}
 	}
 	d.Names = names
 	d.SetExtra("name", JoinRow(names))
@@ -108,11 +110,10 @@ func (d *Definition) SetNames(names []string) error {
 
 // SetTypes is set Column Type to Table.
 func (d *Definition) SetTypes(types []string) error {
-	if types == nil {
-		return nil
-	}
-	if err := d.setColNum(len(types)); err != nil {
-		return err
+	if types != nil {
+		if err := d.setColNum(len(types)); err != nil {
+			return err
+		}
 	}
 	d.Types = types
 	d.SetExtra("type", JoinRow(types))
