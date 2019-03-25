@@ -44,7 +44,7 @@ func init() {
 	exportCmd.PersistentFlags().BoolP("schema-only", "", false, "table schema only. no data")
 	exportCmd.PersistentFlags().StringP("output", "o", "", "write to file instead of stdout")
 	exportCmd.PersistentFlags().StringSliceP("hash", "a", []string{"sha256"}, "hash algorithm(sha256 or sha512)")
-	exportCmd.PersistentFlags().StringSliceP("enable-target", "", nil, "hash target extra item (all or each name)")
+	exportCmd.PersistentFlags().StringSliceP("enable-target", "", []string{"name", "type"}, "hash target extra item (all or each name)")
 	exportCmd.PersistentFlags().StringSliceP("disable-target", "", nil, "hash extra items not to be targeted (all or each name)")
 	exportCmd.PersistentFlags().BoolP("sign", "", false, "sign TBLN file")
 	exportCmd.PersistentFlags().BoolP("quiet", "q", false, "do not prompt for password.")

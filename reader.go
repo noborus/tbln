@@ -121,11 +121,7 @@ func (tr *Reader) analyzeExtra(extstr string) error {
 			return err
 		}
 	default:
-		if len(tr.Hashes) > 0 {
-			tr.Extras[key] = NewExtra(value, true)
-		} else {
-			tr.Extras[key] = NewExtra(value, false)
-		}
+		tr.SetExtra(key, value)
 	}
 	return nil
 }
