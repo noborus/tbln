@@ -82,6 +82,9 @@ func List(keyStore string) ([][]string, error) {
 	}
 	defer pubFile.Close()
 	pt, err := tbln.ReadAll(pubFile)
+	if err != nil {
+		return nil, err
+	}
 	return pt.Rows, nil
 }
 
@@ -93,7 +96,9 @@ func AddKey(keyStore string, fileName string) error {
 	}
 	defer pubkey.Close()
 	pt, err := tbln.ReadAll(pubkey)
-
+	if err != nil {
+		return err
+	}
 	file, err := os.OpenFile(keyStore, os.O_RDWR, 0644)
 	if err != nil {
 		return err

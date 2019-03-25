@@ -62,6 +62,7 @@ func (tdb *TDB) ReadTable(schema string, tableName string, pkey []string) (*Read
 	if schema != "" {
 		table = tdb.quoting(schema) + "." + tdb.quoting(tableName)
 	}
+	// #nosec G201
 	sql := fmt.Sprintf("SELECT * FROM %s ORDER BY %s", table, orderby)
 	err = tr.query(sql)
 	if err != nil {

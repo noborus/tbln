@@ -17,9 +17,7 @@ var verifyCmd = &cobra.Command{
 	SilenceUsage: true,
 	Short:        "Verify signature and checksum of TBLN file",
 	Long:         `Verify signature and checksum of TBLN file`,
-	RunE: func(cmd *cobra.Command, args []string) error {
-		return verify(cmd, args)
-	},
+	RunE:         verify,
 }
 
 func init() {

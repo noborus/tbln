@@ -32,9 +32,7 @@ var exportCmd = &cobra.Command{
 	Long: `Export from the database by table or SQL Query.
 Add as much of the table information as possible including 
 the column name and column type.`,
-	RunE: func(cmd *cobra.Command, args []string) error {
-		return dbExport(cmd, args)
-	},
+	RunE: dbExport,
 }
 
 func init() {

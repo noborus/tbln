@@ -1,34 +1,8 @@
 package tbln
 
 import (
-	"reflect"
 	"testing"
 )
-
-func TestExtra_Value(t *testing.T) {
-	type fields struct {
-		value      interface{}
-		hashTarget bool
-	}
-	tests := []struct {
-		name   string
-		fields fields
-		want   interface{}
-	}{
-		{name: "test1", fields: fields{value: "test1", hashTarget: false}, want: "test1"},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			e := &Extra{
-				value:      tt.fields.value,
-				hashTarget: tt.fields.hashTarget,
-			}
-			if got := e.Value(); !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("Extra.Value() = %v, want %v", got, tt.want)
-			}
-		})
-	}
-}
 
 func TestDefinition_SetNames(t *testing.T) {
 	type fields struct {

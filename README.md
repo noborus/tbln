@@ -15,73 +15,7 @@ There is also a [CLI](cmd/README.md) tool that uses them.
 TBLN can contain multiple columns like CSV.
 Also, it can include checksum and signature inside.
 
-## Specification
-
-* TBLN contains three types of lines: data, comments, and extras.
-* All rows end with a line break.
-* The number of columns in all rows must be the same.
-
-### data
-
-```
-| column1 | column2 | column3 |
-```
-
-* data begins with "\| "(vertical bar + space)  and ends with " \|"(space + vertical bar).
-* Multiple columns are separated by " \| "(space + vertical bar + space).
-* White space is considered part of a column.
-* If "|" is included in the column, "\|" must be duplicated.
-* Otherwise, all values are taken.
-
-```
-| -> || , || -> |||
-```
-
-### Extras
-
-```
-; ItemName: Value
-````
-
-* Extras begin with "; ". Extras can be interpreted as a header.
-* Extras can be used to indicate the column name and column data type.
-* Extras is basically written in the item name: value.
-* Extras has a predefined item name.
-
-#### Predefined item name in extras.
-
-| Item name | detail |
-|:----------|:--------|
-| TableName | table name |
-| name      | column name |
-| type      | column type |
-| Hash      | data and extras checksum hash |
-| Signature | signature for hash |
-
-#### The order of Extras
-
-The order of TBLN is as follows.
-1. Comments
-2. extras hash not target
-3. signature
-4. hash value
-5. extras hash target
-6. data
-
-The target of hash is the line below Hash.
-The signature targets the Hash value.
-
-Hash currently supports SHA256 and SHA512.
-Signature currently supports ED25519.
-
-### Comments
-
-```
-# Comments
-```
-
-* Comments begin with "#".
-* Comments are not interpreted.
+Please refer to [TBLN](https://tbln.dev/) for the specification of TBLN.
 
 ## TBLN file example
 

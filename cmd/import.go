@@ -29,9 +29,7 @@ var importCmd = &cobra.Command{
 	SilenceUsage: true,
 	Short:        "Import database table",
 	Long:         `Import the TBL file into the database.`,
-	RunE: func(cmd *cobra.Command, args []string) error {
-		return dbImport(cmd, args)
-	},
+	RunE:         dbImport,
 }
 
 func init() {
@@ -105,7 +103,6 @@ func dbImport(cmd *cobra.Command, args []string) error {
 		return err
 	}
 	var imode db.InsertMode
-	imode = db.Normal
 	if conflict == "ignore" {
 		imode = db.OrIgnore
 	}
