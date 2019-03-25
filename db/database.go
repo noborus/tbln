@@ -42,15 +42,15 @@ func Open(name string, dsn string) (*TDB, error) {
 	return TDB, err
 }
 
-func (tdb *TDB) quoting(name string) string {
+func (tdb *TDB) quoting(obj string) string {
 	r := regexp.MustCompile(`[^a-z\.0-9_]+`)
 	q := tdb.Style.Quote
 	escape := regexp.MustCompile(`(` + q + `)`)
-	if r.MatchString(name) {
-		name = escape.ReplaceAllString(name, "$1"+tdb.Style.Quote)
-		return q + name + q
+	if r.MatchString(obj) {
+		obj = escape.ReplaceAllString(obj, "$1"+tdb.Style.Quote)
+		return q + obj + q
 	}
-	return name
+	return obj
 }
 
 // GetPrimaryKey returns the primary key as a slice.

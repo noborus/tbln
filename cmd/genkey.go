@@ -20,9 +20,7 @@ var genkeyCmd = &cobra.Command{
 	Long: `Generate a new Ed25519 keypair.
 Write privake key(Key Name+".key") and public key(Key Name+".pub") files
 based on the Key Name.`,
-	RunE: func(cmd *cobra.Command, args []string) error {
-		return genkey(cmd, args)
-	},
+	RunE: genkey,
 }
 
 func init() {

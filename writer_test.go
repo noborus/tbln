@@ -139,3 +139,54 @@ func TestWriter_writeComment(t *testing.T) {
 		})
 	}
 }
+
+func TestWriter_writeExtra(t *testing.T) {
+	type args struct {
+		d *Definition
+	}
+	tests := []struct {
+		name       string
+		args       args
+		wantWriter string
+		wantErr    bool
+	}{
+		{
+			name:       "test1",
+			args:       args{d: &Definition{}},
+			wantWriter: "",
+			wantErr:    false,
+		},
+		{
+			name:       "test2",
+			args:       args{d: &Definition{Extras: map[string]Extra{"a": {"v", false}, "b": {"v", false}}}},
+			wantWriter: "; a: v\n; b: v\n",
+			wantErr:    false,
+		},
+		{
+			name:       "test3",
+			args:       args{d: &Definition{Extras: map[string]Extra{"b": {"v", false}, "a": {"v", false}}}},
+			wantWriter: "; a: v\n; b: v\n",
+			wantErr:    false,
+		},
+		{
+			name:       "test4",
+			args:       args{d: &Definition{Extras: map[string]Extra{"a": {"v", true}, "b": {"v", false}}}},
+			wantWriter: "; b: v\n; a: v\n",
+			wantErr:    false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			buf := &bytes.Buffer{}
+			w := &Writer{
+				Writer: buf,
+			}
+			if err := w.writeExtra(tt.args.d); (err != nil) != tt.wantErr {
+				t.Errorf("Writer.writeExtra() error = %v, wantErr %v", err, tt.wantErr)
+			}
+			if gotWriter := buf.String(); gotWriter != tt.wantWriter {
+				t.Errorf("WriteAll() = [%v], want [%v]", gotWriter, tt.wantWriter)
+			}
+		})
+	}
+}

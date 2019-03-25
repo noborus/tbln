@@ -7,7 +7,7 @@ import (
 func TestTDB_quoting(t *testing.T) {
 	st := Style{Quote: `"`}
 	type args struct {
-		name string
+		obj string
 	}
 	tests := []struct {
 		name string
@@ -26,7 +26,7 @@ func TestTDB_quoting(t *testing.T) {
 			TDB := &TDB{
 				Style: st,
 			}
-			if got := TDB.quoting(tt.args.name); got != tt.want {
+			if got := TDB.quoting(tt.args.obj); got != tt.want {
 				t.Errorf("TDB.quoting() = %v, want %v", got, tt.want)
 			}
 		})

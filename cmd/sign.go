@@ -18,9 +18,7 @@ var signCmd = &cobra.Command{
 	Long: `Sign a TBLN file with a private key.
 Sign the hash value with the ED25519 private key.
 Generate hash first, if there is no hash value yet(default is SHA256).`,
-	RunE: func(cmd *cobra.Command, args []string) error {
-		return signFile(cmd, args)
-	},
+	RunE: signFile,
 }
 
 func init() {

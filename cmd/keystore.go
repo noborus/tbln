@@ -30,7 +30,10 @@ func init() {
 		Args:  cobra.ExactArgs(1),
 		Short: "Add public key to keystore.",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			keystore.AddKey(KeyStore, args[0])
+			err := keystore.AddKey(KeyStore, args[0])
+			if err != nil {
+				return err
+			}
 			return list()
 		},
 	})
@@ -49,7 +52,10 @@ func init() {
 					return err
 				}
 			}
-			keystore.DelKey(KeyStore, fileName, num)
+			err = keystore.DelKey(KeyStore, fileName, num)
+			if err != nil {
+				return err
+			}
 			return list()
 		},
 	})

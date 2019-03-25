@@ -15,9 +15,7 @@ var hashCmd = &cobra.Command{
 	Short:        "Add hash value to TBLN file",
 	Long: `Add hash value to TBLN file.
 Select SHA256, SHA512, or both HASH values to the TBLN file.`,
-	RunE: func(cmd *cobra.Command, args []string) error {
-		return addHash(cmd, args)
-	},
+	RunE: addHash,
 }
 
 func init() {
