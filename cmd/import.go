@@ -17,7 +17,7 @@ import (
 	_ "github.com/noborus/tbln/db/sqlite3"
 )
 
-// global variable from global flags
+// database variable
 var (
 	destdbName string
 	destdsn    string

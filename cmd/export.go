@@ -18,7 +18,7 @@ import (
 	_ "github.com/noborus/tbln/db/sqlite3"
 )
 
-// global variable from global flags
+// database variable
 var (
 	srcdbName string
 	srcdsn    string
@@ -108,6 +108,8 @@ func dbExport(cmd *cobra.Command, args []string) error {
 	if err != nil {
 		return fmt.Errorf("%s: %s", srcdbName, err)
 	}
+	defer conn.Close()
+
 	var at *tbln.Tbln
 	switch {
 	case query != "":
@@ -120,7 +122,7 @@ func dbExport(cmd *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
-	conn.Close()
+
 	err = hash(at, cmd, args)
 	if err != nil {
 		return err

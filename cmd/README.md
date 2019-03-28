@@ -40,6 +40,20 @@ Import the TBLN file into the database.
 $ tbln import --db postgres --dsn "host=localhost dbname=sampletest" -t simple2 -f simple.tbln
 ```
 
+Data type and primary key are restored in this example.
+
+```sh
+$ psql sampletest
+# \d simple2
+              Table "public.simple2"
+ Column |  Type   | Collation | Nullable | Default
+--------+---------+-----------+----------+---------
+ id     | integer |           | not null |
+ name   | text    |           |          |
+Indexes:
+    "simple2_pkey" PRIMARY KEY, btree (id)
+```
+
 ## Signature example
 
 First generate the private key and the public key.
