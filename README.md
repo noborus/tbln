@@ -12,8 +12,9 @@ There is also a [CLI](cmd/README.md) tool that uses them.
 
 ## Features
 
-TBLN can contain multiple columns like CSV.
-Also, it can include checksum and signature inside.
+* TBLN can contain multiple columns like CSV.
+* Database tables and import/export are possible.
+* It can include the signature with the hash value in the file.
 
 Please refer to [TBLN](https://tbln.dev/) for the specification of TBLN.
 
@@ -54,7 +55,6 @@ Database export and signature.
 | 1 | Bob |
 | 2 | Alice |
 ```
-
 
 ## License
 [![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2Fnoborus%2Ftbln.svg?type=large)](https://app.fossa.io/projects/git%2Bgithub.com%2Fnoborus%2Ftbln?ref=badge_large)

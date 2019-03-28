@@ -44,13 +44,14 @@ Also, it can include checksum and signature inside.
 
 #### Predefined item name in extras.
 
-| Item name | detail |
-|:----------|:--------|
-| TableName | table name |
-| name      | column name |
-| type      | column type |
-| Hash      | data and extras checksum hash |
-| Signature | signature for hash |
+| Item name |data type | detail |
+|:----------|:-------------|:--------|
+| TableName | text | table name  |
+| name      | column name | text      |
+| type      | column type | text      |
+| Hash      | text (base64 byte) |data and extras checksum hash |
+| Signature | text (base64 byte) | signature for hash |
+| created_at |  datetime(RFC3339) | date and time of creation |
 
 #### TableName
 
@@ -66,6 +67,21 @@ Same as data, it is written in the form of | name1 | name2 | ... |.
 type is the data type of the column.
 It is expressed in the form of | int | text | ... |.
 
+List of data types.
+
+* int
+* bigint
+* numeric
+* bool
+* timestamp
+* text
+
+TBLN types can be used generically.
+
+More detailed information is expressed by adding it to extra separately.
+
+For example, if you export from the database, it represents a separate type of database(such as; postgres_type: | integer | text |).
+
 #### Hash
 
 Hash is a Hash value of SHA256 or SHA512.
@@ -77,14 +93,31 @@ Therefore, the hash value does not change even if you change it.
 
 Signature is a signature of ED25519 format for Hash value.
 
-#### The order of Extras
+#### Database specific information
+
+Include the table information of the original database in TBLN.
+
+Information included when exporting from a database.
+The interpretation differs depending on the database.
+
+| Item name | data type |
+|:----------|:--------|
+| character_octet_length |  int |
+| is_nullable |  text(bool) YES or NO |
+| numeric_precision |  int|
+| numeric_precision_radix | int |
+| numeric_scale | int |
+| (database)_type | text |
+| primarykey | text(column name) |
+
+#### The order of TBLN
 
 The order of TBLN is as follows.
 1. Comments
-2. extras hash not target
-3. signature
-4. hash value
-5. extras hash target
+2. (extras) hash not target
+3. (extras) signature
+4. (extras) hash value
+5. (extras) hash target
 6. data
 
 The target of hash is the line below Hash.

@@ -1,3 +1,8 @@
+// Package key writes and reads the private/public key.
+//
+// The secret key is AES encrypted by password.
+// This package does not include the public key read,
+// it will be read by the keystore.
 package key
 
 import (
@@ -35,6 +40,41 @@ func WritePrivateFile(fileName string, keyName string, privateKey []byte) error 
 	return nil
 }
 
+// GeneratePrivate write private key in TBLN file format.
+func GeneratePrivate(keyName string, privkey []byte) (*tbln.Tbln, error) {
+	password, err := readPasswordPrompt("password: ")
+	if err != nil {
+		return nil, err
+	}
+	confirm, err := readPasswordPrompt("confirm: ")
+	if err != nil {
+		return nil, err
+	}
+	if string(password) != string(confirm) {
+		return nil, fmt.Errorf("password invalid")
+	}
+	cipherText, err := encrypt(password, privkey)
+	if err != nil {
+		return nil, err
+	}
+	t := tbln.NewTbln()
+	t.Comments = []string{fmt.Sprintf("TBLN Pvivate key")}
+	psEnc := base64.StdEncoding.EncodeToString(cipherText)
+	err = t.SetNames([]string{"keyname", "algorithm", "privatekey"})
+	if err != nil {
+		return nil, err
+	}
+	err = t.SetTypes([]string{"text", "text", "text"})
+	if err != nil {
+		return nil, err
+	}
+	err = t.AddRows([]string{keyName, tbln.ED25519, psEnc})
+	if err != nil {
+		return nil, err
+	}
+	return t, nil
+}
+
 // WritePublicFile writes a publickey.
 func WritePublicFile(fileName string, keyName string, public []byte) error {
 	file, err := os.OpenFile(fileName, os.O_WRONLY|os.O_CREATE, 0644)
@@ -55,6 +95,26 @@ func WritePublicFile(fileName string, keyName string, public []byte) error {
 		return fmt.Errorf("public key close: %s", err)
 	}
 	return nil
+}
+
+// GeneratePublic write public key in TBLN file format.
+func GeneratePublic(keyName string, pubkey []byte) (*tbln.Tbln, error) {
+	var err error
+	t := tbln.NewTbln()
+	err = t.SetNames([]string{"keyname", "algorithm", "publickey"})
+	if err != nil {
+		return nil, err
+	}
+	err = t.SetTypes([]string{"text", "text", "text"})
+	if err != nil {
+		return nil, err
+	}
+	pEnc := base64.StdEncoding.EncodeToString(pubkey)
+	err = t.AddRows([]string{keyName, tbln.ED25519, pEnc})
+	if err != nil {
+		return nil, err
+	}
+	return t, nil
 }
 
 // GetPrivateKey gets the private key.
@@ -92,64 +152,6 @@ func GetPrivateKey(privFileName string, keyName string, prompt bool) ([]byte, er
 		return nil, err
 	}
 	return priv, nil
-}
-
-// GeneratePublic write public key in TBLN file format.
-func GeneratePublic(keyName string, pubkey []byte) (*tbln.Tbln, error) {
-	var err error
-	t := tbln.NewTbln()
-	err = t.SetNames([]string{"keyname", "algorithm", "publickey"})
-	if err != nil {
-		return nil, err
-	}
-	err = t.SetTypes([]string{"text", "text", "text"})
-	if err != nil {
-		return nil, err
-	}
-	pEnc := base64.StdEncoding.EncodeToString(pubkey)
-	err = t.AddRows([]string{keyName, tbln.ED25519, pEnc})
-	if err != nil {
-		return nil, err
-	}
-	return t, nil
-}
-
-// GeneratePrivate write private key in TBLN file format.
-func GeneratePrivate(keyName string, privkey []byte) (*tbln.Tbln, error) {
-	password, err := readPasswordPrompt("password: ")
-	if err != nil {
-		return nil, err
-	}
-	confirm, err := readPasswordPrompt("confirm: ")
-	if err != nil {
-		return nil, err
-	}
-	if string(password) != string(confirm) {
-		return nil, fmt.Errorf("password invalid")
-	}
-
-	cipherText, err := encrypt(password, privkey)
-	if err != nil {
-		return nil, err
-	}
-
-	t := tbln.NewTbln()
-	t.Comments = []string{fmt.Sprintf("TBLN Pvivate key")}
-	psEnc := base64.StdEncoding.EncodeToString(cipherText)
-	err = t.SetNames([]string{"keyname", "algorithm", "privatekey"})
-	if err != nil {
-		return nil, err
-	}
-	err = t.SetTypes([]string{"text", "text", "text"})
-	if err != nil {
-		return nil, err
-	}
-	err = t.AddRows([]string{keyName, tbln.ED25519, psEnc})
-	if err != nil {
-		return nil, err
-	}
-
-	return t, nil
 }
 
 func pad(b []byte) []byte {
