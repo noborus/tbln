@@ -3,7 +3,6 @@ package db
 import (
 	"database/sql"
 	"fmt"
-	"log"
 	"strings"
 	"time"
 
@@ -48,19 +47,18 @@ type Writer struct {
 }
 
 // NewWriter returns a new Writer that writes to database table.
-func NewWriter(tdb *TDB, definition *tbln.Definition) *Writer {
+func NewWriter(tdb *TDB, definition *tbln.Definition) (*Writer, error) {
 	if tdb.Tx == nil {
-		var err error
-		tdb.Tx, err = tdb.Begin()
+		err := tdb.Begin()
 		if err != nil {
-			return nil
+			return nil, err
 		}
 	}
 	return &Writer{
 		Definition: definition,
 		TDB:        tdb,
 		ReplaceLN:  true,
-	}
+	}, nil
 }
 
 // WriteRow writes a single tbln record to w.
@@ -79,7 +77,10 @@ func (w *Writer) WriteRow(row []string) error {
 
 // WriteTable writes all rows to the table.
 func WriteTable(tdb *TDB, tbln *tbln.Tbln, schema string, cmode CreateMode, imode InsertMode) error {
-	w := NewWriter(tdb, tbln.Definition)
+	w, err := NewWriter(tdb, tbln.Definition)
+	if err != nil {
+		return err
+	}
 	w.cmode = cmode
 	w.imode = imode
 	if schema != "" {
@@ -87,7 +88,7 @@ func WriteTable(tdb *TDB, tbln *tbln.Tbln, schema string, cmode CreateMode, imod
 	} else {
 		w.tableFullName = w.quoting(w.TableName())
 	}
-	err := w.WriteDefinition()
+	err = w.WriteDefinition()
 	if err != nil {
 		return err
 	}
@@ -134,6 +135,7 @@ func (w *Writer) WriteDefinition() error {
 
 func (w *Writer) dropTable() error {
 	sql := fmt.Sprintf("DROP TABLE IF EXISTS %s;", w.tableFullName)
+	debug.Printf("SQL:%s", sql)
 	_, err := w.Tx.Exec(sql)
 	if err != nil {
 		return fmt.Errorf("%s: %s", err, sql)
@@ -149,7 +151,7 @@ func (w *Writer) createTable() error {
 			return err
 		}
 	} else if w.cmode == IfNotExists {
-		mode = "IF NOT EXISTS"
+		mode = "IF NOT EXISTS "
 	}
 	constraints := w.createConstraints()
 	driverName := w.TDB.Name
@@ -173,9 +175,9 @@ func (w *Writer) createTable() error {
 	for i := 0; i < len(w.Names); i++ {
 		col[i] = w.quoting(w.Names[i]) + " " + typeNames[i] + constraints[i]
 	}
-	sql := fmt.Sprintf("CREATE TABLE %s %s ( %s );",
+	sql := fmt.Sprintf("CREATE TABLE %s%s ( %s );",
 		mode, w.tableFullName, strings.Join(col, ", "))
-	log.Println(sql)
+	debug.Printf("SQL:%s", sql)
 	_, err := w.Tx.Exec(sql)
 	if err != nil {
 		return fmt.Errorf("%s: %s", err, sql)
@@ -235,20 +237,20 @@ func (w *Writer) prepare() error {
 	if w.imode == OrIgnore {
 		switch w.TDB.Name {
 		case "mysql":
-			ignore = "IGNORE"
+			ignore = "IGNORE "
 		case "sqlite3":
-			ignore = "OR IGNORE"
+			ignore = "OR IGNORE "
 		case "postgres":
 			onconf = "ON CONFLICT DO NOTHING"
 		}
 	}
 	// #nosec G201
 	insert := fmt.Sprintf(
-		"INSERT %s INTO %s ( %s ) VALUES ( %s ) %s;",
+		"INSERT %sINTO %s ( %s ) VALUES ( %s ) %s;",
 		ignore,
 		w.tableFullName, strings.Join(names, ", "), strings.Join(ph, ", "),
 		onconf)
-	log.Println(insert)
+	debug.Printf("SQL:%s", insert)
 	w.stmt, err = w.Tx.Prepare(insert)
 	if err != nil {
 		return fmt.Errorf("%s: %s", err, insert)

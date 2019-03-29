@@ -33,8 +33,12 @@ func (c *Constr) GetSchema(conn *sql.DB) (string, error) {
 
 // GetPrimaryKey returns the primary key as a slice.
 func (c *Constr) GetPrimaryKey(conn *sql.DB, schema string, tableName string) ([]string, error) {
+	var err error
 	if schema == "" {
-		schema = "public"
+		schema, err = c.GetSchema(conn)
+		if err != nil {
+			return nil, err
+		}
 	}
 	query := `SELECT c.column_name
 	            FROM information_schema.constraint_column_usage c

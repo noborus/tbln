@@ -80,7 +80,8 @@ TBLN types can be used generically.
 
 More detailed information is expressed by adding it to extra separately.
 
-For example, if you export from the database, it represents a separate type of database(such as; postgres_type: | integer | text |).
+For example, if you export from the database, it represents a separate
+type of database(such as; postgres_type: \| integer \| text \|).
 
 #### Hash
 

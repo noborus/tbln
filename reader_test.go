@@ -21,31 +21,31 @@ func TestReader_scanLine(t *testing.T) {
 	}{
 		{
 			name:    "test1",
-			fields:  fields{Definition: NewDefinition(), r: bufio.NewReader(bytes.NewBufferString("foo\n"))},
+			fields:  fields{r: bufio.NewReader(bytes.NewBufferString("foo\n"))},
 			want:    nil,
 			wantErr: true,
 		},
 		{
 			name:    "test2",
-			fields:  fields{Definition: NewDefinition(), r: bufio.NewReader(bytes.NewBufferString("| 1 |\n"))},
+			fields:  fields{r: bufio.NewReader(bytes.NewBufferString("| 1 |\n"))},
 			want:    []string{"1"},
 			wantErr: false,
 		},
 		{
 			name:    "test3",
-			fields:  fields{Definition: NewDefinition(), r: bufio.NewReader(bytes.NewBufferString("| 1 | 2 |\n"))},
+			fields:  fields{r: bufio.NewReader(bytes.NewBufferString("| 1 | 2 |\n"))},
 			want:    []string{"1", "2"},
 			wantErr: false,
 		},
 		{
 			name:    "test4",
-			fields:  fields{Definition: NewDefinition(), r: bufio.NewReader(bytes.NewBufferString("# comment\n"))},
+			fields:  fields{r: bufio.NewReader(bytes.NewBufferString("# comment\n"))},
 			want:    nil,
 			wantErr: true,
 		},
 		{
 			name:    "test5",
-			fields:  fields{Definition: NewDefinition(), r: bufio.NewReader(bytes.NewBufferString("# comment\n| 1 |\n"))},
+			fields:  fields{r: bufio.NewReader(bytes.NewBufferString("# comment\n| 1 |\n"))},
 			want:    []string{"1"},
 			wantErr: false,
 		},
@@ -53,7 +53,7 @@ func TestReader_scanLine(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			tr := &Reader{
-				Definition: tt.fields.Definition,
+				Definition: NewDefinition(),
 				r:          tt.fields.r,
 			}
 			got, err := tr.scanLine()
