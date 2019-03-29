@@ -64,6 +64,7 @@ func (tdb *TDB) ReadTable(schema string, tableName string, pkey []string) (*Read
 	}
 	// #nosec G201
 	sql := fmt.Sprintf("SELECT * FROM %s ORDER BY %s", table, orderby)
+	debug.Printf("SQL:%s", sql)
 	err = tr.query(sql)
 	if err != nil {
 		return nil, fmt.Errorf("%s: [%s]", err, sql)
@@ -77,6 +78,7 @@ func (tdb *TDB) ReadQuery(sql string, args ...interface{}) (*Reader, error) {
 		Definition: tbln.NewDefinition(),
 		TDB:        tdb,
 	}
+	debug.Printf("SQL:%s", sql)
 	err := tr.query(sql, args...)
 	if err != nil {
 		return nil, fmt.Errorf("%s: (%s)", err, sql)

@@ -66,7 +66,7 @@ func dbImport(cmd *cobra.Command, args []string) error {
 	if err != nil {
 		return fmt.Errorf("%s: %s", destdbName, err)
 	}
-	conn.Tx, err = conn.Begin()
+	err = conn.Begin()
 	if err != nil {
 		return fmt.Errorf("%s: %s", destdbName, err)
 	}

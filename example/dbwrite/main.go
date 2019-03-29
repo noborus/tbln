@@ -23,7 +23,7 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	conn.Tx, err = conn.Begin()
+	err = conn.Begin()
 	if err != nil {
 		log.Fatal(err)
 	}

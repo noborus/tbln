@@ -7,6 +7,7 @@ package db
 
 import (
 	"database/sql"
+	"log"
 	"regexp"
 )
 
@@ -42,6 +43,26 @@ func Open(name string, dsn string) (*TDB, error) {
 	return TDB, err
 }
 
+// Begin is the sql.DB Begin wrapper.
+func (tdb *TDB) Begin() error {
+	var err error
+	tdb.Tx, err = tdb.DB.Begin()
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+// Commit is the sql.DB Commit wrapper.
+func (tdb *TDB) Commit() error {
+	err := tdb.Tx.Commit()
+	if err != nil {
+		return err
+	}
+	tdb.Tx = nil
+	return nil
+}
+
 func (tdb *TDB) quoting(obj string) string {
 	r := regexp.MustCompile(`[^a-z\.0-9_]+`)
 	q := tdb.Style.Quote
@@ -55,6 +76,7 @@ func (tdb *TDB) quoting(obj string) string {
 
 // GetPrimaryKey returns the primary key as a slice.
 func GetPrimaryKey(conn *sql.DB, query string, schema string, tableName string) ([]string, error) {
+	debug.Printf("SQL:%s", query)
 	rows, err := conn.Query(query, schema, tableName)
 	if err != nil {
 		return nil, err
@@ -100,4 +122,19 @@ func GetColumnInfo(conn *sql.DB, query string, args ...interface{}) (map[string]
 		}
 	}
 	return info, nil
+}
+
+var debug = debugT(false)
+
+type debugT bool
+
+func (d debugT) Printf(format string, args ...interface{}) {
+	if d {
+		log.Printf(format, args...)
+	}
+}
+
+// Debug changes Debug output.
+func Debug(d debugT) {
+	debug = d
 }
