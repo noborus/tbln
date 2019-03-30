@@ -4,7 +4,6 @@ package postgres
 import (
 	"bytes"
 	"database/sql"
-	"log"
 	"reflect"
 	"testing"
 
@@ -29,13 +28,16 @@ func SetupPostgresTest(t *testing.T) *db.TDB {
 	r := bytes.NewBufferString(TestData)
 	at, err := tbln.ReadAll(r)
 	if err != nil {
-		log.Fatal(err)
+		t.Fatal(err)
 	}
 	err = db.WriteTable(conn, at, "", db.ReCreate, db.Normal)
 	if err != nil {
-		log.Fatal(err)
+		t.Fatal(err)
 	}
-	conn.Commit()
+	err = conn.Commit()
+	if err != nil {
+		t.Fatal(err)
+	}
 	return conn
 }
 

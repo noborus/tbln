@@ -5,7 +5,6 @@ import (
 	"bytes"
 	"database/sql"
 	"fmt"
-	"log"
 	"os"
 	"reflect"
 	"testing"
@@ -36,11 +35,15 @@ func SetupMysqlTest(t *testing.T) *db.TDB {
 	r := bytes.NewBufferString(TestData)
 	at, err := tbln.ReadAll(r)
 	if err != nil {
-		log.Fatal(err)
+		t.Fatal(err)
 	}
 	err = db.WriteTable(conn, at, "", db.ReCreate, db.Normal)
 	if err != nil {
-		log.Fatal(err)
+		t.Fatal(err)
+	}
+	err = conn.Commit()
+	if err != nil {
+		t.Fatal(err)
 	}
 	return conn
 }
