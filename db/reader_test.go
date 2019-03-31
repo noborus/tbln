@@ -1,6 +1,7 @@
 package db_test
 
 import (
+	"fmt"
 	"reflect"
 	"testing"
 
@@ -120,6 +121,58 @@ func TestTDB_ReadQueryAll(t *testing.T) {
 					}
 				}
 			})
+		}
+	}
+}
+
+func TestGetTableInfo(t *testing.T) {
+	type args struct {
+		tdb       *db.TDB
+		schema    string
+		tableName string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		table   string
+		want    *tbln.Tbln
+		wantErr bool
+	}{
+		{
+			name:    "testErr",
+			args:    args{tdb: SetupSQLite3Test(t), schema: "", tableName: ""},
+			table:   "",
+			want:    nil,
+			wantErr: true,
+		},
+		{
+			name:    "test1",
+			args:    args{tdb: SetupSQLite3Test(t), schema: "", tableName: "test1"},
+			table:   TestData1,
+			want:    wantTbln(t, TestData1),
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		var tableName string
+		if tt.table != "" {
+			tableName = createTestTable(t, tt.args.tdb, tt.table)
+		}
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := db.GetTableInfo(tt.args.tdb, tt.args.schema, tableName)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("GetTableInfo() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if got != nil {
+				if !reflect.DeepEqual(got.Names, tt.want.Names) {
+					fmt.Println(got.Names)
+					t.Errorf("GetTableInfo() = %v, want %v", got, tt.want)
+				}
+			}
+		})
+		if tt.table != "" {
+			dropTestTable(t, tt.args.tdb, tableName)
 		}
 	}
 }

@@ -41,6 +41,12 @@ func SetupPostgresTest(t *testing.T) *db.TDB {
 	return conn
 }
 
+func dummyDBConn(t *testing.T) *sql.DB {
+	conn := SetupPostgresTest(t).DB
+	conn.Close()
+	return conn
+}
+
 func TestReadTableAll(t *testing.T) {
 	tdb := SetupPostgresTest(t)
 	type args struct {
@@ -129,6 +135,12 @@ func TestConstr_GetPrimaryKey(t *testing.T) {
 		wantErr bool
 	}{
 		{
+			name:    "testErr",
+			args:    args{conn: dummyDBConn(t), schema: "", tableName: "test1"},
+			want:    nil,
+			wantErr: true,
+		},
+		{
 			name:    "test1",
 			args:    args{conn: tdb.DB, schema: "", tableName: "test1"},
 			want:    []string{"id"},
@@ -151,7 +163,6 @@ func TestConstr_GetPrimaryKey(t *testing.T) {
 }
 
 func TestConstr_GetColumnInfo(t *testing.T) {
-	tdb := SetupPostgresTest(t)
 	type args struct {
 		conn      *sql.DB
 		schema    string
@@ -164,8 +175,14 @@ func TestConstr_GetColumnInfo(t *testing.T) {
 		wantErr bool
 	}{
 		{
+			name:    "testErr",
+			args:    args{conn: dummyDBConn(t), schema: "", tableName: "test1"},
+			want:    nil,
+			wantErr: true,
+		},
+		{
 			name:    "test1",
-			args:    args{conn: tdb.DB, schema: "", tableName: "test1"},
+			args:    args{conn: SetupPostgresTest(t).DB, schema: "", tableName: "test1"},
 			want:    []interface{}{"integer", "text", "integer"},
 			wantErr: false,
 		},

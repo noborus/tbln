@@ -157,21 +157,75 @@ func TestWriter_writeExtra(t *testing.T) {
 			wantErr:    false,
 		},
 		{
-			name:       "test2",
-			args:       args{d: &Definition{Extras: map[string]Extra{"a": {"v", false}, "b": {"v", false}}}},
+			name: "test2",
+			args: args{
+				d: &Definition{
+					Extras: map[string]Extra{
+						"a": {"v", false},
+						"b": {"v", false},
+					},
+				},
+			},
 			wantWriter: "; a: v\n; b: v\n",
 			wantErr:    false,
 		},
 		{
-			name:       "test3",
-			args:       args{d: &Definition{Extras: map[string]Extra{"b": {"v", false}, "a": {"v", false}}}},
+			name: "test3",
+			args: args{
+				d: &Definition{
+					Extras: map[string]Extra{
+						"b": {"v", false},
+						"a": {"v", false},
+					},
+				},
+			},
 			wantWriter: "; a: v\n; b: v\n",
 			wantErr:    false,
 		},
 		{
-			name:       "test4",
-			args:       args{d: &Definition{Extras: map[string]Extra{"a": {"v", true}, "b": {"v", false}}}},
+			name: "test4",
+			args: args{
+				d: &Definition{
+					Extras: map[string]Extra{
+						"a": {"v", true},
+						"b": {"v", false},
+					},
+				},
+			},
 			wantWriter: "; b: v\n; a: v\n",
+			wantErr:    false,
+		},
+		{
+			name: "test5",
+			args: args{
+				d: &Definition{
+					Extras: map[string]Extra{
+						"a": {"v", true},
+						"b": {"v", false},
+					},
+					Hashes: map[string][]byte{"sha256": []byte("test")},
+				},
+			},
+			wantWriter: "; b: v\n; Hash: | sha256 | 74657374 |\n; a: v\n",
+			wantErr:    false,
+		},
+		{
+			name: "test6",
+			args: args{
+				d: &Definition{
+					Extras: map[string]Extra{
+						"a": {"v", true},
+						"b": {"v", false},
+					},
+					Hashes: map[string][]byte{"sha256": []byte("test")},
+					Signs: map[string]Signature{
+						"test1": Signature{
+							sign:      []byte("test"),
+							algorithm: ED25519},
+					},
+				},
+			},
+			wantWriter: "; b: v\n; Signature: | test1 | ED25519 | 74657374 |\n; Hash: | sha256 | 74657374 |\n; a: v\n",
 			wantErr:    false,
 		},
 	}
@@ -186,6 +240,83 @@ func TestWriter_writeExtra(t *testing.T) {
 			}
 			if gotWriter := buf.String(); gotWriter != tt.wantWriter {
 				t.Errorf("WriteAll() = [%v], want [%v]", gotWriter, tt.wantWriter)
+			}
+		})
+	}
+}
+
+func TestWriter_writeHashes(t *testing.T) {
+	type args struct {
+		d *Definition
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "test1",
+			args: args{
+				d: &Definition{
+					Hashes: map[string][]byte{"sha256": []byte("test")},
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name: "test2",
+			args: args{
+				d: &Definition{
+					Hashes: map[string][]byte{"sha256": []byte("test"),
+						"sha512": []byte("test2")},
+				},
+			},
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			buf := &bytes.Buffer{}
+			w := &Writer{
+				Writer: buf,
+			}
+			if err := w.writeHashes(tt.args.d); (err != nil) != tt.wantErr {
+				t.Errorf("Writer.writeHashes() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
+}
+
+func TestWriter_writeSigns(t *testing.T) {
+	type args struct {
+		d *Definition
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantErr bool
+	}{
+		{
+			name: "test1",
+			args: args{d: &Definition{
+				Signs: map[string]Signature{
+					"test1": Signature{
+						sign:      []byte("test"),
+						algorithm: ED25519},
+				},
+			},
+			},
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			buf := &bytes.Buffer{}
+			w := &Writer{
+				Writer: buf,
+			}
+			if err := w.writeSigns(tt.args.d); (err != nil) != tt.wantErr {
+				t.Errorf("Writer.writeSigns() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
 	}
