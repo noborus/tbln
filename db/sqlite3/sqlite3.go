@@ -28,7 +28,7 @@ func (c *Constr) GetSchema(conn *sql.DB) (string, error) {
 
 // GetPrimaryKey returns the primary key as a slice.
 func (c *Constr) GetPrimaryKey(conn *sql.DB, schema string, tableName string) ([]string, error) {
-	query := fmt.Sprintf("SELECT name FROM PRAGMA_TABLE_INFO('%s') WHERE pk = 1", tableName)
+	query := fmt.Sprintf("SELECT name FROM PRAGMA_TABLE_INFO('%s') WHERE pk != 0", tableName)
 	return db.GetPrimaryKey(conn, query, "", tableName)
 }
 

@@ -1,9 +1,6 @@
 package db_test
 
 import (
-	"bytes"
-	"fmt"
-	"os"
 	"reflect"
 	"testing"
 
@@ -13,98 +10,6 @@ import (
 	_ "github.com/noborus/tbln/db/postgres"
 	_ "github.com/noborus/tbln/db/sqlite3"
 )
-
-var MySQLDBname string
-var PostgreSQLDBname string
-
-var TestData1 = `; name: | id | name | age |
-; type: | int | text | int |
-; primarykey: | id |
-; TableName: test1
-| 1 | Bob | 19 |
-| 2 | Alice | 14 |
-`
-var TestData2 = `; name: | one |
-; type: | text |
-; TableName: testone
-| a |
-| b |
-| c |
-`
-
-func createTestTable(t *testing.T, tdb *db.TDB, data string) string {
-	at := wantTbln(t, data)
-	err := tdb.Begin()
-	if err != nil {
-		t.Fatal(err)
-	}
-	err = db.WriteTable(tdb, at, "", db.ReCreate, db.Normal)
-	if err != nil {
-		t.Fatal(err)
-	}
-	err = tdb.Commit()
-	if err != nil {
-		t.Fatal(err)
-	}
-	return at.TableName()
-}
-
-func wantTbln(t *testing.T, data string) *tbln.Tbln {
-	r := bytes.NewBufferString(data)
-	at, err := tbln.ReadAll(r)
-	if err != nil {
-		t.Fatal(err)
-	}
-	return at
-}
-
-func dropTestTable(t *testing.T, tdb *db.TDB, tableName string) {
-	sql := fmt.Sprintf("DROP TABLE IF EXISTS %s", tableName)
-	err := tdb.Begin()
-	if err != nil {
-		t.Fatal(err)
-	}
-	_, err = tdb.Tx.Exec(sql)
-	if err != nil {
-		t.Fatal(err)
-	}
-	err = tdb.Commit()
-	if err != nil {
-		t.Fatal(err)
-	}
-}
-
-func SetupPostgresTest(t *testing.T) *db.TDB {
-	// db.Debug(true)
-	if PostgreSQLDBname = os.Getenv("TEST_PG_DATABASE"); PostgreSQLDBname == "" {
-		PostgreSQLDBname = "test_db"
-	}
-	dsn := fmt.Sprintf("dbname=%s", PostgreSQLDBname)
-	conn, err := db.Open("postgres", dsn)
-	if err != nil {
-		t.Fatal(err)
-	}
-	return conn
-}
-
-func SetupSQLite3Test(t *testing.T) *db.TDB {
-	conn, err := db.Open("sqlite3", ":memory:")
-	if err != nil {
-		t.Fatal(err)
-	}
-	return conn
-}
-
-func SetupMySQLTest(t *testing.T) *db.TDB {
-	if MySQLDBname = os.Getenv("TEST_MYSQL_DATABASE"); MySQLDBname == "" {
-		MySQLDBname = "test_db"
-	}
-	conn, err := db.Open("mysql", "root@/"+MySQLDBname)
-	if err != nil {
-		t.Fatal(err)
-	}
-	return conn
-}
 
 func TestTDB_ReadTableAll(t *testing.T) {
 	type args struct {

@@ -175,18 +175,41 @@ func (w *Writer) createTable() error {
 	for i := 0; i < len(w.Names); i++ {
 		col[i] = w.quoting(w.Names[i]) + " " + typeNames[i] + constraints[i]
 	}
-	sql := fmt.Sprintf("CREATE TABLE %s%s ( %s );",
-		mode, w.tableFullName, strings.Join(col, ", "))
+	primaryKey := ""
+	if w.TDB.Name == "sqlite3" {
+		pk := tbln.SplitRow(toString(w.ExtraValue("primarykey")))
+		if len(pk) > 0 {
+			primaryKey = fmt.Sprintf(", PRIMARY KEY (%s)", strings.Join(pk, ","))
+		}
+	}
+
+	sql := fmt.Sprintf("CREATE TABLE %s%s ( %s %s);",
+		mode, w.tableFullName, strings.Join(col, ", "), primaryKey)
 	debug.Printf("SQL:%s", sql)
 	_, err := w.Tx.Exec(sql)
 	if err != nil {
 		return fmt.Errorf("%s: %s", err, sql)
 	}
+
+	if w.TDB.Name == "sqlite3" {
+		return nil
+	}
+	pk := tbln.SplitRow(toString(w.ExtraValue("primarykey")))
+	if len(pk) == 0 {
+		return nil
+	}
+	pksql := fmt.Sprintf("ALTER TABLE %s%s ADD CONSTRAINT %s_pkey PRIMARY KEY( %s);",
+		mode, w.tableFullName, w.tableFullName, strings.Join(pk, ","))
+	debug.Printf("SQL:%s", pksql)
+	_, err = w.Tx.Exec(pksql)
+	if err != nil {
+		return fmt.Errorf("%s: %s", err, pksql)
+	}
+
 	return nil
 }
 
 func (w *Writer) createConstraints() []string {
-	pk := tbln.SplitRow(toString(w.ExtraValue("primarykey")))
 	nu := tbln.SplitRow(toString(w.ExtraValue("is_nullable")))
 	if len(nu) != w.ColumnNum() {
 		nu = nil
@@ -195,9 +218,6 @@ func (w *Writer) createConstraints() []string {
 	for i := 0; i < len(w.Names); i++ {
 		if (nu != nil) && nu[i] == "NO" {
 			cs[i] += " NOT NULL"
-		}
-		if contains(pk, w.Names[i]) {
-			cs[i] += " PRIMARY KEY"
 		}
 	}
 	return cs
