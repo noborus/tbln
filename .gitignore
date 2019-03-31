@@ -5,6 +5,7 @@
 *.so
 *.dylib
 
+.vscode
 cmd/tbln/tbln
 
 # Test binary, build with `go test -c`
