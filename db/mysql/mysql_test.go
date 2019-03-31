@@ -24,7 +24,7 @@ var TestData = `; name: | id | name | age |
 | 2 | Alice | 14 |
 `
 
-func SetupMysqlTest(t *testing.T) *db.TDB {
+func SetupMySQLTest(t *testing.T) *db.TDB {
 	if MySQLDBname = os.Getenv("TEST_MYSQL_DATABASE"); MySQLDBname == "" {
 		MySQLDBname = "test_db"
 	}
@@ -47,8 +47,15 @@ func SetupMysqlTest(t *testing.T) *db.TDB {
 	}
 	return conn
 }
+
+func dummyDBConn(t *testing.T) *sql.DB {
+	conn := SetupMySQLTest(t).DB
+	conn.Close()
+	return conn
+}
+
 func TestReadTableAll(t *testing.T) {
-	tdb := SetupMysqlTest(t)
+	tdb := SetupMySQLTest(t)
 	type args struct {
 		tdb       *db.TDB
 		schema    string
@@ -89,7 +96,7 @@ func TestReadTableAll(t *testing.T) {
 	}
 }
 func TestConstr_GetSchema(t *testing.T) {
-	tdb := SetupMysqlTest(t)
+	tdb := SetupMySQLTest(t)
 	type args struct {
 		conn *sql.DB
 	}
@@ -122,7 +129,7 @@ func TestConstr_GetSchema(t *testing.T) {
 }
 
 func TestConstr_GetPrimaryKey(t *testing.T) {
-	tdb := SetupMysqlTest(t)
+	tdb := SetupMySQLTest(t)
 	type args struct {
 		conn      *sql.DB
 		schema    string
@@ -134,6 +141,12 @@ func TestConstr_GetPrimaryKey(t *testing.T) {
 		want    []string
 		wantErr bool
 	}{
+		{
+			name:    "testErr",
+			args:    args{conn: dummyDBConn(t), schema: "", tableName: "test1_mysql"},
+			want:    nil,
+			wantErr: true,
+		},
 		{
 			name:    "test1",
 			args:    args{conn: tdb.DB, schema: "", tableName: "test1_mysql"},
@@ -157,7 +170,7 @@ func TestConstr_GetPrimaryKey(t *testing.T) {
 }
 
 func TestConstr_GetColumnInfo(t *testing.T) {
-	tdb := SetupMysqlTest(t)
+	tdb := SetupMySQLTest(t)
 	type args struct {
 		conn      *sql.DB
 		schema    string
@@ -169,6 +182,12 @@ func TestConstr_GetColumnInfo(t *testing.T) {
 		want    []interface{}
 		wantErr bool
 	}{
+		{
+			name:    "testErr",
+			args:    args{conn: dummyDBConn(t), schema: "", tableName: "test1_mysql"},
+			want:    nil,
+			wantErr: true,
+		},
 		{
 			name:    "test1",
 			args:    args{conn: tdb.DB, schema: "", tableName: "test1_mysql"},
