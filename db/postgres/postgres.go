@@ -54,8 +54,12 @@ func (c *Constr) GetPrimaryKey(conn *sql.DB, schema string, tableName string) ([
 
 // GetColumnInfo returns information of a table column as an array.
 func (c *Constr) GetColumnInfo(conn *sql.DB, schema string, tableName string) (map[string][]interface{}, error) {
+	var err error
 	if schema == "" {
-		schema = "public"
+		schema, err = c.GetSchema(conn)
+		if err != nil {
+			return nil, err
+		}
 	}
 	query := `WITH u AS (
 		SELECT DISTINCT tc.table_name, cc.column_name, 'YES' as is_unique
