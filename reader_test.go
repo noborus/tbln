@@ -4,7 +4,6 @@ import (
 	"bufio"
 	"bytes"
 	"io"
-	"os"
 	"reflect"
 	"testing"
 )
@@ -83,6 +82,7 @@ func TestReader_scanLine(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			tr := &Reader{
 				Definition: NewDefinition(),
@@ -221,14 +221,6 @@ func TestReader_ReadRow(t *testing.T) {
 			}
 		})
 	}
-}
-
-func openFile(t *testing.T, fileName string) *os.File {
-	file, err := os.Open(fileName)
-	if err != nil {
-		t.Error(err)
-	}
-	return file
 }
 
 func TestReadAll(t *testing.T) {

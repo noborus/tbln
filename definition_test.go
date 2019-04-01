@@ -28,6 +28,7 @@ func TestDefinition_SetNames(t *testing.T) {
 		{name: "test3", fields: fields{Extras: make(map[string]Extra), columnNum: 2}, args: args{names: []string{"a", "b", "c"}}, wantErr: true},
 	}
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			d := &Definition{
 				columnNum: tt.fields.columnNum,
@@ -65,6 +66,7 @@ func TestDefinition_SetTypes(t *testing.T) {
 		{name: "test3", fields: fields{Extras: make(map[string]Extra), columnNum: 2}, args: args{types: []string{"int", "text", "text"}}, wantErr: true},
 	}
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			d := &Definition{
 				columnNum: tt.fields.columnNum,
@@ -100,6 +102,7 @@ func TestDefinition_SetExtra(t *testing.T) {
 		fields fields
 		args   args
 		want   map[string]Extra
+		wantv  string
 	}{
 		{
 			name:   "test1",
@@ -108,12 +111,14 @@ func TestDefinition_SetExtra(t *testing.T) {
 			want: map[string]Extra{
 				"test": {"testValue", false},
 			},
+			wantv: "testvalue",
 		},
 		{
 			name:   "test1",
 			fields: fields{Extras: map[string]Extra{"test": {"testValue", false}}},
 			args:   args{keyName: "test"},
 			want:   map[string]Extra{},
+			wantv:  "",
 		},
 	}
 	for _, tt := range tests {
@@ -133,6 +138,10 @@ func TestDefinition_SetExtra(t *testing.T) {
 			got := d.Extras
 			if !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("Tbln.SetExtra = %v, want %v", got, tt.want)
+			}
+			gv := d.ExtraValue(tt.args.keyName)
+			if gv == tt.wantv {
+				t.Errorf("Tbln.SetExtra = %v, wantv %v", gv, tt.wantv)
 			}
 		})
 	}

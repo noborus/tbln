@@ -1,0 +1,5 @@
+; created_at: 2019-04-01T11:15:16+09:00
+; Hash: | sha256 | d926f82ea0214db184f3b73299c24c35e43274968ade7e25e3b19805fb75eea2 |
+; name: | a | b | c |
+; type: | int | int | int |
+| 1 | 2 | 3 |

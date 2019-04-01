@@ -1,0 +1,6 @@
+; created_at: 2019-04-01T11:15:16+09:00
+; Signature: | test | ED25519 | b289138915aaa0510962bac8acd253e753dfb7e41d220fcba4a83be16a08282349dc2c5198ef30c0c45e73b9859a80916ff758ad483814353d23ad55e8681205 |
+; Hash: | sha256 | d926f82ea0214db184f3b73299c24c35e43274968ade7e25e3b19805fb75eea2 |
+; name: | a | b | c |
+; type: | int | int | int |
+| 1 | 2 | 3 |

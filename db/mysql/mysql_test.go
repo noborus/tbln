@@ -157,8 +157,9 @@ func TestConstr_GetPrimaryKey(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
+		tt := tt
+		c := &Constr{}
 		t.Run(tt.name, func(t *testing.T) {
-			c := &Constr{}
 			got, err := c.GetPrimaryKey(tt.args.conn, tt.args.schema, tt.args.tableName)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("Constr.GetPrimaryKey() error = %v, wantErr %v", err, tt.wantErr)
@@ -198,8 +199,9 @@ func TestConstr_GetColumnInfo(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
+		tt := tt
+		c := &Constr{}
 		t.Run(tt.name, func(t *testing.T) {
-			c := &Constr{}
 			got, err := c.GetColumnInfo(tt.args.conn, tt.args.schema, tt.args.tableName)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("Constr.GetColumnInfo() error = %v, wantErr %v", err, tt.wantErr)
