@@ -28,7 +28,6 @@ import (
 	"crypto/sha512"
 	"fmt"
 	"hash"
-	"log"
 	"regexp"
 	"strings"
 
@@ -208,10 +207,13 @@ func (t *Tbln) VerifySignature(name string, pubkey []byte) bool {
 
 // Verify returns the boolean value of the hash verification.
 func (t *Tbln) Verify() bool {
+	if len(t.Hashes) == 0 {
+		return false
+	}
 	for name, old := range t.Hashes {
 		new, err := t.calculateHash(name)
 		if err != nil {
-			log.Fatal(err)
+			return false
 		}
 		if string(old) != string(new) {
 			return false

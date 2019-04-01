@@ -1,7 +1,9 @@
 package tbln
 
 import (
+	"encoding/hex"
 	"fmt"
+	"log"
 	"reflect"
 	"testing"
 )
@@ -36,12 +38,13 @@ func TestTbln_AddRows(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
+		tt := tt
+		tb := &Tbln{
+			Definition: tt.fields.Definition,
+			RowNum:     tt.fields.RowNum,
+			Rows:       tt.fields.Rows,
+		}
 		t.Run(tt.name, func(t *testing.T) {
-			tb := &Tbln{
-				Definition: tt.fields.Definition,
-				RowNum:     tt.fields.RowNum,
-				Rows:       tt.fields.Rows,
-			}
 			if err := tb.AddRows(tt.args.row); (err != nil) != tt.wantErr {
 				t.Errorf("Tbln.AddRows() error = %v, wantErr %v", err, tt.wantErr)
 			}
@@ -208,6 +211,53 @@ func TestTbln_calculateHash(t *testing.T) {
 			}
 			if !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("Tbln.calculateHash() = %x, want %x", got, tt.want)
+			}
+		})
+	}
+}
+
+func decodeHashHelper(d string) []byte {
+	b, err := hex.DecodeString(d)
+	if err != nil {
+		log.Fatal(err)
+	}
+	return b
+}
+
+func TestTbln_Verify(t *testing.T) {
+	tests := []struct {
+		name       string
+		Definition *Definition
+		want       bool
+	}{
+		{
+			name:       "testNot",
+			Definition: NewDefinition(),
+			want:       false,
+		},
+		{
+			name:       "testErr",
+			Definition: &Definition{Hashes: map[string][]byte{"sha256": []byte("testErr")}},
+			want:       false,
+		},
+		{
+			name:       "testErr2",
+			Definition: &Definition{Hashes: map[string][]byte{"sha255": []byte("testErr")}},
+			want:       false,
+		},
+		{
+			name:       "test1",
+			Definition: &Definition{Hashes: map[string][]byte{"sha256": decodeHashHelper("e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855")}},
+			want:       true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			tb := &Tbln{
+				Definition: tt.Definition,
+			}
+			if got := tb.Verify(); got != tt.want {
+				t.Errorf("Tbln.Verify() = %v, want %v", got, tt.want)
 			}
 		})
 	}

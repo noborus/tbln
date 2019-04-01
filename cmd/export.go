@@ -123,7 +123,7 @@ func dbExport(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	err = hash(at, cmd, args)
+	err = hash(at, cmd)
 	if err != nil {
 		return err
 	}

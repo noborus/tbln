@@ -182,6 +182,9 @@ func (d *Definition) SetSignatures(sign []string) error {
 
 // SetHashes is set hashes.
 func (d *Definition) SetHashes(hashes []string) error {
+	if len(hashes) != 2 {
+		return fmt.Errorf("not analyze hashes")
+	}
 	b, err := hex.DecodeString(hashes[1])
 	if err != nil {
 		return err
