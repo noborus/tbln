@@ -1,0 +1,14 @@
+; TableName: simple
+; character_octet_length: |  | 1073741824 |
+; created_at: 2019-04-01T23:01:02+09:00
+; is_nullable: | NO | YES |
+; numeric_precision: | 32 |  |
+; numeric_precision_radix: | 2 |  |
+; numeric_scale: | 0 |  |
+; postgres_type: | integer | text |
+; primarykey: | id |
+; Hash: | sha256 | 3191722649a6388498c435e411cb6534b740d9b3a5c7ac281dd824b4ba78e968 |
+; name: | id | name |
+; type: | int | text |
+| 1 | Bob |
+| 2 | Alice |
