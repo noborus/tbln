@@ -87,6 +87,7 @@ func TestWriteAll(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			at := tt.args.tbln
 			delete(at.Extras, "created_at")
@@ -224,7 +225,7 @@ func TestWriter_writeExtra(t *testing.T) {
 						"sha256": []byte("test"),
 					},
 					Signs: map[string]Signature{
-						"test1": Signature{
+						"test1": {
 							sign:      []byte("test"),
 							algorithm: ED25519,
 						},
@@ -306,7 +307,7 @@ func TestWriter_writeSigns(t *testing.T) {
 			name: "test1",
 			args: args{d: &Definition{
 				Signs: map[string]Signature{
-					"test1": Signature{
+					"test1": {
 						sign:      []byte("test"),
 						algorithm: ED25519},
 				},

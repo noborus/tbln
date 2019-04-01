@@ -54,6 +54,7 @@ func TestTDB_ReadTableAll(t *testing.T) {
 	}
 	for _, tdb := range dbDriver {
 		for _, tt := range tests {
+			tt := tt
 			tdb := tdb
 			var tableName string
 			if tt.table != "" {

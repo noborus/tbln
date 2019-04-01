@@ -41,14 +41,12 @@ type Writer struct {
 	*TDB
 	tableFullName string // schema.table
 	stmt          *sql.Stmt
-	cmode         CreateMode
-	imode         InsertMode
 	ReplaceLN     bool
 }
 
 // NewWriter returns a new Writer that writes to database table.
 func NewWriter(tdb *TDB, definition *tbln.Definition) (*Writer, error) {
-	if tdb.Tx == nil {
+	if !tdb.IsTx {
 		err := tdb.Begin()
 		if err != nil {
 			return nil, err
@@ -81,19 +79,24 @@ func WriteTable(tdb *TDB, tbln *tbln.Tbln, schema string, cmode CreateMode, imod
 	if err != nil {
 		return err
 	}
-	w.cmode = cmode
-	w.imode = imode
+	if w.TableName() == "" {
+		return fmt.Errorf("table name required")
+	}
 	if schema != "" {
 		w.tableFullName = w.quoting(schema) + "." + w.quoting(w.TableName())
 	} else {
 		w.tableFullName = w.quoting(w.TableName())
 	}
-	err = w.WriteDefinition()
+	err = w.WriteDefinition(cmode)
 	if err != nil {
 		return err
 	}
 	if cmode == CreateOnly {
 		return nil
+	}
+	err = w.prepare(imode)
+	if err != nil {
+		return err
 	}
 	for _, row := range tbln.Rows {
 		err = w.WriteRow(row)
@@ -105,7 +108,7 @@ func WriteTable(tdb *TDB, tbln *tbln.Tbln, schema string, cmode CreateMode, imod
 }
 
 // WriteDefinition is create table and insert prepare.
-func (w *Writer) WriteDefinition() error {
+func (w *Writer) WriteDefinition(cmode CreateMode) error {
 	if w.Names == nil {
 		if w.ColumnNum() == 0 {
 			return fmt.Errorf("column num is 0")
@@ -124,13 +127,13 @@ func (w *Writer) WriteDefinition() error {
 			w.Types[i] = "text"
 		}
 	}
-	if w.cmode > NotCreate {
-		err := w.createTable()
+	if cmode > NotCreate {
+		err := w.createTable(cmode)
 		if err != nil {
 			return err
 		}
 	}
-	return w.prepare()
+	return nil
 }
 
 func (w *Writer) dropTable() error {
@@ -143,14 +146,14 @@ func (w *Writer) dropTable() error {
 	return err
 }
 
-func (w *Writer) createTable() error {
+func (w *Writer) createTable(cmode CreateMode) error {
 	mode := ""
-	if w.cmode == ReCreate {
+	if cmode == ReCreate {
 		err := w.dropTable()
 		if err != nil {
 			return err
 		}
-	} else if w.cmode == IfNotExists {
+	} else if cmode == IfNotExists {
 		mode = "IF NOT EXISTS "
 	}
 	constraints := w.createConstraints()
@@ -223,16 +226,7 @@ func (w *Writer) createConstraints() []string {
 	return cs
 }
 
-func contains(s []string, e string) bool {
-	for _, v := range s {
-		if e == v {
-			return true
-		}
-	}
-	return false
-}
-
-func (w *Writer) prepare() error {
+func (w *Writer) prepare(imode InsertMode) error {
 	var err error
 	names := make([]string, len(w.Names))
 	ph := make([]string, len(w.Names))
@@ -254,7 +248,7 @@ func (w *Writer) prepare() error {
 	// PostgreSQL
 	// INSERT INTO ... ON CONFLICT DO NOTHING
 	onconf := ""
-	if w.imode == OrIgnore {
+	if imode == OrIgnore {
 		switch w.TDB.Name {
 		case "mysql":
 			ignore = "IGNORE "

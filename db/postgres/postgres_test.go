@@ -25,6 +25,10 @@ func SetupPostgresTest(t *testing.T) *db.TDB {
 	if err != nil {
 		t.Fatal(err)
 	}
+	return conn
+}
+
+func createTestData(t *testing.T, conn *db.TDB) error {
 	r := bytes.NewBufferString(TestData)
 	at, err := tbln.ReadAll(r)
 	if err != nil {
@@ -38,7 +42,7 @@ func SetupPostgresTest(t *testing.T) *db.TDB {
 	if err != nil {
 		t.Fatal(err)
 	}
-	return conn
+	return nil
 }
 
 func dummyDBConn(t *testing.T) *sql.DB {
@@ -49,6 +53,7 @@ func dummyDBConn(t *testing.T) *sql.DB {
 
 func TestReadTableAll(t *testing.T) {
 	tdb := SetupPostgresTest(t)
+	createTestData(t, tdb)
 	type args struct {
 		tdb       *db.TDB
 		schema    string
@@ -108,8 +113,9 @@ func TestConstr_GetSchema(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
+		tt := tt
+		c := &Constr{}
 		t.Run(tt.name, func(t *testing.T) {
-			c := &Constr{}
 			got, err := c.GetSchema(tt.args.conn)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("Constr.GetSchema() error = %v, wantErr %v", err, tt.wantErr)
@@ -149,8 +155,9 @@ func TestConstr_GetPrimaryKey(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
+		tt := tt
+		c := &Constr{}
 		t.Run(tt.name, func(t *testing.T) {
-			c := &Constr{}
 			got, err := c.GetPrimaryKey(tt.args.conn, tt.args.schema, tt.args.tableName)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("Constr.GetPrimaryKey() error = %v, wantErr %v", err, tt.wantErr)
@@ -189,8 +196,9 @@ func TestConstr_GetColumnInfo(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
+		tt := tt
+		c := &Constr{}
 		t.Run(tt.name, func(t *testing.T) {
-			c := &Constr{}
 			got, err := c.GetColumnInfo(tt.args.conn, tt.args.schema, tt.args.tableName)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("Constr.GetColumnInfo() error = %v, wantErr %v", err, tt.wantErr)

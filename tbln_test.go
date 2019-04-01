@@ -1,12 +1,38 @@
 package tbln
 
 import (
+	"encoding/base64"
 	"encoding/hex"
 	"fmt"
 	"log"
+	"os"
 	"reflect"
 	"testing"
 )
+
+func openFile(t *testing.T, fileName string) *os.File {
+	file, err := os.Open(fileName)
+	if err != nil {
+		t.Error(err)
+	}
+	return file
+}
+
+func decodeHashHelper(d string) []byte {
+	b, err := hex.DecodeString(d)
+	if err != nil {
+		log.Fatal(err)
+	}
+	return b
+}
+
+func decode64Helper(d string) []byte {
+	b, err := base64.StdEncoding.DecodeString(d)
+	if err != nil {
+		log.Fatal(err)
+	}
+	return b
+}
 
 func TestTbln_AddRows(t *testing.T) {
 	type fields struct {
@@ -83,6 +109,7 @@ func Test_checkRow(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			got, err := checkRow(tt.args.ColumnNum, tt.args.row)
 			if (err != nil) != tt.wantErr {
@@ -135,6 +162,7 @@ func TestTbln_SumHash(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			tb := &Tbln{
 				Definition: tt.fields.Definition,
@@ -216,12 +244,130 @@ func TestTbln_calculateHash(t *testing.T) {
 	}
 }
 
-func decodeHashHelper(d string) []byte {
-	b, err := hex.DecodeString(d)
-	if err != nil {
-		log.Fatal(err)
+func TestTbln_Sign(t *testing.T) {
+	type args struct {
+		name string
+		pkey []byte
 	}
-	return b
+	tests := []struct {
+		name     string
+		fileName string
+		args     args
+		want     map[string]Signature
+		wantErr  bool
+	}{
+		{
+			name:     "testErr1",
+			fileName: "",
+			args: args{
+				name: "test",
+				pkey: []byte(""),
+			},
+			want:    nil,
+			wantErr: true,
+		},
+		{
+			name:     "testErr2",
+			fileName: "testdata/abc.tbln",
+			args: args{
+				name: "test",
+				pkey: []byte(""),
+			},
+			want:    nil,
+			wantErr: true,
+		},
+		{
+			name:     "test1",
+			fileName: "testdata/abc.tbln",
+			args: args{
+				name: "test",
+				pkey: decodeHashHelper("a490a355aca9be30a72710e81a05ef0d8fea0877e7031bc7cd66970f7f9e3537ee40c42c0529991cbf64ca3b71335902749b1b33a54b0c564b7d6995b97d6ced"),
+			},
+			want: map[string]Signature{
+				"test": {
+					sign:      decodeHashHelper("b289138915aaa0510962bac8acd253e753dfb7e41d220fcba4a83be16a08282349dc2c5198ef30c0c45e73b9859a80916ff758ad483814353d23ad55e8681205"),
+					algorithm: ED25519,
+				},
+			},
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			var tb *Tbln
+			if tt.fileName == "" {
+				tb = &Tbln{}
+			} else {
+				var err error
+				f := openFile(t, tt.fileName)
+				tb, err = ReadAll(f)
+				if err != nil {
+					t.Errorf("Tbln file open %s", err)
+				}
+			}
+			got, err := tb.Sign(tt.args.name, tt.args.pkey)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("Tbln.Sign() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("Tbln.Sign() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestTbln_VerifySignature(t *testing.T) {
+	type args struct {
+		name   string
+		pubkey []byte
+	}
+	tests := []struct {
+		name     string
+		fileName string
+		args     args
+		want     bool
+	}{
+		{
+			name:     "testABCfalse",
+			fileName: "testdata/abc-s.tbln",
+			args: args{
+				name:   "test",
+				pubkey: []byte(""),
+			},
+			want: false,
+		},
+		{
+			name:     "testABCtrue",
+			fileName: "testdata/abc-s.tbln",
+			args: args{
+				name:   "test",
+				pubkey: decode64Helper("7kDELAUpmRy/ZMo7cTNZAnSbGzOlSwxWS31plbl9bO0="),
+			},
+			want: true,
+		},
+		{
+			name:     "testABnoSign",
+			fileName: "testdata/abc.tbln",
+			args: args{
+				name:   "test",
+				pubkey: decode64Helper("7kDELAUpmRy/ZMo7cTNZAnSbGzOlSwxWS31plbl9bO0="),
+			},
+			want: false,
+		},
+	}
+	for _, tt := range tests {
+		f := openFile(t, tt.fileName)
+		tb, err := ReadAll(f)
+		if err != nil {
+			t.Errorf("Tbln file open %s", err)
+		}
+		t.Run(tt.name, func(t *testing.T) {
+			if got := tb.VerifySignature(tt.args.name, tt.args.pubkey); got != tt.want {
+				t.Errorf("Tbln.VerifySignature() = %v, want %v", got, tt.want)
+			}
+		})
+	}
 }
 
 func TestTbln_Verify(t *testing.T) {

@@ -22,11 +22,11 @@ func TestTDB_quoting(t *testing.T) {
 		{name: "test6", args: args{`test;SELECT 1`}, want: `"test;SELECT 1"`},
 	}
 	for _, tt := range tests {
+		tt := tt
+		TDB := &TDB{
+			Style: st,
+		}
 		t.Run(tt.name, func(t *testing.T) {
-			tt := tt
-			TDB := &TDB{
-				Style: st,
-			}
 			if got := TDB.quoting(tt.args.obj); got != tt.want {
 				t.Errorf("TDB.quoting() = %v, want %v", got, tt.want)
 			}

@@ -186,8 +186,14 @@ func (t *Tbln) calculateHash(hashType string) ([]byte, error) {
 
 // Sign is returns signature for hash.
 func (t *Tbln) Sign(name string, pkey []byte) (map[string]Signature, error) {
+	if t == nil || t.Definition == nil {
+		return nil, fmt.Errorf("no algorithm")
+	}
 	if t.algorithm != ED25519 {
 		return nil, fmt.Errorf("unsupported algorithm")
+	}
+	if len(pkey) != ed25519.PrivateKeySize {
+		return nil, fmt.Errorf("bad private key length")
 	}
 	t.Signs[name] = Signature{sign: ed25519.Sign(pkey, t.SerializeHash()), algorithm: ED25519}
 	return t.Signs, nil
@@ -195,6 +201,12 @@ func (t *Tbln) Sign(name string, pkey []byte) (map[string]Signature, error) {
 
 // VerifySignature returns the boolean value of the signature verification and Verify().
 func (t *Tbln) VerifySignature(name string, pubkey []byte) bool {
+	if t == nil || t.Definition == nil || len(t.Signs) == 0 {
+		return false
+	}
+	if len(pubkey) != ed25519.PublicKeySize {
+		return false
+	}
 	s := t.Signs[name]
 	if s.algorithm == ED25519 {
 		x := ed25519.PublicKey(pubkey)
