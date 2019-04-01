@@ -54,6 +54,7 @@ func TestTDB_ReadTableAll(t *testing.T) {
 	}
 	for _, tdb := range dbDriver {
 		for _, tt := range tests {
+			tdb := tdb
 			var tableName string
 			if tt.table != "" {
 				tableName = createTestTable(t, tdb, tt.table)
@@ -109,6 +110,7 @@ func TestTDB_ReadQueryAll(t *testing.T) {
 	}
 	for _, tdb := range dbDriver {
 		for _, tt := range tests {
+			tdb := tdb
 			t.Run(tt.name+tdb.Name, func(t *testing.T) {
 				got, err := db.ReadQueryAll(tdb, tt.args.sql, tt.args.args...)
 				if (err != nil) != tt.wantErr {

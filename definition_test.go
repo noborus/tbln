@@ -103,13 +103,17 @@ func TestDefinition_SetExtra(t *testing.T) {
 	}{
 		{
 			name:   "test1",
-			fields: fields{Extras: make(map[string]Extra)}, args: args{keyName: "test", value: "testValue"},
-			want: map[string]Extra{"test": Extra{"testValue", false}},
+			fields: fields{Extras: make(map[string]Extra)},
+			args:   args{keyName: "test", value: "testValue"},
+			want: map[string]Extra{
+				"test": {"testValue", false},
+			},
 		},
 		{
 			name:   "test1",
-			fields: fields{Extras: map[string]Extra{"test": Extra{"testValue", false}}}, args: args{keyName: "test"},
-			want: map[string]Extra{},
+			fields: fields{Extras: map[string]Extra{"test": {"testValue", false}}},
+			args:   args{keyName: "test"},
+			want:   map[string]Extra{},
 		},
 	}
 	for _, tt := range tests {

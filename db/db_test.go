@@ -182,9 +182,10 @@ func TestGetPrimaryKey(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
+		tt := tt
+		tdb := tt.args.tdb
+		tableName := tt.args.tableName
 		t.Run(tt.name, func(t *testing.T) {
-			tdb := tt.args.tdb
-			tableName := tt.args.tableName
 			if tt.args.tableName != "" {
 				tableName = createTestTable(t, tdb, tt.args.tableName)
 			}

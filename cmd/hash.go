@@ -28,7 +28,7 @@ func init() {
 	rootCmd.AddCommand(hashCmd)
 }
 
-func hash(at *tbln.Tbln, cmd *cobra.Command, args []string) error {
+func hash(at *tbln.Tbln, cmd *cobra.Command) error {
 	var err error
 	var hashes []string
 	if hashes, err = cmd.PersistentFlags().GetStringSlice("hash"); err != nil {
@@ -105,7 +105,7 @@ func addHash(cmd *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
-	err = hash(at, cmd, args)
+	err = hash(at, cmd)
 	if err != nil {
 		return err
 	}

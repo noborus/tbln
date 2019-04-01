@@ -72,7 +72,7 @@ func signFile(cmd *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
-	err = hash(at, cmd, args)
+	err = hash(at, cmd)
 	if err != nil {
 		return err
 	}

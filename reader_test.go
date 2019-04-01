@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"bytes"
 	"io"
+	"os"
 	"reflect"
 	"testing"
 )
@@ -26,28 +27,59 @@ func TestReader_scanLine(t *testing.T) {
 			wantErr: true,
 		},
 		{
-			name:    "test2",
+			name:    "testRow1",
 			fields:  fields{r: bufio.NewReader(bytes.NewBufferString("| 1 |\n"))},
 			want:    []string{"1"},
 			wantErr: false,
 		},
 		{
-			name:    "test3",
+			name:    "testRow2",
 			fields:  fields{r: bufio.NewReader(bytes.NewBufferString("| 1 | 2 |\n"))},
 			want:    []string{"1", "2"},
 			wantErr: false,
 		},
 		{
-			name:    "test4",
+			// Do not read after empty line
+			name:    "testRowBlank",
+			fields:  fields{r: bufio.NewReader(bytes.NewBufferString("| 1 |\n\n| 2 |\n"))},
+			want:    []string{"1"},
+			wantErr: false,
+		},
+		{
+			name:    "testComment1",
 			fields:  fields{r: bufio.NewReader(bytes.NewBufferString("# comment\n"))},
 			want:    nil,
 			wantErr: true,
 		},
 		{
-			name:    "test5",
+			name:    "testComment2",
 			fields:  fields{r: bufio.NewReader(bytes.NewBufferString("# comment\n| 1 |\n"))},
 			want:    []string{"1"},
 			wantErr: false,
+		},
+		{
+			name:    "testExtra1",
+			fields:  fields{r: bufio.NewReader(bytes.NewBufferString("; test: test\n"))},
+			want:    nil,
+			wantErr: true,
+		},
+		{
+			name:    "testExtra2",
+			fields:  fields{r: bufio.NewReader(bytes.NewBufferString("# test: test\n| 1 |\n"))},
+			want:    []string{"1"},
+			wantErr: false,
+		},
+		{
+			name:    "testExtraErr1",
+			fields:  fields{r: bufio.NewReader(bytes.NewBufferString("; test\n| 1 |\n"))},
+			want:    nil,
+			wantErr: true,
+		},
+		{
+			name:    "testExtraErr2",
+			fields:  fields{r: bufio.NewReader(bytes.NewBufferString("; Hash: |\n"))},
+			want:    nil,
+			wantErr: true,
 		},
 	}
 	for _, tt := range tests {
@@ -191,6 +223,14 @@ func TestReader_ReadRow(t *testing.T) {
 	}
 }
 
+func openFile(t *testing.T, fileName string) *os.File {
+	file, err := os.Open(fileName)
+	if err != nil {
+		t.Error(err)
+	}
+	return file
+}
+
 func TestReadAll(t *testing.T) {
 	type args struct {
 		reader io.Reader
@@ -217,6 +257,39 @@ func TestReadAll(t *testing.T) {
 			}
 			if !reflect.DeepEqual(got.Rows, tt.want.Rows) {
 				t.Errorf("ReadAll() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+func TestReadFile(t *testing.T) {
+	type args struct {
+		reader io.Reader
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    string
+		wantErr bool
+	}{
+		{
+			name:    "testSimple",
+			args:    args{reader: openFile(t, "testdata/simple.tbln")},
+			want:    "simple",
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := ReadAll(tt.args.reader)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("ReadFile() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !got.Verify() {
+				t.Error("verification failure")
+			}
+			if !reflect.DeepEqual(got.TableName(), tt.want) {
+				t.Errorf("ReadFile() = %v, want %v", got.TableName(), tt.want)
 			}
 		})
 	}

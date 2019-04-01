@@ -41,11 +41,12 @@ func TestWriter_WriteRow(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
+		buf := &bytes.Buffer{}
+		w := &Writer{
+			Writer: buf,
+		}
+		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
-			buf := &bytes.Buffer{}
-			w := &Writer{
-				Writer: buf,
-			}
 			if err := w.WriteRow(tt.args.row); (err != nil) != tt.wantErr {
 				t.Errorf("Writer.WriteRow() error = %v, wantErr %v", err, tt.wantErr)
 			}
@@ -203,7 +204,9 @@ func TestWriter_writeExtra(t *testing.T) {
 						"a": {"v", true},
 						"b": {"v", false},
 					},
-					Hashes: map[string][]byte{"sha256": []byte("test")},
+					Hashes: map[string][]byte{
+						"sha256": []byte("test"),
+					},
 				},
 			},
 			wantWriter: "; b: v\n; Hash: | sha256 | 74657374 |\n; a: v\n",
@@ -217,11 +220,14 @@ func TestWriter_writeExtra(t *testing.T) {
 						"a": {"v", true},
 						"b": {"v", false},
 					},
-					Hashes: map[string][]byte{"sha256": []byte("test")},
+					Hashes: map[string][]byte{
+						"sha256": []byte("test"),
+					},
 					Signs: map[string]Signature{
 						"test1": Signature{
 							sign:      []byte("test"),
-							algorithm: ED25519},
+							algorithm: ED25519,
+						},
 					},
 				},
 			},
