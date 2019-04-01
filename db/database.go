@@ -7,6 +7,7 @@ package db
 
 import (
 	"database/sql"
+	"fmt"
 	"log"
 	"regexp"
 )
@@ -16,6 +17,7 @@ type TDB struct {
 	Name string
 	*sql.DB
 	*sql.Tx
+	IsTx bool
 	Style
 	Constraint
 }
@@ -46,20 +48,27 @@ func Open(name string, dsn string) (*TDB, error) {
 // Begin is the sql.DB Begin wrapper.
 func (tdb *TDB) Begin() error {
 	var err error
+	if tdb.IsTx {
+		return fmt.Errorf("already in transaction")
+	}
 	tdb.Tx, err = tdb.DB.Begin()
 	if err != nil {
 		return err
 	}
+	tdb.IsTx = true
 	return nil
 }
 
 // Commit is the sql.DB Commit wrapper.
 func (tdb *TDB) Commit() error {
+	if !tdb.IsTx {
+		return fmt.Errorf("no transaction")
+	}
 	err := tdb.Tx.Commit()
 	if err != nil {
 		return err
 	}
-	tdb.Tx = nil
+	tdb.IsTx = false
 	return nil
 }
 
