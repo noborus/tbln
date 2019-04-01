@@ -1,0 +1,14 @@
+; character_octet_length: |  | 1073741824 |
+; created_at: 2019-03-14T17:22:29+09:00
+; is_nullable: | NO | YES |
+; numeric_precision: | 32 |  |
+; numeric_precision_radix: | 2 |  |
+; numeric_scale: | 0 |  |
+; postgres_type: | 0integer | text |
+; primarykey: | id |
+; Signature: | test | ED25519 | a0c80db0957d8c0a9e1b2594fd5f3976aea4a7e2237c191cf5f79d96a8fb0fdbcff0175280ff01f94842d97b835b77444e4e3e6aa0d305cbe86af8632d9b1c06 |
+; Hash: | sha256 | 3191722649a6388498c435e411cb6534b740d9b3a5c7ac281dd824b4ba78e968 |
+; name: | id | name |
+; type: | int | text |
+| 1 | Bob |
+| 2 | Alice |

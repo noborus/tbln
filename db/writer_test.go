@@ -2,6 +2,8 @@ package db_test
 
 import (
 	"bytes"
+	"fmt"
+	"os"
 	"testing"
 
 	"github.com/noborus/tbln"
@@ -44,6 +46,98 @@ func SetupTbln2(t *testing.T) *tbln.Tbln {
 	return at
 }
 
+func fileRead(t *testing.T, fileName string) *tbln.Tbln {
+	f, err := os.Open(fileName)
+	if err != nil {
+		fmt.Println(err)
+		t.Fatal(err)
+	}
+	tb, err := tbln.ReadAll(f)
+	if err != nil {
+		t.Fatal(err)
+	}
+	return tb
+}
+func TestWriteTableFile(t *testing.T) {
+	type args struct {
+		tdb    *db.TDB
+		schema string
+		cmode  db.CreateMode
+		imode  db.InsertMode
+	}
+	tests := []struct {
+		name     string
+		fileName string
+		args     args
+		wantErr  bool
+	}{
+		{
+			name:     "testErr",
+			fileName: "../testdata/simple-err.tbln",
+			args: args{
+				tdb:    SetupSQLite3Test(t),
+				schema: "",
+				cmode:  db.ReCreate,
+				imode:  db.Normal,
+			},
+			wantErr: true,
+		},
+		{
+			name:     "simple",
+			fileName: "../testdata/simple.tbln",
+			args: args{
+				schema: "",
+				cmode:  db.ReCreate,
+				imode:  db.Normal,
+			},
+			wantErr: false,
+		},
+		{
+			name:     "simpleIgnore",
+			fileName: "../testdata/simple.tbln",
+			args: args{
+				schema: "",
+				cmode:  db.ReCreate,
+				imode:  db.OrIgnore,
+			},
+			wantErr: false,
+		},
+		{
+			name:     "simplemulti",
+			fileName: "../testdata/simplemulti.tbln",
+			args: args{
+				schema: "",
+				cmode:  db.ReCreate,
+				imode:  db.OrIgnore,
+			},
+			wantErr: false,
+		},
+	}
+	dbDriver := []*db.TDB{
+		SetupPostgresTest(t),
+		SetupMySQLTest(t),
+		SetupSQLite3Test(t),
+	}
+	for _, tdb := range dbDriver {
+		for _, tt := range tests {
+			tt := tt
+			tb := fileRead(t, tt.fileName)
+			t.Run(tt.name+tdb.Name, func(t *testing.T) {
+				err := tdb.Begin()
+				if err != nil {
+					t.Fatal(err)
+				}
+				if err = db.WriteTable(tdb, tb, tt.args.schema, tt.args.cmode, tt.args.imode); (err != nil) != tt.wantErr {
+					t.Errorf("WriteTable() error = %v, wantErr %v", err, tt.wantErr)
+				}
+				err = tdb.Commit()
+				if err != nil {
+					t.Fatal(err)
+				}
+			})
+		}
+	}
+}
 func TestWriteTable(t *testing.T) {
 	type args struct {
 		tdb    *db.TDB
@@ -98,19 +192,31 @@ func TestWriteTable(t *testing.T) {
 
 func createDefinition1(t *testing.T) *tbln.Definition {
 	at := tbln.NewDefinition()
-	at.SetNames([]string{"a", "b"})
-	at.SetTypes([]string{"int", "int"})
+	err := at.SetNames([]string{"a", "b"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	err = at.SetTypes([]string{"int", "int"})
+	if err != nil {
+		t.Fatal(err)
+	}
 	return at
 }
 
 func createDefinition2(t *testing.T) *tbln.Definition {
 	at := tbln.NewDefinition()
-	at.SetNames([]string{"a", "b"})
+	err := at.SetNames([]string{"a", "b"})
+	if err != nil {
+		t.Fatal(err)
+	}
 	return at
 }
 func createDefinition3(t *testing.T) *tbln.Definition {
 	at := tbln.NewDefinition()
-	at.SetTypes([]string{"int", "int"})
+	err := at.SetTypes([]string{"int", "int"})
+	if err != nil {
+		t.Fatal(err)
+	}
 	return at
 }
 

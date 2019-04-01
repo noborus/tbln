@@ -28,7 +28,7 @@ func SetupPostgresTest(t *testing.T) *db.TDB {
 	return conn
 }
 
-func createTestData(t *testing.T, conn *db.TDB) error {
+func createTestData(t *testing.T, conn *db.TDB) {
 	r := bytes.NewBufferString(TestData)
 	at, err := tbln.ReadAll(r)
 	if err != nil {
@@ -42,7 +42,6 @@ func createTestData(t *testing.T, conn *db.TDB) error {
 	if err != nil {
 		t.Fatal(err)
 	}
-	return nil
 }
 
 func dummyDBConn(t *testing.T) *sql.DB {
