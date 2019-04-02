@@ -292,9 +292,11 @@ func convertType(dbtype string) string {
 	switch strings.ToLower(dbtype) {
 	case "tinyint", "smallint", "integer", "int", "int2", "int4", "smallserial", "serial":
 		return "int"
-	case "bigint", "int8", "bigserial":
+	case "bigint", "int8", "bigserial", "float4":
 		return "bigint"
-	case "float", "decimal", "numeric", "real", "double precision":
+	case "float", "real", "double", "double precision", "float8":
+		return "double precision"
+	case "decimal", "numeric":
 		return "numeric"
 	case "bool":
 		return "bool"
@@ -303,6 +305,7 @@ func convertType(dbtype string) string {
 	case "string", "text", "char", "varchar":
 		return "text"
 	default:
+		debug.Printf("unsupported type:%s", dbtype)
 		return "text"
 	}
 }
