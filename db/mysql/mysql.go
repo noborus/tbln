@@ -59,8 +59,9 @@ func (c *Constr) GetColumnInfo(conn *sql.DB, schema string, tableName string) (m
 		}
 	}
 	query := `SELECT cl.column_default
-     , cl.is_nullable
+	 , cl.is_nullable
 	 , cl.data_type AS mysql_type
+	 , cl.column_type AS mysql_columntype
 	 , cl.character_maximum_length
 	 , cl.character_octet_length
 	 , cl.numeric_precision

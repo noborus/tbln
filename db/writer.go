@@ -256,6 +256,13 @@ func (w *Writer) prepare(imode InsertMode) error {
 
 func (w *Writer) convertDBType(dbtype string, value string) interface{} {
 	switch strings.ToLower(dbtype) {
+	case "bool":
+		if w.TDB.Name == "mysql" {
+			if value == "false" || value == "f" || value == "0" {
+				return 0
+			}
+			return 1
+		}
 	case "datetime", "timestamp":
 		if w.TDB.Name == "mysql" {
 			t, err := time.Parse(time.RFC3339, value)

@@ -97,6 +97,14 @@ func (tr *Reader) ReadRow() ([]string, error) {
 		return nil, err
 	}
 	rec := make([]string, len(tr.values))
+	// MySQL converts to string by columnType,
+	// because MySQL drivers are returned in all []byte.
+	if tr.TDB.Name == "mysql" {
+		for i, col := range tr.values {
+			rec[i] = mySQLtoString(tr.Types[i], col)
+		}
+		return rec, nil
+	}
 	for i, col := range tr.values {
 		rec[i] = toString(col)
 	}
@@ -224,6 +232,28 @@ func (tr *Reader) setRowInfo(rows *sql.Rows) error {
 	return nil
 }
 
+func mySQLtoString(dbtype string, v interface{}) string {
+	const layout = "2006-01-02 15:04:05"
+	var str string
+
+	if b, ok := v.([]byte); ok {
+		if ok := utf8.Valid(b); ok {
+			str = string(b)
+		} else {
+			str = `\x` + hex.EncodeToString(b)
+		}
+	}
+	switch dbtype {
+	case "timestamp":
+		t, err := time.Parse(layout, str)
+		if err != nil {
+			return ""
+		}
+		str = t.Format(time.RFC3339)
+	}
+	return str
+}
+
 func toString(v interface{}) string {
 	var str string
 	switch t := v.(type) {
@@ -246,7 +276,7 @@ func toString(v interface{}) string {
 
 func convertType(dbtype string) string {
 	switch strings.ToLower(dbtype) {
-	case "smallint", "integer", "int", "int2", "int4", "smallserial", "serial":
+	case "tinyint", "smallint", "integer", "int", "int2", "int4", "smallserial", "serial":
 		return "int"
 	case "bigint", "int8", "bigserial":
 		return "bigint"
