@@ -41,31 +41,12 @@ var TestOne = `; name: | one |
 | c |
 `
 
-var TestType = `; name: | a | b | c | d | e |
-; type: | int | bigint | numeric | timestamp | text |
+var TestType = `; name: | a | b | c | d | e | f |
+; type: | int | bigint | numeric | timestamp | text | bool |
 ; TableName: testtype
-| 1 | 239239023290 | 3 | 2019-03-14T17:09:14Z | test |
-| 2 | 99323020392 | 99320 | 1999-03-14T17:09:14Z | t |
-| 3 | 329 | 329 | 2036-03-14T08:09:14Z | t |
-`
-
-var TestSQLite3Bool = `; name: | id | bcolumn |
-; type: | int | bool |
-; TableName: testtypeb
-| 1 | true |
-| 2 | false |
-`
-var TestPostgreSQLBool = `; name: | id | bcolumn |
-; type: | int | bool |
-; TableName: testtypeb
-| 1 | true |
-| 2 | false |
-`
-var TestMySQLBool = `; name: | id | bcolumn |
-; type: | int | bool |
-; TableName: testtypeb
-| 1 | 1 |
-| 2 | 0 |
+| 1 | 239239023290 | 3 | 2019-03-14T17:09:14Z | test | true |
+| 2 | 99323020392 | 99320 | 1999-03-14T17:09:14Z | t | false |
+| 3 | 329 | 329 | 2036-03-14T08:09:14Z | t | true |
 `
 
 func createTestTable(t *testing.T, tdb *db.TDB, data string) string {
