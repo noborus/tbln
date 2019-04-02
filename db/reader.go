@@ -15,9 +15,10 @@ import (
 type Reader struct {
 	*tbln.Definition
 	*TDB
-	rows     *sql.Rows
-	scanArgs []interface{}
-	values   []interface{}
+	rows         *sql.Rows
+	scanArgs     []interface{}
+	values       []interface{}
+	mySQLcolType []string
 }
 
 // ReadTable returns a new Reader from table name.
@@ -42,6 +43,7 @@ func (tdb *TDB) ReadTable(schema string, tableName string, pkey []string) (*Read
 		}
 	}
 	tr.setTableInfo(info)
+	tr.mySQLcolType = tbln.SplitRow(toString(tr.ExtraValue("mysql_columntype")))
 	// Primary key
 	pk, err := tr.GetPrimaryKey(tr.TDB.DB, schema, tableName)
 	if err != nil && err != ErrorNotSupport {
@@ -100,8 +102,14 @@ func (tr *Reader) ReadRow() ([]string, error) {
 	// MySQL converts to string by columnType,
 	// because MySQL drivers are returned in all []byte.
 	if tr.TDB.Name == "mysql" {
+		var mtypes []string
+		if len(tr.mySQLcolType) == len(tr.values) {
+			mtypes = tr.mySQLcolType
+		} else {
+			mtypes = tr.Types
+		}
 		for i, col := range tr.values {
-			rec[i] = mySQLtoString(tr.Types[i], col)
+			rec[i] = mySQLtoString(mtypes[i], col)
 		}
 		return rec, nil
 	}
@@ -244,6 +252,12 @@ func mySQLtoString(dbtype string, v interface{}) string {
 		}
 	}
 	switch dbtype {
+	case "tinyint(1)":
+		if str == "1" {
+			str = "true"
+		} else if str == "0" {
+			str = "false"
+		}
 	case "timestamp":
 		t, err := time.Parse(layout, str)
 		if err != nil {
@@ -278,9 +292,11 @@ func convertType(dbtype string) string {
 	switch strings.ToLower(dbtype) {
 	case "tinyint", "smallint", "integer", "int", "int2", "int4", "smallserial", "serial":
 		return "int"
-	case "bigint", "int8", "bigserial":
+	case "bigint", "int8", "bigserial", "float4":
 		return "bigint"
-	case "float", "decimal", "numeric", "real", "double precision":
+	case "float", "real", "double", "double precision", "float8":
+		return "double precision"
+	case "decimal", "numeric":
 		return "numeric"
 	case "bool":
 		return "bool"
@@ -289,6 +305,7 @@ func convertType(dbtype string) string {
 	case "string", "text", "char", "varchar":
 		return "text"
 	default:
+		debug.Printf("unsupported type:%s", dbtype)
 		return "text"
 	}
 }

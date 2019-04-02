@@ -85,69 +85,6 @@ func TestTDB_ReadTableAll(t *testing.T) {
 		}
 	}
 }
-func TestTDB_ReadTypeBool(t *testing.T) {
-	type args struct {
-		schema    string
-		tableName string
-		pkey      []string
-	}
-	tests := []struct {
-		name    string
-		tdb     *db.TDB
-		args    args
-		table   string
-		want    *tbln.Tbln
-		wantErr bool
-	}{
-		{
-			name:    "testTypeBoolSQLite3",
-			tdb:     SetupSQLite3Test(t),
-			args:    args{schema: "", tableName: "testtypeb", pkey: nil},
-			table:   TestSQLite3Bool,
-			want:    wantTbln(t, TestSQLite3Bool),
-			wantErr: false,
-		},
-		{
-			name:    "testTypeBoolPostgreSQL",
-			tdb:     SetupPostgresTest(t),
-			args:    args{schema: "", tableName: "testtypeb", pkey: nil},
-			table:   TestPostgreSQLBool,
-			want:    wantTbln(t, TestPostgreSQLBool),
-			wantErr: false,
-		},
-		{
-			name:    "testTypeBoolMySQL",
-			tdb:     SetupMySQLTest(t),
-			args:    args{schema: "", tableName: "testtypeb", pkey: nil},
-			table:   TestMySQLBool,
-			want:    wantTbln(t, TestMySQLBool),
-			wantErr: false,
-		},
-	}
-	for _, tt := range tests {
-		tt := tt
-		// db.Debug(true)
-		var tableName string
-		if tt.table != "" {
-			tableName = createTestTable(t, tt.tdb, tt.table)
-		}
-		t.Run(tt.name+"_"+tt.tdb.Name, func(t *testing.T) {
-			got, err := db.ReadTableAll(tt.tdb, tt.args.schema, tt.args.tableName)
-			if (err != nil) != tt.wantErr {
-				t.Errorf("(%s)TDB.ReadTable()error = %v, wantErr %v", tt.tdb.Name, err, tt.wantErr)
-				return
-			}
-			if tt.want != nil {
-				if !reflect.DeepEqual(got.Rows, tt.want.Rows) {
-					t.Errorf("(%s)ReadTableAll() = %v, want %v", tt.tdb.Name, got.Rows, tt.want.Rows)
-				}
-			}
-		})
-		if tt.table != "" {
-			dropTestTable(t, tt.tdb, tableName)
-		}
-	}
-}
 
 func TestTDB_ReadQueryAll(t *testing.T) {
 	// db.Debug(true)
