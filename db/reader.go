@@ -230,6 +230,17 @@ func (tr *Reader) setRowInfo(rows *sql.Rows) error {
 		dbtypes[i] = ct.DatabaseTypeName()
 		types[i] = convertType(ct.DatabaseTypeName())
 	}
+
+	// Convert MySQL tinyint(1) to bool type
+	if tr.TDB.Name == "mysql" {
+		tr.mySQLcolType = tbln.SplitRow(toString(tr.ExtraValue("mysql_columntype")))
+		for i, t := range tr.mySQLcolType {
+			if t == "tinyint(1)" {
+				types[i] = "bool"
+			}
+		}
+	}
+
 	err = tr.SetTypes(types)
 	if err != nil {
 		return err
@@ -292,9 +303,11 @@ func convertType(dbtype string) string {
 	switch strings.ToLower(dbtype) {
 	case "tinyint", "smallint", "integer", "int", "int2", "int4", "smallserial", "serial":
 		return "int"
-	case "bigint", "int8", "bigserial", "float4":
+	case "bigint", "int8", "bigserial":
 		return "bigint"
-	case "float", "real", "double", "double precision", "float8":
+	case "float4", "float", "real":
+		return "double precision"
+	case "double", "double precision", "float8":
 		return "double precision"
 	case "decimal", "numeric":
 		return "numeric"
