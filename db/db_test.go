@@ -33,12 +33,39 @@ var TestPrimary = `; name: | id1 | id2 | id3 |
 | 2 | 2 | 2 |
 `
 
-var TestData2 = `; name: | one |
+var TestOne = `; name: | one |
 ; type: | text |
 ; TableName: testone
 | a |
 | b |
 | c |
+`
+
+var TestType = `; name: | a | b | c | d | e |
+; type: | int | bigint | numeric | timestamp | text |
+; TableName: testtype
+| 1 | 239239023290 | 3 | 2019-03-14T17:09:14Z | test |
+| 2 | 99323020392 | 99320 | 1999-03-14T17:09:14Z | t |
+| 3 | 329 | 329 | 2036-03-14T08:09:14Z | t |
+`
+
+var TestSQLite3Bool = `; name: | id | bcolumn |
+; type: | int | bool |
+; TableName: testtypeb
+| 1 | true |
+| 2 | false |
+`
+var TestPostgreSQLBool = `; name: | id | bcolumn |
+; type: | int | bool |
+; TableName: testtypeb
+| 1 | true |
+| 2 | false |
+`
+var TestMySQLBool = `; name: | id | bcolumn |
+; type: | int | bool |
+; TableName: testtypeb
+| 1 | 1 |
+| 2 | 0 |
 `
 
 func createTestTable(t *testing.T, tdb *db.TDB, data string) string {
