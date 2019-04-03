@@ -1,0 +1,13 @@
+; TableName: test_tn
+; character_maximum_length: |  |  |  |  |  |  |  | 1 | 1 |  |  |
+; character_octet_length: |  |  |  |  |  |  |  | 4 | 4 |  |  |
+; created_at: 2019-04-03T12:31:43+09:00
+; datetime_precision: |  |  |  |  |  |  |  |  |  | 0 | 6 |
+; is_nullable: | YES | YES | YES | YES | YES | YES | YES | YES | YES | YES | YES |
+; numeric_precision: | 32 | 32 | 64 |  | 24 | 53 |  |  |  |  |  |
+; numeric_precision_radix: | 2 | 2 | 2 | 10 | 2 | 2 |  |  |  |  |  |
+; numeric_scale: | 0 | 0 | 0 |  |  |  |  |  |  |  |  |
+; postgres_type: | integer | integer | bigint | numeric | real | double precision | boolean | character | character varying | date | timestamp without time zone |
+; Hash: | sha256 | 13a96f7fc9dc45cc358dac4e6b3ffaeea7f127c2c03c1178349cc12eb0944b13 |
+; name: | a | b | c | d | e | f | g | h | i | j | k |
+; type: | int | int | bigint | numeric | double precision | double precision | bool | text | text | timestamp | timestamp |

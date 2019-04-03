@@ -91,6 +91,24 @@ func dropTestTable(t *testing.T, tdb *db.TDB, tableName string) {
 	}
 }
 
+func fileRead(t *testing.T, fileName string) *tbln.Tbln {
+	f, err := os.Open(fileName)
+	if err != nil {
+		t.Fatal(err)
+	}
+	tb, err := tbln.ReadAll(f)
+	if err != nil {
+		t.Fatal(err)
+	}
+	return tb
+}
+func setHash(t *testing.T, tb *tbln.Tbln) *tbln.Tbln {
+	tb.AllTargetHash(false)
+	tb.ToTargetHash("name", true)
+	tb.ToTargetHash("type", true)
+	return tb
+}
+
 func SetupPostgresTest(t *testing.T) *db.TDB {
 	// db.Debug(true)
 	if PostgreSQLDBname = os.Getenv("TEST_PG_DATABASE"); PostgreSQLDBname == "" {
@@ -121,6 +139,76 @@ func SetupMySQLTest(t *testing.T) *db.TDB {
 		t.Fatal(err)
 	}
 	return conn
+}
+
+// Test the file targeted by hash only for name and type(sethash(name,type)).
+func TestWriteRead(t *testing.T) {
+	tests := []struct {
+		name     string
+		fileName string
+		wantErr  bool
+	}{
+		{
+			name:     "abcErr",
+			fileName: "../testdata/abc-n.tbln",
+			wantErr:  true,
+		},
+		{
+			name:     "test_type.tbln",
+			fileName: "../testdata/test_type.tbln",
+			wantErr:  false,
+		},
+		{
+			name:     "ascii_table.tbln",
+			fileName: "../testdata/ascii_table.tbln",
+			wantErr:  false,
+		},
+	}
+	dbDriver := []*db.TDB{
+		SetupPostgresTest(t),
+		SetupMySQLTest(t),
+		SetupSQLite3Test(t),
+	}
+	for _, tdb := range dbDriver {
+		for _, tt := range tests {
+			tt := tt
+			t.Run(tt.name, func(t *testing.T) {
+				// reset
+				tdb.Commit()
+				wt := fileRead(t, tt.fileName)
+				tableName := wt.TableName()
+				wgot := wt.Hashes["sha256"]
+				err := tdb.Begin()
+				if err != nil {
+					t.Fatal(err)
+				}
+				err = db.WriteTable(tdb, wt, "", db.ReCreate, db.Normal)
+				if err != nil {
+					t.Fatal(err)
+				}
+				err = tdb.Commit()
+				if err != nil {
+					t.Fatal(err)
+				}
+				rt, err := db.ReadTableAll(tdb, "", tableName)
+				if err != nil {
+					t.Fatal(err)
+				}
+				rt = setHash(t, rt)
+				err = rt.SumHash("sha256")
+				if err != nil {
+					t.Fatal(err)
+				}
+				rgot := rt.Hashes["sha256"]
+				if (string(rgot) != string(wgot)) != tt.wantErr {
+					t.Errorf("Hash name = %v, hash = %x, wantHash %x", tt.name, rgot, wgot)
+					tbln.WriteAll(os.Stdout, wt)
+					tbln.WriteAll(os.Stdout, rt)
+					return
+				}
+			})
+		}
+	}
 }
 
 func TestGetPrimaryKey(t *testing.T) {
