@@ -1,0 +1,4 @@
+; TableName: abc
+; name: | a | b | c |
+; type: | int | int | int |
+| 1 | 2 | 3 |

@@ -2,8 +2,6 @@ package db_test
 
 import (
 	"bytes"
-	"fmt"
-	"os"
 	"testing"
 
 	"github.com/noborus/tbln"
@@ -46,18 +44,6 @@ func SetupTbln2(t *testing.T) *tbln.Tbln {
 	return at
 }
 
-func fileRead(t *testing.T, fileName string) *tbln.Tbln {
-	f, err := os.Open(fileName)
-	if err != nil {
-		fmt.Println(err)
-		t.Fatal(err)
-	}
-	tb, err := tbln.ReadAll(f)
-	if err != nil {
-		t.Fatal(err)
-	}
-	return tb
-}
 func TestWriteTableFile(t *testing.T) {
 	type args struct {
 		tdb    *db.TDB

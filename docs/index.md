@@ -2,6 +2,7 @@
 
 TBLN can contain multiple columns like CSV.
 Also, it can include checksum and signature inside.
+Allows conversion between TBLN and database tables.
 
 ## Products
 
@@ -35,7 +36,7 @@ Also, it can include checksum and signature inside.
 
 ```
 ; ItemName: Value
-````
+```
 
 * Extras begin with "; ". Extras can be interpreted as a header.
 * Extras can be used to indicate the column name and column data type.
@@ -59,7 +60,7 @@ TableName is used as a table name when importing into the database.
 
 #### name
 
-name is the column name.
+The name is the column name.
 Same as data, it is written in the form of | name1 | name2 | ... |.
 
 #### type
@@ -138,14 +139,14 @@ Signature currently supports ED25519.
 
 ## TBLN file example
 
-Data only.
+Data only example.
 
 ```
 | 1 | Bob |
 | 2 | Alice |
 ```
 
-Add comment, column name and data type.
+Example of adding comments, column names, and data types.
 
 ```
 # comment
@@ -155,7 +156,7 @@ Add comment, column name and data type.
 | 2 | Alice |
 ```
 
-Database export and signature.
+Example of exporting from a database and adding a signature.
 
 ```
 ; TableName: simple
