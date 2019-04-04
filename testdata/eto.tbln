@@ -1,0 +1,23 @@
+; TableName: eto
+; character_octet_length: |  | 1073741824 | 1073741824 | 1073741824 |
+; created_at: 2019-04-03T17:51:48+09:00
+; is_nullable: | YES | YES | YES | YES |
+; numeric_precision: | 32 |  |  |  |
+; numeric_precision_radix: | 2 |  |  |  |
+; numeric_scale: | 0 |  |  |  |
+; postgres_type: | integer | text | text | text |
+; Hash: | sha256 | d0a69f7c07bba73c49125f2be879fec0e2c6c7dae779f25791580c76704b6530 |
+; name: | 月 | 十二支 | 動物 | 読み |
+; type: | int | text | text | text |
+| 1 | 子 | 鼠 | ね |
+| 2 | 丑 | 牛 | うし |
+| 3 | 寅 | 虎 | とら |
+| 4 | 卯 | 兎 | う |
+| 5 | 辰 | 竜 | たつ |
+| 6 | 巳 | 蛇 | み |
+| 7 | 午 | 馬 | うま |
+| 8 | 未 | 羊 | ひつじ |
+| 9 | 申 | 猿 | さる |
+| 10 | 酉 | 鳥 | とり |
+| 11 | 戌 | 犬 | いぬ |
+| 12 | 亥 | 猪 | ゐ（い） |
