@@ -55,7 +55,7 @@ func verifiedTbln(cmd *cobra.Command, args []string) (*tbln.Tbln, error) {
 		return nil, err
 	}
 	if noverify, err = cmd.PersistentFlags().GetBool("no-verify"); err != nil {
-		return nil, err
+		noverify = false
 	}
 
 	file, err := os.Open(fileName)
