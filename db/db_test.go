@@ -195,8 +195,8 @@ func TestWriteRead(t *testing.T) {
 				rgot := rt.Hashes["sha256"]
 				if (string(rgot) != string(wgot)) != tt.wantErr {
 					t.Errorf("Hash name = %v, hash = %x, wantHash %x", tt.name, rgot, wgot)
-					// tbln.WriteAll(os.Stdout, wt)
-					// tbln.WriteAll(os.Stdout, rt)
+					tbln.WriteAll(os.Stdout, wt)
+					tbln.WriteAll(os.Stdout, rt)
 					return
 				}
 			})
