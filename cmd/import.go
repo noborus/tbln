@@ -49,6 +49,7 @@ func init() {
 	importCmd.PersistentFlags().StringP("table", "t", "", "table name")
 	importCmd.PersistentFlags().BoolP("force-verify-sign", "", false, "force signature verification")
 	importCmd.PersistentFlags().BoolP("no-verify-sign", "", false, "ignore signature verify")
+	importCmd.PersistentFlags().BoolP("no-verify", "", false, "ignore verify")
 	importCmd.PersistentFlags().StringP("file", "f", "", "TBLN File")
 	rootCmd.AddCommand(importCmd)
 }

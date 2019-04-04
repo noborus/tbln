@@ -119,6 +119,11 @@ func (tr *Reader) ReadRow() ([]string, error) {
 	return rec, nil
 }
 
+// Close reader.
+func (tr *Reader) Close() error {
+	return tr.rows.Close()
+}
+
 // GetTableInfo returns only the information of table.
 func GetTableInfo(tdb *TDB, schema string, tableName string) (*tbln.Tbln, error) {
 	tr, err := tdb.ReadTable(schema, tableName, nil)
@@ -151,7 +156,7 @@ func ReadQueryAll(tdb *TDB, query string, args ...interface{}) (*tbln.Tbln, erro
 func (tr *Reader) readRowsAll() (*tbln.Tbln, error) {
 	var err error
 	defer func() {
-		cerr := tr.rows.Close()
+		cerr := tr.Close()
 		if err == nil {
 			err = cerr
 		}
@@ -256,11 +261,11 @@ func mySQLtoString(dbtype string, v interface{}) string {
 	var str string
 
 	if b, ok := v.([]byte); ok {
-		if ok := utf8.Valid(b); ok {
-			str = string(b)
-		} else {
+		if ok := utf8.Valid(b); !ok {
 			str = `\x` + hex.EncodeToString(b)
+			return str
 		}
+		str = string(b)
 	}
 	switch dbtype {
 	case "tinyint(1)":
@@ -315,7 +320,7 @@ func convertType(dbtype string) string {
 		return "bool"
 	case "timestamp", "timestamptz", "date", "time":
 		return "timestamp"
-	case "string", "text", "char", "varchar":
+	case "string", "text", "char", "varchar", "character", "bpchar":
 		return "text"
 	default:
 		debug.Printf("unsupported type:%s", dbtype)

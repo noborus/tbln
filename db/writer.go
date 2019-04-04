@@ -64,6 +64,11 @@ func NewWriter(tdb *TDB, definition *tbln.Definition) (*Writer, error) {
 func (w *Writer) WriteRow(row []string) error {
 	r := make([]interface{}, len(row))
 	for i, v := range row {
+		// null
+		if v == "" {
+			r[i] = nil
+			continue
+		}
 		if w.ReplaceLN {
 			v = strings.ReplaceAll(v, "\\n", "\n")
 		}

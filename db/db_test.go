@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"os"
+	"path/filepath"
 	"reflect"
 	"testing"
 
@@ -77,11 +78,13 @@ func wantTbln(t *testing.T, data string) *tbln.Tbln {
 
 func dropTestTable(t *testing.T, tdb *db.TDB, tableName string) {
 	sql := fmt.Sprintf("DROP TABLE IF EXISTS %s", tableName)
-	err := tdb.Begin()
-	if err != nil {
-		t.Fatal(err)
-	}
-	_, err = tdb.Tx.Exec(sql)
+	_ = tdb.Begin()
+	/*
+		if err != nil {
+			t.Fatal(err)
+		}
+	*/
+	_, err := tdb.Tx.Exec(sql)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -143,26 +146,16 @@ func SetupMySQLTest(t *testing.T) *db.TDB {
 
 // Test the file targeted by hash only for name and type(sethash(name,type)).
 func TestWriteRead(t *testing.T) {
+	// db.Debug(true)
+	testDataPath := "../testdata"
 	tests := []struct {
-		name     string
-		fileName string
-		wantErr  bool
+		name    string
+		wantErr bool
 	}{
-		{
-			name:     "abcErr",
-			fileName: "../testdata/abc-n.tbln",
-			wantErr:  true,
-		},
-		{
-			name:     "test_type.tbln",
-			fileName: "../testdata/test_type.tbln",
-			wantErr:  false,
-		},
-		{
-			name:     "ascii_table.tbln",
-			fileName: "../testdata/ascii_table.tbln",
-			wantErr:  false,
-		},
+		{name: "abc-n.tbln", wantErr: true},
+		{name: "test_type.tbln", wantErr: false},
+		{name: "ascii_table.tbln", wantErr: false},
+		{name: "eto.tbln", wantErr: false},
 	}
 	dbDriver := []*db.TDB{
 		SetupPostgresTest(t),
@@ -172,12 +165,12 @@ func TestWriteRead(t *testing.T) {
 	for _, tdb := range dbDriver {
 		for _, tt := range tests {
 			tt := tt
-			t.Run(tt.name, func(t *testing.T) {
-				// reset
-				tdb.Commit()
-				wt := fileRead(t, tt.fileName)
+			t.Run(tdb.Name+"_"+tt.name, func(t *testing.T) {
+				wt := fileRead(t, filepath.Join(testDataPath, tt.name))
 				tableName := wt.TableName()
 				wgot := wt.Hashes["sha256"]
+				// reset
+				tdb.Commit()
 				err := tdb.Begin()
 				if err != nil {
 					t.Fatal(err)

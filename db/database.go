@@ -62,13 +62,16 @@ func (tdb *TDB) Begin() error {
 // Commit is the sql.DB Commit wrapper.
 func (tdb *TDB) Commit() error {
 	if !tdb.IsTx {
+		if tdb.Tx != nil {
+			tdb.Tx.Rollback()
+		}
 		return fmt.Errorf("no transaction")
 	}
+	tdb.IsTx = false
 	err := tdb.Tx.Commit()
 	if err != nil {
 		return err
 	}
-	tdb.IsTx = false
 	return nil
 }
 

@@ -36,7 +36,7 @@ func verify(cmd *cobra.Command, args []string) error {
 func verifiedTbln(cmd *cobra.Command, args []string) (*tbln.Tbln, error) {
 	var err error
 	var fileName string
-	var forcesign, nosign bool
+	var forcesign, nosign, noverify bool
 	if fileName, err = cmd.PersistentFlags().GetString("file"); err != nil {
 		cmd.SilenceUsage = false
 		return nil, err
@@ -52,6 +52,9 @@ func verifiedTbln(cmd *cobra.Command, args []string) (*tbln.Tbln, error) {
 		return nil, err
 	}
 	if forcesign, err = cmd.PersistentFlags().GetBool("force-verify-sign"); err != nil {
+		return nil, err
+	}
+	if noverify, err = cmd.PersistentFlags().GetBool("no-verify"); err != nil {
 		return nil, err
 	}
 
@@ -82,7 +85,7 @@ func verifiedTbln(cmd *cobra.Command, args []string) (*tbln.Tbln, error) {
 		}
 		log.Println("Signature verification successful")
 	} else {
-		if !at.Verify() {
+		if !noverify && !at.Verify() {
 			return nil, fmt.Errorf("verification failure")
 		}
 		log.Println("Verification successful")
