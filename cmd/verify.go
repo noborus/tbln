@@ -3,7 +3,6 @@ package cmd
 import (
 	"fmt"
 	"log"
-	"os"
 
 	"github.com/noborus/tbln"
 	"github.com/noborus/tbln/cmd/keystore"
@@ -23,12 +22,12 @@ var verifyCmd = &cobra.Command{
 func init() {
 	verifyCmd.PersistentFlags().BoolP("force-verify-sign", "", false, "force signature verification")
 	verifyCmd.PersistentFlags().BoolP("no-verify-sign", "", false, "ignore signature verification")
-	verifyCmd.PersistentFlags().StringP("output", "o", "", "write to file instead of stdout")
 	verifyCmd.PersistentFlags().StringP("file", "f", "", "TBLN File")
 	rootCmd.AddCommand(verifyCmd)
 }
 
 func verify(cmd *cobra.Command, args []string) error {
+	cmd.PersistentFlags().StringP("output", "o", "", "")
 	_, err := verifiedTbln(cmd, args)
 	return err
 }
@@ -36,18 +35,11 @@ func verify(cmd *cobra.Command, args []string) error {
 func verifiedTbln(cmd *cobra.Command, args []string) (*tbln.Tbln, error) {
 	var err error
 	var fileName string
-	var forcesign, nosign, noverify bool
-	if fileName, err = cmd.PersistentFlags().GetString("file"); err != nil {
-		cmd.SilenceUsage = false
-		return nil, err
-	}
 	if fileName == "" && len(args) > 0 {
 		fileName = args[0]
 	}
-	if fileName == "" {
-		cmd.SilenceUsage = false
-		return nil, fmt.Errorf("require filename")
-	}
+
+	var forcesign, nosign, noverify bool
 	if nosign, err = cmd.PersistentFlags().GetBool("no-verify-sign"); err != nil {
 		return nil, err
 	}
@@ -58,15 +50,7 @@ func verifiedTbln(cmd *cobra.Command, args []string) (*tbln.Tbln, error) {
 		noverify = false
 	}
 
-	file, err := os.Open(fileName)
-	if err != nil {
-		return nil, err
-	}
-	at, err := tbln.ReadAll(file)
-	if err != nil {
-		return nil, err
-	}
-	err = file.Close()
+	at, err := readTbln(fileName, cmd)
 	if err != nil {
 		return nil, err
 	}
@@ -86,6 +70,9 @@ func verifiedTbln(cmd *cobra.Command, args []string) (*tbln.Tbln, error) {
 		log.Println("Signature verification successful")
 	} else {
 		if !noverify && !at.Verify() {
+			if len(at.Hashes) == 0 {
+				return nil, fmt.Errorf("no hash")
+			}
 			return nil, fmt.Errorf("verification failure")
 		}
 		log.Println("Verification successful")

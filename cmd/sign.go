@@ -2,7 +2,6 @@ package cmd
 
 import (
 	"fmt"
-	"os"
 
 	"github.com/noborus/tbln"
 	"github.com/noborus/tbln/cmd/key"
@@ -18,7 +17,7 @@ var signCmd = &cobra.Command{
 	Long: `Sign a TBLN file with a private key.
 Sign the hash value with the ED25519 private key.
 Generate hash first, if there is no hash value yet(default is SHA256).`,
-	RunE: signFile,
+	RunE: sign,
 }
 
 func init() {
@@ -32,12 +31,8 @@ func init() {
 	rootCmd.AddCommand(signCmd)
 }
 
-func signFile(cmd *cobra.Command, args []string) error {
+func sign(cmd *cobra.Command, args []string) error {
 	var err error
-	var output string
-	if output, err = cmd.PersistentFlags().GetString("output"); err != nil {
-		return err
-	}
 	var fileName string
 	if fileName, err = cmd.PersistentFlags().GetString("file"); err != nil {
 		cmd.SilenceUsage = false
@@ -50,46 +45,36 @@ func signFile(cmd *cobra.Command, args []string) error {
 		cmd.SilenceUsage = false
 		return fmt.Errorf("require filename")
 	}
+
+	at, err := readTbln(fileName, cmd)
+	if err != nil {
+		return err
+	}
+	at, err = hashFile(at, cmd)
+	if err != nil {
+		return err
+	}
+	at, err = signFile(at, cmd)
+	if err != nil {
+		return err
+	}
+	return outputFile(at, cmd)
+}
+
+func signFile(at *tbln.Tbln, cmd *cobra.Command) (*tbln.Tbln, error) {
+	var err error
 	var quiet bool
 	if quiet, err = cmd.PersistentFlags().GetBool("quiet"); err != nil {
 		cmd.SilenceUsage = false
-		return err
+		return nil, err
 	}
 	privKey, err := key.GetPrivateKey(SecFile, KeyName, !quiet)
 	if err != nil {
-		return err
-	}
-
-	file, err := os.Open(fileName)
-	if err != nil {
-		return err
-	}
-	at, err := tbln.ReadAll(file)
-	if err != nil {
-		return err
-	}
-	err = file.Close()
-	if err != nil {
-		return err
-	}
-	err = hash(at, cmd)
-	if err != nil {
-		return err
+		return nil, err
 	}
 	_, err = at.Sign(KeyName, privKey)
 	if err != nil {
-		return err
+		return nil, err
 	}
-
-	var out *os.File
-	if output == "" {
-		out = os.Stdout
-	} else {
-		out, err = os.Create(output)
-		if err != nil {
-			return err
-		}
-		defer out.Close()
-	}
-	return tbln.WriteAll(out, at)
+	return at, nil
 }

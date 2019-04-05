@@ -1,8 +1,6 @@
 package cmd
 
 import (
-	"os"
-
 	"github.com/noborus/tbln"
 
 	"github.com/spf13/cobra"
@@ -15,7 +13,7 @@ var hashCmd = &cobra.Command{
 	Short:        "Add hash value to TBLN file",
 	Long: `Add hash value to TBLN file.
 Select SHA256, SHA512, or both HASH values to the TBLN file.`,
-	RunE: addHash,
+	RunE: hash,
 }
 
 func init() {
@@ -27,23 +25,39 @@ func init() {
 
 	rootCmd.AddCommand(hashCmd)
 }
+func hash(cmd *cobra.Command, args []string) error {
+	var err error
+	var fileName string
+	if len(args) > 0 {
+		fileName = args[0]
+	}
+	at, err := readTbln(fileName, cmd)
+	if err != nil {
+		return err
+	}
+	at, err = hashFile(at, cmd)
+	if err != nil {
+		return err
+	}
+	return outputFile(at, cmd)
+}
 
-func hash(at *tbln.Tbln, cmd *cobra.Command) error {
+func hashFile(at *tbln.Tbln, cmd *cobra.Command) (*tbln.Tbln, error) {
 	var err error
 	var hashes []string
 	if hashes, err = cmd.PersistentFlags().GetStringSlice("hash"); err != nil {
 		cmd.SilenceUsage = false
-		return err
+		return nil, err
 	}
 	var enableTarget []string
 	if enableTarget, err = cmd.PersistentFlags().GetStringSlice("enable-target"); err != nil {
 		cmd.SilenceUsage = false
-		return err
+		return nil, err
 	}
 	var disableTarget []string
 	if disableTarget, err = cmd.PersistentFlags().GetStringSlice("disable-target"); err != nil {
 		cmd.SilenceUsage = false
-		return err
+		return nil, err
 	}
 	for _, v := range enableTarget {
 		if v == "all" {
@@ -75,49 +89,8 @@ func hash(at *tbln.Tbln, cmd *cobra.Command) error {
 	for _, hash := range hashes {
 		err = at.SumHash(hash)
 		if err != nil {
-			return err
+			return nil, err
 		}
 	}
-	return nil
-}
-
-func addHash(cmd *cobra.Command, args []string) error {
-	var err error
-	var output string
-	if output, err = cmd.PersistentFlags().GetString("output"); err != nil {
-		return err
-	}
-
-	var fileName string
-	if len(args) > 0 {
-		fileName = args[0]
-	}
-
-	file, err := os.Open(fileName)
-	if err != nil {
-		return err
-	}
-	at, err := tbln.ReadAll(file)
-	if err != nil {
-		return err
-	}
-	err = file.Close()
-	if err != nil {
-		return err
-	}
-	err = hash(at, cmd)
-	if err != nil {
-		return err
-	}
-	var out *os.File
-	if output == "" {
-		out = os.Stdout
-	} else {
-		out, err = os.Create(output)
-		if err != nil {
-			return err
-		}
-		defer out.Close()
-	}
-	return tbln.WriteAll(out, at)
+	return at, nil
 }
