@@ -315,11 +315,10 @@ func Test_rewriteStore(t *testing.T) {
 		tb *tbln.Tbln
 	}
 	tests := []struct {
-		name     string
-		mode     int
-		fileName string
-		args     args
-		wantErr  bool
+		name    string
+		mode    int
+		args    args
+		wantErr bool
 	}{
 		{
 			name:    "test1Err1",

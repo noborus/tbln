@@ -145,9 +145,8 @@ func TestStdInPasswordReader_ReadPasswordPrompt(t *testing.T) {
 
 func TestWritePublicFile(t *testing.T) {
 	type args struct {
-		fileName string
-		keyName  string
-		public   []byte
+		keyName string
+		public  []byte
 	}
 	tests := []struct {
 		name    string
@@ -189,7 +188,6 @@ func TestGetPrivateKey(t *testing.T) {
 		name    string
 		pr      MockPasswordReader
 		args    args
-		want    []byte
 		wantErr bool
 	}{
 		{

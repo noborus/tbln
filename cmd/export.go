@@ -2,12 +2,10 @@ package cmd
 
 import (
 	"fmt"
-	"os"
 
 	"github.com/spf13/cobra"
 
 	"github.com/noborus/tbln"
-	"github.com/noborus/tbln/cmd/key"
 	"github.com/noborus/tbln/db"
 
 	// MySQL driver
@@ -86,10 +84,6 @@ func dbExport(cmd *cobra.Command, args []string) error {
 		cmd.SilenceUsage = false
 		return fmt.Errorf("requires database driver name")
 	}
-	var output string
-	if output, err = cmd.PersistentFlags().GetString("output"); err != nil {
-		return err
-	}
 	var signF bool
 	if signF, err = cmd.PersistentFlags().GetBool("sign"); err != nil {
 		return err
@@ -98,12 +92,6 @@ func dbExport(cmd *cobra.Command, args []string) error {
 		cmd.SilenceUsage = false
 		return fmt.Errorf("requires secret key file")
 	}
-	var quiet bool
-	if quiet, err = cmd.PersistentFlags().GetBool("quiet"); err != nil {
-		cmd.SilenceUsage = false
-		return err
-	}
-
 	conn, err := db.Open(srcdbName, srcdsn)
 	if err != nil {
 		return fmt.Errorf("%s: %s", srcdbName, err)
@@ -123,30 +111,16 @@ func dbExport(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	err = hash(at, cmd)
+	at, err = hashFile(at, cmd)
 	if err != nil {
 		return err
 	}
 	if signF {
-		privKey, err := key.GetPrivateKey(SecFile, KeyName, !quiet)
-		if err != nil {
-			return err
-		}
-		_, err = at.Sign(KeyName, privKey)
+		at, err = signFile(at, cmd)
 		if err != nil {
 			return err
 		}
 	}
 
-	var out *os.File
-	if output == "" {
-		out = os.Stdout
-	} else {
-		out, err = os.Create(output)
-		if err != nil {
-			return err
-		}
-		defer out.Close()
-	}
-	return tbln.WriteAll(out, at)
+	return outputFile(at, cmd)
 }

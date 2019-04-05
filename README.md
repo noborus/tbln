@@ -19,6 +19,12 @@ There is also a [CLI](cmd/README.md) tool that uses them.
 
 Please refer to [TBLN](https://tbln.dev/) for the specification of TBLN.
 
+## install
+
+```
+$ go get github.com/noborus/tbln
+```
+
 ## TBLN file example
 
 Data only.

@@ -105,7 +105,7 @@ func fileRead(t *testing.T, fileName string) *tbln.Tbln {
 	}
 	return tb
 }
-func setHash(t *testing.T, tb *tbln.Tbln) *tbln.Tbln {
+func setHash(tb *tbln.Tbln) *tbln.Tbln {
 	tb.AllTargetHash(false)
 	tb.ToTargetHash("name", true)
 	tb.ToTargetHash("type", true)
@@ -187,7 +187,7 @@ func TestWriteRead(t *testing.T) {
 				if err != nil {
 					t.Fatal(err)
 				}
-				rt = setHash(t, rt)
+				rt = setHash(rt)
 				err = rt.SumHash("sha256")
 				if err != nil {
 					t.Fatal(err)
