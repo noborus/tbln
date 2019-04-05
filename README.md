@@ -19,49 +19,120 @@ There is also a [CLI](cmd/README.md) tool that uses them.
 
 Please refer to [TBLN](https://tbln.dev/) for the specification of TBLN.
 
-## install
+## Install
 
 ```
 $ go get github.com/noborus/tbln
 ```
 
-## TBLN file example
+## Example
 
-Data only.
+### Write example
 
+Example of creating TBLN.
+(Error check is omitted)
+
+```go
+package main
+
+import (
+	"os"
+
+	"github.com/noborus/tbln"
+)
+
+func main() {
+	tb := tbln.NewTbln()
+	tb.SetTableName("sample")
+	tb.SetNames([]string{"id", "name"})
+	tb.SetTypes([]string{"int", "text"})
+	tb.AddRows([]string{"1", "Bob"})
+	tb.AddRows([]string{"2", "Alice"})
+	tbln.WriteAll(os.Stdout, tb)
+}
 ```
-| 1 | Bob |
-| 2 | Alice |
-```
 
-Add comment, column name and data type.
+Execution result.
 
-```
-# comment
+```tbln
+; TableName: sample
+; created_at: 2019-04-06T01:05:17+09:00
 ; name: | id | name |
 ; type: | int | text |
 | 1 | Bob |
-| 2 | Alice |
+| 1 | Alice |
 ```
 
-Database export and signature.
+### Read example
+
+All read to memory by tbln.ReadAll.
+Here, the table name is rewritten and output.
+
+```go
+package main
+
+import (
+	"log"
+	"os"
+
+	"github.com/noborus/tbln"
+)
+
+func main() {
+	if len(os.Args) <= 1 {
+		log.Fatal("Requires tbln file")
+	}
+
+	file, err := os.Open(os.Args[1])
+	if err != nil {
+		log.Fatal(err)
+	}
+	at, err := tbln.ReadAll(file)
+	if err != nil {
+		log.Fatal(err)
+	}
+	at.SetTableName("newtable")
+	err = tbln.WriteAll(os.Stdout, at)
+	if err != nil {
+		log.Fatal(err)
+	}
+}
+```
+
+TBLN files can be tables in a database.
+
+Example of importing into PostgreSQL.
 
 ```
-; TableName: simple
+# \d sample
+               Table "public.sample"
+ Column |  Type   | Collation | Nullable | Default
+--------+---------+-----------+----------+---------
+ id     | integer |           |          |
+ name   | text    |           |          |
+```
+
+Example of exporting it to a TBLN file.
+
+```
+; TableName: sample
 ; character_octet_length: |  | 1073741824 |
-; created_at: 2019-03-12T15:41:42+09:00
+; created_at: 2019-04-06T02:03:43+09:00
 ; is_nullable: | YES | YES |
 ; numeric_precision: | 32 |  |
 ; numeric_precision_radix: | 2 |  |
 ; numeric_scale: | 0 |  |
 ; postgres_type: | integer | text |
-; Signature: | test | ED25519 | dfe0077a4baa689dec15365642de8d736b30b678fc4b6725acf25cd760528ed365dc18855a11fc4473ca0a2d36499819de95caba3ac44937ac7c04465e7af901 |
-; Hash: | sha256 | 3191722649a6388498c435e411cb6534b740d9b3a5c7ac281dd824b4ba78e968 |
+; Signature: | test | ED25519 | 6271909d82000c4f686785cf0f9080971470ad3247b091ca50f6ea12ccc96efde0e1ca77e16723ef0f9d781941dfb92bed094dbf2e4079dd25f5aa9f9f1aab01 |
+; Hash: | sha256 | 65f7ce4e15ddc006153fe769b8f328c466cbd1dea4b15aa195ed63daf093668d |
 ; name: | id | name |
 ; type: | int | text |
 | 1 | Bob |
-| 2 | Alice |
+| 1 | Alice |
 ```
+
+See [db/README.md](db/README.md) for details.
+
 
 ## License
 [![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2Fnoborus%2Ftbln.svg?type=large)](https://app.fossa.io/projects/git%2Bgithub.com%2Fnoborus%2Ftbln?ref=badge_large)

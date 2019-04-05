@@ -4,6 +4,12 @@
 
 This library import/export database table.
 
+## Supported database
+
+* PostgreSQL 9.5
+* MySQL 5.7
+* SQLite
+
 ## Examples
 
 ### table export
