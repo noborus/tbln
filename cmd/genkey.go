@@ -9,7 +9,6 @@ import (
 	"github.com/noborus/tbln/cmd/keystore"
 
 	"github.com/spf13/cobra"
-	"golang.org/x/crypto/ed25519"
 )
 
 // genkeyCmd represents the generate key pair command
@@ -62,7 +61,7 @@ func generateKey(keyName string, overwrite bool) error {
 		return fmt.Errorf("%s file already exists", PubFile)
 	}
 
-	public, private, err := ed25519.GenerateKey(nil)
+	public, private, err := key.GenerateKey()
 	if err != nil {
 		return err
 	}

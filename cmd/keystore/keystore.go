@@ -38,7 +38,7 @@ func create(keyStore string, keyName string, pubkey []byte) error {
 	if err != nil {
 		return fmt.Errorf("KeyStore create: %s", err)
 	}
-	t, err := key.GeneratePublic(keyName, pubkey)
+	t, err := key.GenTBLNPublic(keyName, pubkey)
 	if err != nil {
 		return fmt.Errorf("KeyStore generate: %s", err)
 	}
@@ -51,6 +51,12 @@ func create(keyStore string, keyName string, pubkey []byte) error {
 }
 
 func add(keyStore string, keyName string, pubkey []byte) error {
+	if keyName == "" {
+		return fmt.Errorf("keyname is required")
+	}
+	if len(pubkey) == 0 {
+		return fmt.Errorf("pubkey is required")
+	}
 	file, err := os.OpenFile(keyStore, os.O_RDWR, 0644)
 	if err != nil {
 		return fmt.Errorf("KeyStore open: %s", err)
