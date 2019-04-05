@@ -16,8 +16,14 @@ import (
 	"os"
 
 	"github.com/noborus/tbln"
+	"golang.org/x/crypto/ed25519"
 	"golang.org/x/crypto/ssh/terminal"
 )
+
+// GenerateKey generates private key and public key
+func GenerateKey() ([]byte, []byte, error) {
+	return ed25519.GenerateKey(nil)
+}
 
 // WritePrivateFile writes a private key.
 func WritePrivateFile(fileName string, keyName string, privateKey []byte) error {
@@ -25,9 +31,9 @@ func WritePrivateFile(fileName string, keyName string, privateKey []byte) error 
 	if err != nil {
 		return fmt.Errorf("private key create error: %s", err)
 	}
-	kt, err := GeneratePrivate(keyName, privateKey)
+	kt, err := genTBLNPrivate(keyName, privateKey)
 	if err != nil {
-		return fmt.Errorf("generate private key: %s", err)
+		return fmt.Errorf("generate TBLN private: %s", err)
 	}
 	err = tbln.WriteAll(file, kt)
 	if err != nil {
@@ -40,8 +46,8 @@ func WritePrivateFile(fileName string, keyName string, privateKey []byte) error 
 	return nil
 }
 
-// GeneratePrivate write private key in TBLN file format.
-func GeneratePrivate(keyName string, privkey []byte) (*tbln.Tbln, error) {
+// genTBLNPrivate write private key in TBLN file format.
+func genTBLNPrivate(keyName string, privkey []byte) (*tbln.Tbln, error) {
 	password, err := readPasswordPrompt("password: ")
 	if err != nil {
 		return nil, err
@@ -58,7 +64,7 @@ func GeneratePrivate(keyName string, privkey []byte) (*tbln.Tbln, error) {
 		return nil, err
 	}
 	t := tbln.NewTbln()
-	t.Comments = []string{fmt.Sprintf("TBLN Pvivate key")}
+	t.Comments = []string{"TBLN Pvivate key"}
 	psEnc := base64.StdEncoding.EncodeToString(cipherText)
 	err = t.SetNames([]string{"keyname", "algorithm", "privatekey"})
 	if err != nil {
@@ -81,11 +87,11 @@ func WritePublicFile(fileName string, keyName string, public []byte) error {
 	if err != nil {
 		return fmt.Errorf("public key file create: %s", err)
 	}
-	pt, err := GeneratePublic(keyName, public)
-	pt.Comments = []string{fmt.Sprintf("TBLN Public key")}
+	pt, err := GenTBLNPublic(keyName, public)
 	if err != nil {
 		return fmt.Errorf("generate public key: %s", err)
 	}
+	pt.Comments = []string{"TBLN Public key"}
 	err = tbln.WriteAll(file, pt)
 	if err != nil {
 		return fmt.Errorf("public key write: %s", err)
@@ -97,9 +103,15 @@ func WritePublicFile(fileName string, keyName string, public []byte) error {
 	return nil
 }
 
-// GeneratePublic write public key in TBLN file format.
-func GeneratePublic(keyName string, pubkey []byte) (*tbln.Tbln, error) {
+// GenTBLNPublic write public key in TBLN file format.
+func GenTBLNPublic(keyName string, pubkey []byte) (*tbln.Tbln, error) {
 	var err error
+	if keyName == "" {
+		return nil, fmt.Errorf("keyname is required")
+	}
+	if len(pubkey) == 0 {
+		return nil, fmt.Errorf("pubkey is required")
+	}
 	t := tbln.NewTbln()
 	err = t.SetNames([]string{"keyname", "algorithm", "publickey"})
 	if err != nil {
@@ -209,7 +221,24 @@ func decryptPrompt(privKey []byte) ([]byte, error) {
 	return priv, nil
 }
 
+// PR determines the interface of the password reader.
+var PR PasswordReader = StdInPasswordReader{}
+
 func readPasswordPrompt(prompt string) ([]byte, error) {
+	return PR.ReadPasswordPrompt(prompt)
+}
+
+// PasswordReader is an interface for reading a password.
+type PasswordReader interface {
+	ReadPasswordPrompt(prompt string) ([]byte, error)
+}
+
+// StdInPasswordReader is a standard password reader.
+type StdInPasswordReader struct {
+}
+
+// ReadPasswordPrompt prints a password prompt and returns the password.
+func (pr StdInPasswordReader) ReadPasswordPrompt(prompt string) ([]byte, error) {
 	fd := int(os.Stdin.Fd())
 	fmt.Fprint(os.Stderr, prompt)
 	password, err := terminal.ReadPassword(fd)
