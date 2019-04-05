@@ -76,7 +76,7 @@ func (tdb *TDB) Commit() error {
 }
 
 func (tdb *TDB) quoting(obj string) string {
-	r := regexp.MustCompile(`[^a-z\.0-9_]+`)
+	r := regexp.MustCompile(`[^a-z0-9_]+`)
 	q := tdb.Style.Quote
 	escape := regexp.MustCompile(`(` + q + `)`)
 	if r.MatchString(obj) {

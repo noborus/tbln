@@ -1,8 +1,6 @@
 package cmd
 
 import (
-	"fmt"
-
 	"github.com/noborus/tbln"
 	"github.com/noborus/tbln/cmd/key"
 
@@ -32,21 +30,11 @@ func init() {
 }
 
 func sign(cmd *cobra.Command, args []string) error {
-	var err error
-	var fileName string
-	if fileName, err = cmd.PersistentFlags().GetString("file"); err != nil {
-		cmd.SilenceUsage = false
+	fileName, err := getFileName(cmd, args)
+	if err != nil {
 		return err
 	}
-	if len(args) > 0 {
-		fileName = args[0]
-	}
-	if fileName == "" {
-		cmd.SilenceUsage = false
-		return fmt.Errorf("require filename")
-	}
-
-	at, err := readTbln(fileName, cmd)
+	at, err := readTbln(fileName)
 	if err != nil {
 		return err
 	}
