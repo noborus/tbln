@@ -34,11 +34,6 @@ func verify(cmd *cobra.Command, args []string) error {
 
 func verifiedTbln(cmd *cobra.Command, args []string) (*tbln.Tbln, error) {
 	var err error
-	var fileName string
-	if fileName == "" && len(args) > 0 {
-		fileName = args[0]
-	}
-
 	var forcesign, nosign, noverify bool
 	if nosign, err = cmd.PersistentFlags().GetBool("no-verify-sign"); err != nil {
 		return nil, err
@@ -50,7 +45,12 @@ func verifiedTbln(cmd *cobra.Command, args []string) (*tbln.Tbln, error) {
 		noverify = false
 	}
 
-	at, err := readTbln(fileName, cmd)
+	var fileName string
+	fileName, err = getFileName(cmd, args)
+	if err != nil {
+		return nil, err
+	}
+	at, err := readTbln(fileName)
 	if err != nil {
 		return nil, err
 	}

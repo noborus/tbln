@@ -8,20 +8,24 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func readTbln(fName string, cmd *cobra.Command) (*tbln.Tbln, error) {
+func getFileName(cmd *cobra.Command, args []string) (string, error) {
 	var err error
 	var fileName string
 	if fileName, err = cmd.PersistentFlags().GetString("file"); err != nil {
 		cmd.SilenceUsage = false
-		return nil, err
+		return "", err
 	}
-	if fileName == "" {
-		fileName = fName
+	if fileName == "" && len(args) > 0 {
+		fileName = args[0]
 	}
 	if fileName == "" {
 		cmd.SilenceUsage = false
-		return nil, fmt.Errorf("require filename")
+		return "", fmt.Errorf("require filename")
 	}
+	return fileName, nil
+}
+
+func readTbln(fileName string) (*tbln.Tbln, error) {
 	file, err := os.Open(fileName)
 	if err != nil {
 		return nil, err

@@ -3,6 +3,7 @@ package cmd
 import (
 	"fmt"
 	"log"
+	"path/filepath"
 	"strings"
 
 	"github.com/noborus/tbln/db"
@@ -55,6 +56,10 @@ func init() {
 }
 
 func dbImport(cmd *cobra.Command, args []string) error {
+	fileName, err := getFileName(cmd, args)
+	if err != nil {
+		return err
+	}
 	at, err := verifiedTbln(cmd, args)
 	if err != nil {
 		return err
@@ -81,6 +86,10 @@ func dbImport(cmd *cobra.Command, args []string) error {
 	}
 	if tableName != "" {
 		at.SetTableName(tableName)
+	}
+	if at.TableName() == "" {
+		base := filepath.Base(fileName[:len(fileName)-len(filepath.Ext(fileName))])
+		at.SetTableName(base)
 	}
 	var cmode db.CreateMode
 	if modeStr, err := cmd.PersistentFlags().GetString("mode"); err == nil {

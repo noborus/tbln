@@ -26,12 +26,11 @@ func init() {
 	rootCmd.AddCommand(hashCmd)
 }
 func hash(cmd *cobra.Command, args []string) error {
-	var err error
-	var fileName string
-	if len(args) > 0 {
-		fileName = args[0]
+	fileName, err := getFileName(cmd, args)
+	if err != nil {
+		return err
 	}
-	at, err := readTbln(fileName, cmd)
+	at, err := readTbln(fileName)
 	if err != nil {
 		return err
 	}
