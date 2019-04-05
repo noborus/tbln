@@ -20,6 +20,7 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
+	at.SetTableName("newtable")
 	err = tbln.WriteAll(os.Stdout, at)
 	if err != nil {
 		log.Fatal(err)
