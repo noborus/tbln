@@ -3,6 +3,8 @@
 Import/Export TBLN file and RDBMS table.
 Supports digital signatures and verification for TBLN files.
 
+## Usage
+
 ```
 Usage:
   tbln [command]
@@ -16,8 +18,10 @@ Available Commands:
   keystore    keystore is a command to operate keystore
   sign        Sign a TBLN file with a private key
   verify      Verify signature and checksum of TBLN file
+  version     Print the version number of tbln
 
 Flags:
+      --debug             debug output
   -h, --help              help for tbln
   -k, --keyname string    key name
       --keypath string    key store path
@@ -30,14 +34,19 @@ Flags:
 
 Export the database table and output the TBLN file.
 
+The database driver name(--db) and DSN(--dsn) are required
+to import/export database tables.
+
 ```sh
-$ tbln export --db postgres --dsn "host=localhost dbname=sampletest" -t simple -o simple.tbln
+$ tbln export --db postgres --dsn "host=localhost dbname=sampletest" \
+   -t simple -o simple.tbln
 ```
 
 Import the TBLN file into the database.
 
 ```sh
-$ tbln import --db postgres --dsn "host=localhost dbname=sampletest" -t simple2 -f simple.tbln
+$ tbln import --db postgres --dsn "host=localhost dbname=sampletest" \
+  -t simple2 -f simple.tbln
 ```
 
 Data type and primary key are restored in this example.

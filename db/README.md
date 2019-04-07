@@ -6,9 +6,28 @@ This library import/export database table.
 
 ## Supported database
 
-* PostgreSQL 9.5
-* MySQL 5.7
-* SQLite
+## Support DB version.
+
+| DataBase | (since)Version |
+|:-----------|:-----------|
+| PostgreSQL | 9.5 |
+| MySQL | 5.7 |
+| SQlite3 |   |
+
+Import requires tbln/db/(database) instead of go SQL database drivers.
+
+```
+import (
+        "github.com/noborus/tbln"
+        "github.com/noborus/tbln/db"
+        // MySQL
+        _ "github.com/noborus/tbln/db/mysql"
+        // PostgreSQL
+        _ "github.com/noborus/tbln/db/postgres"
+        // SQLite3
+        _ "github.com/noborus/tbln/db/sqlite3"
+)
+```
 
 ## Examples
 
