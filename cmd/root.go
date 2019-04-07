@@ -7,6 +7,7 @@ import (
 	"path/filepath"
 
 	"github.com/mitchellh/go-homedir"
+	"github.com/noborus/tbln/db"
 	"github.com/spf13/cobra"
 )
 
@@ -24,6 +25,7 @@ var (
 	PubFile  string
 	KeyStore string
 	KeyName  string
+	debug    bool
 )
 
 var rootCmd = &cobra.Command{
@@ -35,6 +37,8 @@ Supports digital signatures and verification for TBLN files.`,
 
 func init() {
 	cobra.OnInitialize(initConfig)
+	rootCmd.PersistentFlags().BoolVarP(&debug, "debug", "", false, "debug output")
+
 	rootCmd.PersistentFlags().StringVarP(&KeyPath, "keypath", "", "", "key store path")
 	rootCmd.PersistentFlags().StringVarP(&SecFile, "secfile", "", "", "secret Key file")
 	rootCmd.PersistentFlags().StringVarP(&PubFile, "pubfile", "", "", "public Key file")
@@ -80,6 +84,9 @@ func initConfig() {
 	}
 	if KeyStore == "" {
 		KeyStore = filepath.Join(KeyPath, DefaultKeyStore)
+	}
+	if debug {
+		db.Debug(true)
 	}
 }
 

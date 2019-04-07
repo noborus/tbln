@@ -99,7 +99,7 @@ func main() {
 }
 ```
 
-TBLN files can be tables in a database.
+### TBLN files can be tables in a database.
 
 Example of importing into PostgreSQL.
 
@@ -133,6 +133,9 @@ Example of exporting it to a TBLN file.
 
 See [db/README.md](db/README.md) for details.
 
+You can also use tbln cli tool to quickly import and export to a database.
+
+See [cmd/README.md](cmd/README.md) for details.
 
 ## License
 [![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2Fnoborus%2Ftbln.svg?type=large)](https://app.fossa.io/projects/git%2Bgithub.com%2Fnoborus%2Ftbln?ref=badge_large)
