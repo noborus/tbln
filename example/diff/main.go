@@ -2,8 +2,8 @@ package main
 
 import (
 	"bytes"
+	"fmt"
 	"log"
-	"os"
 
 	"github.com/noborus/tbln"
 )
@@ -27,7 +27,7 @@ var data2 = `# String example
 ; TableName: newgeh1
 ; primarykey: | id |
 ; pg_type: | int | varchar(40) | int |
-; name: | id | names | age |
+; name: | id | name | age |
 ; type: | int | text | int |
 | 1 | Beob | 19 |
 | 2 | Alice | 14 |
@@ -39,16 +39,20 @@ var data2 = `# String example
 `
 
 func main() {
-	var err error
 	r := bytes.NewBufferString(data1)
-	sr := tbln.NewReader(r)
+	src := tbln.NewReader(r)
 	r2 := bytes.NewBufferString(data2)
-	dr := tbln.NewReader(r2)
+	dst := tbln.NewReader(r2)
 
-	d := tbln.NewDiff(os.Stdout)
-	c := tbln.NewCompare(d, sr, dr)
-	err = c.Compare()
+	d, err := tbln.NewCompare(src, dst)
 	if err != nil {
 		log.Fatal(err)
+	}
+	for {
+		dd, err := d.ReadDiffRow()
+		if err != nil {
+			break
+		}
+		fmt.Printf("%s\n", dd.Diff())
 	}
 }

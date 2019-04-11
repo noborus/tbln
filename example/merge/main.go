@@ -44,19 +44,11 @@ func main() {
 	sr := tbln.NewReader(r)
 	r2 := bytes.NewBufferString(data2)
 	dr := tbln.NewReader(r2)
-
-	m := tbln.NewMerge(os.Stdout)
-	c := tbln.NewCompare(m, sr, dr)
-	m.Definition, err = m.MergeDefinition(sr, dr)
+	tb, err := tbln.MergeAll(sr, dr)
 	if err != nil {
 		log.Fatal(err)
 	}
-	err = m.Header()
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	err = c.Compare()
+	err = tbln.WriteAll(os.Stdout, tb)
 	if err != nil {
 		log.Fatal(err)
 	}

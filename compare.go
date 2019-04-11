@@ -2,123 +2,153 @@ package tbln
 
 import (
 	"fmt"
+	"io"
 	"strconv"
 	"strings"
 )
 
-type Difference interface {
-	Same(row []string) error
-	Add(row []string) error
-	Mod(srow []string, drow []string) error
-	Del(row []string) error
-}
-
-type CompareDiff struct {
-	Difference
+// Compare is a structure that compares two tbln reads
+type Compare struct {
 	src    *Reader
 	dst    *Reader
-	types  []string
 	srcRow []string
 	dstRow []string
-	pkPos  []int
+	sNext  bool
+	dNext  bool
+	pk     []pkey
 }
 
-func NewCompare(diff Difference, src, dst *Reader) *CompareDiff {
-	d := &CompareDiff{
-		Difference: diff,
-		src:        src,
-		dst:        dst,
+type pkey struct {
+	pos  int
+	name string
+	typ  string
+}
+
+// DiffTbln contains the difference between two row.
+type DiffTbln struct {
+	les int
+	src []string
+	dst []string
+}
+
+// NewCompare returns a Compare structure
+func NewCompare(src, dst *Reader) (*Compare, error) {
+	c := &Compare{
+		src:   src,
+		dst:   dst,
+		sNext: false,
+		dNext: false,
 	}
-	d.prepare(src, dst)
-	return d
-}
-
-func (d *CompareDiff) Compare() error {
-	diff := d.Difference
-	for {
-		switch d.comparePK(d.srcRow, d.dstRow) {
-		case 0:
-			if JoinRow(d.srcRow) == JoinRow(d.dstRow) {
-				diff.Same(d.srcRow)
-			} else {
-				diff.Mod(d.srcRow, d.dstRow)
-			}
-			d.srcRow = nextRow(d.src)
-			d.dstRow = nextRow(d.dst)
-		case 1:
-			if len(d.dstRow) > 0 {
-				diff.Add(d.dstRow)
-				d.dstRow = nextRow(d.dst)
-			}
-		case -1:
-			if len(d.srcRow) > 0 {
-				diff.Del(d.srcRow)
-				d.srcRow = nextRow(d.src)
-			}
-		}
-		if len(d.srcRow) == 0 && len(d.dstRow) == 0 {
-			break
-		}
-	}
-	return nil
-}
-
-func nextRow(r *Reader) []string {
-	row, err := r.ReadRow()
-	if err != nil {
-		return []string{}
-	}
-	return row
-}
-
-func (d *CompareDiff) prepare(src, dst *Reader) error {
 	var err error
-	d.srcRow, err = src.ReadRow()
+	c.srcRow, err = src.ReadRow()
 	if err != nil {
-		return err
+		return nil, err
 	}
-	d.pkPos, err = getPKey(src)
+	c.dstRow, err = dst.ReadRow()
 	if err != nil {
-		return err
+		return nil, err
 	}
-
-	d.dstRow, err = dst.ReadRow()
+	c.pk, err = getPK(src, dst)
 	if err != nil {
-		return err
+		return nil, err
 	}
-	d.types = src.Types
-
-	return nil
+	return c, nil
 }
 
-func getPKey(tr *Reader) ([]int, error) {
-	pk := SplitRow(fmt.Sprintf("%s", tr.ExtraValue("primarykey")))
-	if len(pk) == 0 {
-		return nil, fmt.Errorf("no primary key")
+// ReadDiffRow compares two rows and returns the difference.
+func (dr *Compare) ReadDiffRow() (*DiffTbln, error) {
+	if dr.sNext {
+		// Ignore errors to continue reading both ends.
+		dr.srcRow, _ = dr.src.ReadRow()
 	}
-	pkpos := make([]int, 0)
-	for n, v := range tr.Names {
-		if pk[0] == v {
-			pkpos = append(pkpos, n)
+	if dr.dNext {
+		// Ignore errors to continue reading both ends.
+		dr.dstRow, _ = dr.dst.ReadRow()
+	}
+	switch dr.comparePK() {
+	case 0:
+		dr.sNext = true
+		dr.dNext = true
+		if JoinRow(dr.srcRow) == JoinRow(dr.dstRow) {
+			return &DiffTbln{0, dr.srcRow, dr.dstRow}, nil
+		}
+		return &DiffTbln{2, dr.srcRow, dr.dstRow}, nil
+	case 1:
+		dr.sNext = false
+		dr.dNext = true
+		if len(dr.dstRow) > 0 {
+			return &DiffTbln{1, nil, dr.dstRow}, nil
+		}
+	case -1:
+		dr.sNext = true
+		dr.dNext = false
+		if len(dr.srcRow) > 0 {
+			return &DiffTbln{-1, dr.srcRow, nil}, nil
 		}
 	}
-	return pkpos, nil
+	return nil, io.EOF
 }
 
-func (d *CompareDiff) comparePK(srcRow, dstRow []string) int {
-	if len(srcRow) == 0 {
+func (dr *Compare) comparePK() int {
+	if len(dr.srcRow) == 0 {
 		return 1
 	}
-	if len(dstRow) == 0 {
+	if len(dr.dstRow) == 0 {
 		return -1
 	}
-	for _, p := range d.pkPos {
-		ret := compareType(d.types[p], srcRow[p], dstRow[p])
+	for _, pk := range dr.pk {
+		ret := compareType(pk.typ, dr.srcRow[pk.pos], dr.dstRow[pk.pos])
 		if ret != 0 {
 			return ret
 		}
 	}
 	return 0
+}
+
+func getPK(src, dst *Reader) ([]pkey, error) {
+	var pos []int
+	dPos, err := getPKeyPos(dst)
+	if err == nil {
+		pos = dPos
+	}
+	sPos, err := getPKeyPos(src)
+	if err == nil {
+		pos = sPos
+	}
+	if len(pos) == 0 {
+		return nil, fmt.Errorf("no primary key")
+	}
+	if len(sPos) != len(dPos) {
+		return nil, fmt.Errorf("primary key position")
+	}
+	pk := make([]pkey, len(pos))
+	for i, v := range pos {
+		if sPos[i] != dPos[i] {
+			return nil, fmt.Errorf("primary key position")
+		}
+		if src.Types[i] != dst.Types[i] {
+			return nil, fmt.Errorf("unmatch data type")
+		}
+		pk[i] = pkey{v, src.Names[i], src.Types[i]}
+	}
+	return pk, nil
+}
+
+func getPKeyPos(tr *Reader) ([]int, error) {
+	pk := SplitRow(fmt.Sprintf("%s", tr.ExtraValue("primarykey")))
+	if len(pk) == 0 {
+		return nil, fmt.Errorf("no primary key")
+	}
+	pkpos := make([]int, 0)
+	for _, p := range pk {
+		for n, v := range tr.Names {
+			if p == v {
+				pkpos = append(pkpos, n)
+				break
+			}
+		}
+	}
+	return pkpos, nil
 }
 
 func compareType(dtype string, src string, dst string) int {

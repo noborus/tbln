@@ -1,39 +1,19 @@
 package tbln
 
-import "io"
+import "fmt"
 
-type Diff struct {
-	*Definition
-	w io.Writer
-}
-
-func NewDiff(w io.Writer) *Diff {
-	return &Diff{
-		Definition: NewDefinition(),
-		w:          w,
+// Diff returns diff format
+func (d *DiffTbln) Diff() string {
+	switch d.les {
+	case 0:
+		return fmt.Sprintf(" %s", JoinRow(d.src))
+	case 1:
+		return fmt.Sprintf("+%s", JoinRow(d.dst))
+	case -1:
+		return fmt.Sprintf("-%s", JoinRow(d.src))
+	case 2:
+		return fmt.Sprintf("-%s\n+%s", JoinRow(d.src), JoinRow(d.dst))
+	default:
+		return ""
 	}
-}
-
-func (d Diff) Same(row []string) error {
-	_, err := io.WriteString(d.w, " "+JoinRow(row)+"\n")
-	return err
-}
-
-func (d Diff) Add(row []string) error {
-	_, err := io.WriteString(d.w, "+"+JoinRow(row)+"\n")
-	return err
-}
-
-func (d Diff) Mod(srow []string, drow []string) error {
-	_, err := io.WriteString(d.w, "-"+JoinRow(srow)+"\n")
-	if err != nil {
-		return err
-	}
-	_, err = io.WriteString(d.w, "+"+JoinRow(drow)+"\n")
-	return err
-}
-
-func (d Diff) Del(row []string) error {
-	_, err := io.WriteString(d.w, "-"+JoinRow(row)+"\n")
-	return err
 }
