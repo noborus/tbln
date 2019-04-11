@@ -1,0 +1,11 @@
+# String example
+; TableName: newgeh1
+; created_at: 2019-04-10T15:00:38+09:00
+; name: | id | names | age |
+; pg_type: | int | varchar(40) | int |
+; primarykey: | id |
+; type: | int | text | int |
+| 1 | Boeb | 19 |
+| 2 | Alice | 14 |
+| 4 | Alice | 14 |
+| 99 | test | 99 |
