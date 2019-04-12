@@ -63,6 +63,7 @@ func NewWriter(tdb *TDB, definition *tbln.Definition) (*Writer, error) {
 // A record is a slice of strings with each string being one field.
 func (w *Writer) WriteRow(row []string) error {
 	r := make([]interface{}, len(row))
+	wt := w.Types()
 	for i, v := range row {
 		// null
 		if v == "" {
@@ -72,7 +73,7 @@ func (w *Writer) WriteRow(row []string) error {
 		if w.ReplaceLN {
 			v = strings.ReplaceAll(v, "\\n", "\n")
 		}
-		r[i] = w.convertDBType(w.Types[i], v)
+		r[i] = w.convertDBType(wt[i], v)
 	}
 	_, err := w.stmt.Exec(r...)
 	return err
@@ -114,23 +115,27 @@ func WriteTable(tdb *TDB, tbln *tbln.Tbln, schema string, cmode CreateMode, imod
 
 // WriteDefinition is create table and insert prepare.
 func (w *Writer) WriteDefinition(cmode CreateMode) error {
-	if w.Names == nil {
+	wn := w.Names()
+	if wn == nil {
 		if w.ColumnNum() == 0 {
 			return fmt.Errorf("column num is 0")
 		}
-		w.Names = make([]string, w.ColumnNum())
+		wn = make([]string, w.ColumnNum())
 		for i := 0; i < w.ColumnNum(); i++ {
-			w.Names[i] = fmt.Sprintf("c%d", i+1)
+			wn[i] = fmt.Sprintf("c%d", i+1)
 		}
+		w.SetNames(wn)
 	}
-	if w.Types == nil {
+	wt := w.Types()
+	if wt == nil {
 		if w.ColumnNum() == 0 {
 			return fmt.Errorf("column num is 0")
 		}
-		w.Types = make([]string, w.ColumnNum())
+		wt = make([]string, w.ColumnNum())
 		for i := 0; i < w.ColumnNum(); i++ {
-			w.Types[i] = "text"
+			wt[i] = "text"
 		}
+		w.SetTypes(wt)
 	}
 	if cmode > NotCreate {
 		err := w.createTable(cmode)
@@ -177,11 +182,12 @@ func (w *Writer) createTable(cmode CreateMode) error {
 		}
 	}
 	if len(typeNames) == 0 {
-		typeNames = w.Types
+		typeNames = w.Types()
 	}
-	col := make([]string, len(w.Names))
-	for i := 0; i < len(w.Names); i++ {
-		col[i] = w.quoting(w.Names[i]) + " " + typeNames[i] + constraints[i]
+	wn := w.Names()
+	col := make([]string, len(wn))
+	for i := 0; i < len(wn); i++ {
+		col[i] = w.quoting(wn[i]) + " " + typeNames[i] + constraints[i]
 	}
 	primaryKey := ""
 	pk := tbln.SplitRow(toString(w.ExtraValue("primarykey")))
@@ -204,8 +210,9 @@ func (w *Writer) createConstraints() []string {
 	if len(nu) != w.ColumnNum() {
 		nu = nil
 	}
-	cs := make([]string, len(w.Names))
-	for i := 0; i < len(w.Names); i++ {
+	wn := w.Names()
+	cs := make([]string, len(wn))
+	for i := 0; i < len(wn); i++ {
 		if (nu != nil) && nu[i] == "NO" {
 			cs[i] += " NOT NULL"
 		}
@@ -215,10 +222,11 @@ func (w *Writer) createConstraints() []string {
 
 func (w *Writer) prepare(imode InsertMode) error {
 	var err error
-	names := make([]string, len(w.Names))
-	ph := make([]string, len(w.Names))
-	for i := 0; i < len(w.Names); i++ {
-		names[i] = w.quoting(w.Names[i])
+	wn := w.Names()
+	names := make([]string, len(wn))
+	ph := make([]string, len(wn))
+	for i := 0; i < len(wn); i++ {
+		names[i] = w.quoting(wn[i])
 		if w.Style.PlaceHolder == "$" {
 			ph[i] = fmt.Sprintf("$%d", i+1)
 		} else {

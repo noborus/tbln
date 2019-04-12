@@ -5,8 +5,8 @@ import (
 	"io"
 )
 
-// MergeRow reads merged rows from diffTbln
-func (d *DiffTbln) MergeRow() []string {
+// MergeRow reads merged rows from DiffRow
+func (d *DiffRow) MergeRow() []string {
 	switch d.les {
 	case 0:
 		return d.src
@@ -22,13 +22,15 @@ func (d *DiffTbln) MergeRow() []string {
 }
 
 // MergeAll merges two tbln readers and returns one tbln.
-func MergeAll(src, dst *Reader) (*Tbln, error) {
+func MergeAll(src, dst Read) (*Tbln, error) {
 	tb := &Tbln{}
 	diff, err := NewCompare(src, dst)
 	if err != nil {
 		return nil, err
 	}
-	tb.Definition, err = MergeDefinition(src, dst)
+	sDefinition := src.GetDefinition()
+	dDefinition := dst.GetDefinition()
+	tb.Definition, err = MergeDefinition(sDefinition, dDefinition)
 	if err != nil {
 		return nil, err
 	}
@@ -47,7 +49,7 @@ func MergeAll(src, dst *Reader) (*Tbln, error) {
 }
 
 // MergeDefinition merges two tbln Definitions.
-func MergeDefinition(src, dst *Reader) (*Definition, error) {
+func MergeDefinition(src, dst *Definition) (*Definition, error) {
 	if src.columnNum != dst.columnNum {
 		return nil, fmt.Errorf("different column num")
 	}
@@ -60,7 +62,7 @@ func MergeDefinition(src, dst *Reader) (*Definition, error) {
 	return d, nil
 }
 
-func mergeComment(src, dst *Reader) []string {
+func mergeComment(src, dst *Definition) []string {
 	comments := make([]string, len(src.Comments))
 	copy(comments, src.Comments)
 

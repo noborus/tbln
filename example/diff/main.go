@@ -6,6 +6,10 @@ import (
 	"log"
 
 	"github.com/noborus/tbln"
+
+	_ "github.com/noborus/tbln/db/mysql"
+	_ "github.com/noborus/tbln/db/postgres"
+	_ "github.com/noborus/tbln/db/sqlite3"
 )
 
 var data1 = `# String example
@@ -37,14 +41,37 @@ var data2 = `# String example
 | 10 | hoge | 46 |
 | 11 | ghoge | 5 |
 `
+var data3 = `# Simple Add
+; TableName: simple
+; primarykey: | id |
+; pg_type: | int | varchar(40) |
+; name: | id | name |
+; type: | int | text |
+| 1 | Bob |
+| 2 | Alice |
+| 3 | Henry |
+`
 
 func main() {
 	r := bytes.NewBufferString(data1)
-	src := tbln.NewReader(r)
+	at, err := tbln.ReadAll(r)
+	rr := tbln.NewSelfReader(at)
+	/*
+		conn, err := db.Open("postgres", "")
+		// conn, err := db.Open("mysql", "root:@/noborus")
+		// conn, err := db.Open("sqlite3", "sqlite_file")
+		if err != nil {
+			log.Fatal(err)
+		}
+		rr, err := conn.ReadTable("", os.Args[1], nil)
+		if err != nil {
+			log.Fatal(err)
+		}
+	*/
 	r2 := bytes.NewBufferString(data2)
 	dst := tbln.NewReader(r2)
 
-	d, err := tbln.NewCompare(src, dst)
+	d, err := tbln.NewCompare(rr, dst)
 	if err != nil {
 		log.Fatal(err)
 	}

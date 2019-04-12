@@ -9,8 +9,8 @@ import (
 
 // Compare is a structure that compares two tbln reads
 type Compare struct {
-	src    *Reader
-	dst    *Reader
+	src    Read
+	dst    Read
 	srcRow []string
 	dstRow []string
 	sNext  bool
@@ -24,15 +24,15 @@ type pkey struct {
 	typ  string
 }
 
-// DiffTbln contains the difference between two row.
-type DiffTbln struct {
+// DiffRow contains the difference between two row.
+type DiffRow struct {
 	les int
 	src []string
 	dst []string
 }
 
 // NewCompare returns a Compare structure
-func NewCompare(src, dst *Reader) (*Compare, error) {
+func NewCompare(src, dst Read) (*Compare, error) {
 	c := &Compare{
 		src:   src,
 		dst:   dst,
@@ -56,7 +56,7 @@ func NewCompare(src, dst *Reader) (*Compare, error) {
 }
 
 // ReadDiffRow compares two rows and returns the difference.
-func (dr *Compare) ReadDiffRow() (*DiffTbln, error) {
+func (dr *Compare) ReadDiffRow() (*DiffRow, error) {
 	if dr.sNext {
 		// Ignore errors to continue reading both ends.
 		dr.srcRow, _ = dr.src.ReadRow()
@@ -65,31 +65,32 @@ func (dr *Compare) ReadDiffRow() (*DiffTbln, error) {
 		// Ignore errors to continue reading both ends.
 		dr.dstRow, _ = dr.dst.ReadRow()
 	}
-	switch dr.comparePK() {
+
+	switch dr.diffPrimaryKey() {
 	case 0:
 		dr.sNext = true
 		dr.dNext = true
 		if JoinRow(dr.srcRow) == JoinRow(dr.dstRow) {
-			return &DiffTbln{0, dr.srcRow, dr.dstRow}, nil
+			return &DiffRow{0, dr.srcRow, dr.dstRow}, nil
 		}
-		return &DiffTbln{2, dr.srcRow, dr.dstRow}, nil
+		return &DiffRow{2, dr.srcRow, dr.dstRow}, nil
 	case 1:
 		dr.sNext = false
 		dr.dNext = true
 		if len(dr.dstRow) > 0 {
-			return &DiffTbln{1, nil, dr.dstRow}, nil
+			return &DiffRow{1, nil, dr.dstRow}, nil
 		}
 	case -1:
 		dr.sNext = true
 		dr.dNext = false
 		if len(dr.srcRow) > 0 {
-			return &DiffTbln{-1, dr.srcRow, nil}, nil
+			return &DiffRow{-1, dr.srcRow, nil}, nil
 		}
 	}
 	return nil, io.EOF
 }
 
-func (dr *Compare) comparePK() int {
+func (dr *Compare) diffPrimaryKey() int {
 	if len(dr.srcRow) == 0 {
 		return 1
 	}
@@ -105,7 +106,7 @@ func (dr *Compare) comparePK() int {
 	return 0
 }
 
-func getPK(src, dst *Reader) ([]pkey, error) {
+func getPK(src, dst Read) ([]pkey, error) {
 	var pos []int
 	dPos, err := getPKeyPos(dst)
 	if err == nil {
@@ -126,22 +127,25 @@ func getPK(src, dst *Reader) ([]pkey, error) {
 		if sPos[i] != dPos[i] {
 			return nil, fmt.Errorf("primary key position")
 		}
-		if src.Types[i] != dst.Types[i] {
+		st := src.Types()
+		dt := dst.Types()
+		if st[i] != dt[i] {
 			return nil, fmt.Errorf("unmatch data type")
 		}
-		pk[i] = pkey{v, src.Names[i], src.Types[i]}
+		sn := src.Names()
+		pk[i] = pkey{v, sn[i], st[i]}
 	}
 	return pk, nil
 }
 
-func getPKeyPos(tr *Reader) ([]int, error) {
-	pk := SplitRow(fmt.Sprintf("%s", tr.ExtraValue("primarykey")))
+func getPKeyPos(tr Read) ([]int, error) {
+	pk := tr.PrimaryKey()
 	if len(pk) == 0 {
 		return nil, fmt.Errorf("no primary key")
 	}
 	pkpos := make([]int, 0)
 	for _, p := range pk {
-		for n, v := range tr.Names {
+		for n, v := range tr.Names() {
 			if p == v {
 				pkpos = append(pkpos, n)
 				break

@@ -51,6 +51,10 @@ func NewTbln() *Tbln {
 // Read is TBLN Read interface.
 type Read interface {
 	ReadRow() ([]string, error)
+	Types() []string
+	Names() []string
+	PrimaryKey() []string
+	GetDefinition() *Definition
 }
 
 // Write is TBLN Write interface.

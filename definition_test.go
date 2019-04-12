@@ -10,8 +10,8 @@ func TestDefinition_SetNames(t *testing.T) {
 		columnNum int
 		tableName string
 		comments  []string
-		Names     []string
-		Types     []string
+		names     []string
+		types     []string
 		Extras    map[string]Extra
 	}
 	type args struct {
@@ -34,8 +34,8 @@ func TestDefinition_SetNames(t *testing.T) {
 				columnNum: tt.fields.columnNum,
 				tableName: tt.fields.tableName,
 				Comments:  tt.fields.comments,
-				Names:     tt.fields.Names,
-				Types:     tt.fields.Types,
+				names:     tt.fields.names,
+				types:     tt.fields.types,
 				Extras:    tt.fields.Extras,
 			}
 			if err := d.SetNames(tt.args.names); (err != nil) != tt.wantErr {
@@ -48,8 +48,8 @@ func TestDefinition_SetNames(t *testing.T) {
 func TestDefinition_SetTypes(t *testing.T) {
 	type fields struct {
 		columnNum int
-		Names     []string
-		Types     []string
+		names     []string
+		types     []string
 		Extras    map[string]Extra
 	}
 	type args struct {
@@ -70,8 +70,8 @@ func TestDefinition_SetTypes(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			d := &Definition{
 				columnNum: tt.fields.columnNum,
-				Names:     tt.fields.Names,
-				Types:     tt.fields.Types,
+				names:     tt.fields.names,
+				types:     tt.fields.types,
 				Extras:    tt.fields.Extras,
 			}
 			if err := d.SetTypes(tt.args.types); (err != nil) != tt.wantErr {
@@ -87,8 +87,8 @@ func TestDefinition_SetExtra(t *testing.T) {
 		tableName string
 		algorithm string
 		Comments  []string
-		Names     []string
-		Types     []string
+		names     []string
+		types     []string
 		Extras    map[string]Extra
 		Hashes    map[string][]byte
 		Signs     Signatures
@@ -128,8 +128,8 @@ func TestDefinition_SetExtra(t *testing.T) {
 				tableName: tt.fields.tableName,
 				algorithm: tt.fields.algorithm,
 				Comments:  tt.fields.Comments,
-				Names:     tt.fields.Names,
-				Types:     tt.fields.Types,
+				names:     tt.fields.names,
+				types:     tt.fields.types,
 				Extras:    tt.fields.Extras,
 				Hashes:    tt.fields.Hashes,
 				Signs:     tt.fields.Signs,

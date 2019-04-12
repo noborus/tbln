@@ -3,7 +3,7 @@ package tbln
 import "fmt"
 
 // Diff returns diff format
-func (d *DiffTbln) Diff() string {
+func (d *DiffRow) Diff() string {
 	switch d.les {
 	case 0:
 		return fmt.Sprintf(" %s", JoinRow(d.src))
