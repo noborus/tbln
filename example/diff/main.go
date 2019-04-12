@@ -41,6 +41,8 @@ var data2 = `# String example
 | 10 | hoge | 46 |
 | 11 | ghoge | 5 |
 `
+
+/*
 var data3 = `# Simple Add
 ; TableName: simple
 ; primarykey: | id |
@@ -51,10 +53,14 @@ var data3 = `# Simple Add
 | 2 | Alice |
 | 3 | Henry |
 `
+*/
 
 func main() {
 	r := bytes.NewBufferString(data1)
 	at, err := tbln.ReadAll(r)
+	if err != nil {
+		log.Fatal(err)
+	}
 	rr := tbln.NewSelfReader(at)
 	/*
 		conn, err := db.Open("postgres", "")

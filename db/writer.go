@@ -124,7 +124,10 @@ func (w *Writer) WriteDefinition(cmode CreateMode) error {
 		for i := 0; i < w.ColumnNum(); i++ {
 			wn[i] = fmt.Sprintf("c%d", i+1)
 		}
-		w.SetNames(wn)
+		err := w.SetNames(wn)
+		if err != nil {
+			return err
+		}
 	}
 	wt := w.Types()
 	if wt == nil {
@@ -135,7 +138,10 @@ func (w *Writer) WriteDefinition(cmode CreateMode) error {
 		for i := 0; i < w.ColumnNum(); i++ {
 			wt[i] = "text"
 		}
-		w.SetTypes(wt)
+		err := w.SetTypes(wt)
+		if err != nil {
+			return err
+		}
 	}
 	if cmode > NotCreate {
 		err := w.createTable(cmode)

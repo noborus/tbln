@@ -32,5 +32,8 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	tbln.WriteAll(os.Stdout, tb)
+	err = tbln.WriteAll(os.Stdout, tb)
+	if err != nil {
+		log.Fatal(err)
+	}
 }
