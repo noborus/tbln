@@ -7,15 +7,15 @@ import (
 
 // MergeRow reads merged rows from DiffRow
 func (d *DiffRow) MergeRow() []string {
-	switch d.les {
+	switch d.Les {
 	case 0:
-		return d.src
+		return d.Src
 	case 1:
-		return d.dst
+		return d.Dst
 	case -1:
-		return d.src
+		return d.Src
 	case 2:
-		return d.dst
+		return d.Dst
 	default:
 		return []string{}
 	}

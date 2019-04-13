@@ -73,7 +73,11 @@ func (w *Writer) WriteRow(row []string) error {
 		if w.ReplaceLN {
 			v = strings.ReplaceAll(v, "\\n", "\n")
 		}
-		r[i] = w.convertDBType(wt[i], v)
+		if i < len(wt) {
+			r[i] = w.convertDBType(wt[i], v)
+		} else {
+			r[i] = v
+		}
 	}
 	_, err := w.stmt.Exec(r...)
 	return err
@@ -100,7 +104,7 @@ func WriteTable(tdb *TDB, tbln *tbln.Tbln, schema string, cmode CreateMode, imod
 	if cmode == CreateOnly {
 		return nil
 	}
-	err = w.prepare(imode)
+	err = w.prepareInsert(imode)
 	if err != nil {
 		return err
 	}
@@ -226,7 +230,7 @@ func (w *Writer) createConstraints() []string {
 	return cs
 }
 
-func (w *Writer) prepare(imode InsertMode) error {
+func (w *Writer) prepareInsert(imode InsertMode) error {
 	var err error
 	wn := w.Names()
 	names := make([]string, len(wn))
@@ -269,6 +273,72 @@ func (w *Writer) prepare(imode InsertMode) error {
 	w.stmt, err = w.Tx.Prepare(insert)
 	if err != nil {
 		return fmt.Errorf("%s: %s", err, insert)
+	}
+	return nil
+}
+
+func (w *Writer) prepareUpdate(pk []string) error {
+	var err error
+	wn := w.Names()
+	setcolumns := make([]string, len(wn))
+	names := make([]string, len(wn))
+	ph := make([]string, len(wn))
+	for i := 0; i < len(wn); i++ {
+		names[i] = w.quoting(wn[i])
+		if w.Style.PlaceHolder == "$" {
+			ph[i] = fmt.Sprintf("$%d", i+1)
+		} else {
+			ph[i] = "?"
+		}
+		setcolumns[i] = fmt.Sprintf("%s = %s", names[i], ph[i])
+	}
+	conditions := make([]string, len(pk))
+	phpk := make([]string, len(pk))
+	for i := 0; i < len(pk); i++ {
+		pk[i] = w.quoting(pk[i])
+		if w.Style.PlaceHolder == "$" {
+			phpk[i] = fmt.Sprintf("$%d", len(setcolumns)+i+1)
+		} else {
+			phpk[i] = "?"
+		}
+		conditions[i] = fmt.Sprintf("%s = %s", pk[i], phpk[i])
+	}
+	// #nosec G201
+	update := fmt.Sprintf(
+		"UPDATE %s SET %s WHERE %s;",
+		w.tableFullName, strings.Join(setcolumns, ", "), strings.Join(conditions, " AND "),
+	)
+	debug.Printf("SQL:%s", update)
+	w.stmt, err = w.Tx.Prepare(update)
+	if err != nil {
+		return fmt.Errorf("%s: %s", err, update)
+	}
+	return nil
+}
+
+func (w *Writer) prepareDelete(pk []string) error {
+	var err error
+	conditions := make([]string, len(pk))
+	phpk := make([]string, len(pk))
+	for i := 0; i < len(pk); i++ {
+		pk[i] = w.quoting(pk[i])
+		if w.Style.PlaceHolder == "$" {
+			phpk[i] = fmt.Sprintf("$%d", i+1)
+		} else {
+			phpk[i] = "?"
+		}
+		conditions[i] = fmt.Sprintf("%s = %s", pk[i], phpk[i])
+	}
+
+	// #nosec G201
+	update := fmt.Sprintf(
+		"DELETE FROM %s WHERE %s;",
+		w.tableFullName, strings.Join(conditions, " AND "),
+	)
+	debug.Printf("SQL:%s", update)
+	w.stmt, err = w.Tx.Prepare(update)
+	if err != nil {
+		return fmt.Errorf("%s: %s", err, update)
 	}
 	return nil
 }

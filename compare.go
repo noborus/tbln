@@ -35,79 +35,90 @@ type pkey struct {
 
 // DiffRow contains the difference between two row.
 type DiffRow struct {
-	les int
-	src []string
-	dst []string
+	Les int
+	Src []string
+	Dst []string
 }
 
 // NewCompare returns a Compare structure
 func NewCompare(src, dst Comparer) (*Compare, error) {
-	c := &Compare{
+	cmp := &Compare{
 		src:   src,
 		dst:   dst,
 		sNext: false,
 		dNext: false,
 	}
 	var err error
-	c.srcRow, err = src.ReadRow()
+	cmp.srcRow, err = src.ReadRow()
 	if err != nil {
 		return nil, err
 	}
-	c.dstRow, err = dst.ReadRow()
+	cmp.dstRow, err = dst.ReadRow()
 	if err != nil {
 		return nil, err
 	}
-	c.pk, err = getPK(src, dst)
+	cmp.pk, err = getPK(src, dst)
 	if err != nil {
 		return nil, err
 	}
-	return c, nil
+	return cmp, nil
 }
 
 // ReadDiffRow compares two rows and returns the difference.
-func (dr *Compare) ReadDiffRow() (*DiffRow, error) {
-	if dr.sNext {
+func (cmp *Compare) ReadDiffRow() (*DiffRow, error) {
+	if cmp.sNext {
 		// Ignore errors to continue reading both ends.
-		dr.srcRow, _ = dr.src.ReadRow()
+		cmp.srcRow, _ = cmp.src.ReadRow()
 	}
-	if dr.dNext {
+	if cmp.dNext {
 		// Ignore errors to continue reading both ends.
-		dr.dstRow, _ = dr.dst.ReadRow()
+		cmp.dstRow, _ = cmp.dst.ReadRow()
 	}
 
-	switch dr.diffPrimaryKey() {
+	switch cmp.diffPrimaryKey() {
 	case 0:
-		dr.sNext = true
-		dr.dNext = true
-		if JoinRow(dr.srcRow) == JoinRow(dr.dstRow) {
-			return &DiffRow{0, dr.srcRow, dr.dstRow}, nil
+		cmp.sNext = true
+		cmp.dNext = true
+		if JoinRow(cmp.srcRow) == JoinRow(cmp.dstRow) {
+			return &DiffRow{0, cmp.srcRow, cmp.dstRow}, nil
 		}
-		return &DiffRow{2, dr.srcRow, dr.dstRow}, nil
+		return &DiffRow{2, cmp.srcRow, cmp.dstRow}, nil
 	case 1:
-		dr.sNext = false
-		dr.dNext = true
-		if len(dr.dstRow) > 0 {
-			return &DiffRow{1, nil, dr.dstRow}, nil
+		cmp.sNext = false
+		cmp.dNext = true
+		if len(cmp.dstRow) > 0 {
+			return &DiffRow{1, nil, cmp.dstRow}, nil
 		}
 	case -1:
-		dr.sNext = true
-		dr.dNext = false
-		if len(dr.srcRow) > 0 {
-			return &DiffRow{-1, dr.srcRow, nil}, nil
+		cmp.sNext = true
+		cmp.dNext = false
+		if len(cmp.srcRow) > 0 {
+			return &DiffRow{-1, cmp.srcRow, nil}, nil
 		}
 	}
 	return nil, io.EOF
 }
 
-func (dr *Compare) diffPrimaryKey() int {
-	if len(dr.srcRow) == 0 {
+func (cmp *Compare) PrimaryKeyRow(row []string) []string {
+	if row == nil {
+		return nil
+	}
+	pkRow := make([]string, 0, len(cmp.pk))
+	for _, pk := range cmp.pk {
+		pkRow = append(pkRow, row[pk.pos])
+	}
+	return pkRow
+}
+
+func (cmp *Compare) diffPrimaryKey() int {
+	if len(cmp.srcRow) == 0 {
 		return 1
 	}
-	if len(dr.dstRow) == 0 {
+	if len(cmp.dstRow) == 0 {
 		return -1
 	}
-	for _, pk := range dr.pk {
-		ret := compareType(pk.typ, dr.srcRow[pk.pos], dr.dstRow[pk.pos])
+	for _, pk := range cmp.pk {
+		ret := compareType(pk.typ, cmp.srcRow[pk.pos], cmp.dstRow[pk.pos])
 		if ret != 0 {
 			return ret
 		}
