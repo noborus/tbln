@@ -38,6 +38,10 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
+	err = conn.Commit()
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	at, err := db.ReadTableAll(conn, "", "simple")
 	if err != nil {

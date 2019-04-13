@@ -209,6 +209,24 @@ func (d *Definition) PrimaryKey() []string {
 
 }
 
+// GetPKeyPos return PrimaryKey position
+func (d *Definition) GetPKeyPos() ([]int, error) {
+	pk := d.PrimaryKey()
+	if len(pk) == 0 {
+		return nil, fmt.Errorf("no primary key")
+	}
+	pkpos := make([]int, 0)
+	for _, p := range pk {
+		for n, v := range d.Names() {
+			if p == v {
+				pkpos = append(pkpos, n)
+				break
+			}
+		}
+	}
+	return pkpos, nil
+}
+
 // GetDefinition return Definition
 func (d *Definition) GetDefinition() *Definition {
 	return d

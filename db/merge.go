@@ -82,7 +82,7 @@ func (tdb *TDB) MergeTable(schema string, tableName string, dst tbln.Comparer, d
 			return err
 		}
 	}
-	return w.Commit()
+	return nil
 }
 
 func (w *Writer) insert(insRow [][]string) error {
@@ -105,7 +105,7 @@ func (w *Writer) update(updRow [][]string, cmp *tbln.Compare) error {
 		return err
 	}
 	for _, upd := range updRow {
-		err = w.WriteRow(append(upd, cmp.PrimaryKeyRow(upd)...))
+		err = w.WriteRow(append(upd, cmp.ColumnPrimaryKey(upd)...))
 		if err != nil {
 			return err
 		}
@@ -119,7 +119,7 @@ func (w *Writer) delete(delRow [][]string, cmp *tbln.Compare) error {
 		return err
 	}
 	for _, del := range delRow {
-		err = w.WriteRow(cmp.PrimaryKeyRow(del))
+		err = w.WriteRow(cmp.ColumnPrimaryKey(del))
 		if err != nil {
 			return err
 		}

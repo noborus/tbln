@@ -170,7 +170,7 @@ func TestWriteRead(t *testing.T) {
 				tableName := wt.TableName()
 				wgot := wt.Hashes["sha256"]
 				// reset
-				tdb.Commit()
+				_ = tdb.Commit()
 				err := tdb.Begin()
 				if err != nil {
 					t.Fatal(err)

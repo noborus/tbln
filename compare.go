@@ -10,9 +10,6 @@ import (
 // Comparer is TBLN Compare interface.
 type Comparer interface {
 	ReadRow() ([]string, error)
-	Types() []string
-	Names() []string
-	PrimaryKey() []string
 	GetDefinition() *Definition
 }
 
@@ -99,15 +96,16 @@ func (cmp *Compare) ReadDiffRow() (*DiffRow, error) {
 	return nil, io.EOF
 }
 
-func (cmp *Compare) PrimaryKeyRow(row []string) []string {
+// ColumnPrimaryKey return  columns primary key
+func (cmp *Compare) ColumnPrimaryKey(row []string) []string {
 	if row == nil {
 		return nil
 	}
-	pkRow := make([]string, 0, len(cmp.pk))
+	colPK := make([]string, 0, len(cmp.pk))
 	for _, pk := range cmp.pk {
-		pkRow = append(pkRow, row[pk.pos])
+		colPK = append(colPK, row[pk.pos])
 	}
-	return pkRow
+	return colPK
 }
 
 func (cmp *Compare) diffPrimaryKey() int {
@@ -127,12 +125,14 @@ func (cmp *Compare) diffPrimaryKey() int {
 }
 
 func getPK(src, dst Comparer) ([]pkey, error) {
+	sd := src.GetDefinition()
+	dd := dst.GetDefinition()
 	var pos []int
-	dPos, err := getPKeyPos(dst)
+	dPos, err := dd.GetPKeyPos()
 	if err == nil {
 		pos = dPos
 	}
-	sPos, err := getPKeyPos(src)
+	sPos, err := sd.GetPKeyPos()
 	if err == nil {
 		pos = sPos
 	}
@@ -147,32 +147,15 @@ func getPK(src, dst Comparer) ([]pkey, error) {
 		if sPos[i] != dPos[i] {
 			return nil, fmt.Errorf("primary key position")
 		}
-		st := src.Types()
-		dt := dst.Types()
+		st := sd.Types()
+		dt := dd.Types()
 		if st[i] != dt[i] {
 			return nil, fmt.Errorf("unmatch data type")
 		}
-		sn := src.Names()
+		sn := sd.Names()
 		pk[i] = pkey{v, sn[i], st[i]}
 	}
 	return pk, nil
-}
-
-func getPKeyPos(tr Comparer) ([]int, error) {
-	pk := tr.PrimaryKey()
-	if len(pk) == 0 {
-		return nil, fmt.Errorf("no primary key")
-	}
-	pkpos := make([]int, 0)
-	for _, p := range pk {
-		for n, v := range tr.Names() {
-			if p == v {
-				pkpos = append(pkpos, n)
-				break
-			}
-		}
-	}
-	return pkpos, nil
 }
 
 func compareType(dtype string, src string, dst string) int {
