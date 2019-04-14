@@ -1,7 +1,6 @@
 package db_test
 
 import (
-	"fmt"
 	"reflect"
 	"testing"
 
@@ -175,8 +174,7 @@ func TestGetTableInfo(t *testing.T) {
 				return
 			}
 			if got != nil {
-				if !reflect.DeepEqual(got.Names, tt.want.Names) {
-					fmt.Println(got.Names)
+				if !reflect.DeepEqual(got.Names(), tt.want.Names()) {
 					t.Errorf("GetTableInfo() = %v, want %v", got, tt.want)
 				}
 			}

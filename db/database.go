@@ -63,7 +63,7 @@ func (tdb *TDB) Begin() error {
 func (tdb *TDB) Commit() error {
 	if !tdb.IsTx {
 		if tdb.Tx != nil {
-			tdb.Tx.Rollback()
+			_ = tdb.Tx.Rollback()
 		}
 		return fmt.Errorf("no transaction")
 	}

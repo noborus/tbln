@@ -48,17 +48,6 @@ func NewTbln() *Tbln {
 	}
 }
 
-// Read is TBLN Read interface.
-type Read interface {
-	ReadRow() ([]string, error)
-}
-
-// Write is TBLN Write interface.
-type Write interface {
-	WriteDefinition(Definition) error
-	WriteRow([]string) error
-}
-
 // JoinRow makes a Row array a character string.
 func JoinRow(row []string) string {
 	var b strings.Builder

@@ -31,8 +31,12 @@ type InsertMode int
 const (
 	// Normal does normal insert.
 	Normal = iota
-	// OrIgnore  ignores at insert conflict.
+	// OrIgnore ignores at insert conflict.
 	OrIgnore
+	// Merge run the insert and update.
+	Merge
+	// Sync synchronizes tbln.
+	Sync
 )
 
 // Writer writes records to database table.
@@ -42,6 +46,7 @@ type Writer struct {
 	tableFullName string // schema.table
 	stmt          *sql.Stmt
 	ReplaceLN     bool
+	phtypes       []string
 }
 
 // NewWriter returns a new Writer that writes to database table.
@@ -72,38 +77,26 @@ func (w *Writer) WriteRow(row []string) error {
 		if w.ReplaceLN {
 			v = strings.ReplaceAll(v, "\\n", "\n")
 		}
-		r[i] = w.convertDBType(w.Types[i], v)
+		if i > len(w.phtypes) {
+			return fmt.Errorf("can not convert type")
+		}
+		r[i] = w.convertDBType(w.phtypes[i], v)
 	}
 	_, err := w.stmt.Exec(r...)
 	return err
 }
 
-// WriteTable writes all rows to the table.
-func WriteTable(tdb *TDB, tbln *tbln.Tbln, schema string, cmode CreateMode, imode InsertMode) error {
-	w, err := NewWriter(tdb, tbln.Definition)
+// WriteTable writes all rows to the table from tbln.
+func WriteTable(tdb *TDB, tb *tbln.Tbln, schema string, cmode CreateMode, imode InsertMode) error {
+	w, err := NewWriter(tdb, tb.Definition)
 	if err != nil {
 		return err
 	}
-	if w.TableName() == "" {
-		return fmt.Errorf("table name required")
-	}
-	if schema != "" {
-		w.tableFullName = w.quoting(schema) + "." + w.quoting(w.TableName())
-	} else {
-		w.tableFullName = w.quoting(w.TableName())
-	}
-	err = w.WriteDefinition(cmode)
+	err = writePrePare(w, schema, cmode, imode)
 	if err != nil {
 		return err
 	}
-	if cmode == CreateOnly {
-		return nil
-	}
-	err = w.prepare(imode)
-	if err != nil {
-		return err
-	}
-	for _, row := range tbln.Rows {
+	for _, row := range tb.Rows {
 		err = w.WriteRow(row)
 		if err != nil {
 			return err
@@ -112,24 +105,79 @@ func WriteTable(tdb *TDB, tbln *tbln.Tbln, schema string, cmode CreateMode, imod
 	return nil
 }
 
-// WriteDefinition is create table and insert prepare.
-func (w *Writer) WriteDefinition(cmode CreateMode) error {
-	if w.Names == nil {
-		if w.ColumnNum() == 0 {
-			return fmt.Errorf("column num is 0")
+// WriteReader writes all rows to the table from reader.
+func (tdb *TDB) WriteReader(tr tbln.Reader, schema string, tableName string, cmode CreateMode, imode InsertMode) error {
+	w, err := NewWriter(tdb, tr.GetDefinition())
+	if err != nil {
+		return err
+	}
+	w.SetTableName(tableName)
+	err = writePrePare(w, schema, cmode, imode)
+	if err != nil {
+		return err
+	}
+	for {
+		row, err := tr.ReadRow()
+		if err != nil {
+			return err
 		}
-		w.Names = make([]string, w.ColumnNum())
-		for i := 0; i < w.ColumnNum(); i++ {
-			w.Names[i] = fmt.Sprintf("c%d", i+1)
+		if row == nil {
+			return nil
+		}
+		err = w.WriteRow(row)
+		if err != nil {
+			return err
 		}
 	}
-	if w.Types == nil {
+}
+
+func writePrePare(w *Writer, schema string, cmode CreateMode, imode InsertMode) error {
+	if w.TableName() == "" {
+		return fmt.Errorf("table name required")
+	}
+	if schema != "" {
+		w.tableFullName = w.quoting(schema) + "." + w.quoting(w.TableName())
+	} else {
+		w.tableFullName = w.quoting(w.TableName())
+	}
+	err := w.WriteDefinition(cmode)
+	if err != nil {
+		return err
+	}
+	if cmode == CreateOnly {
+		return nil
+	}
+	return w.prepareInsert(imode)
+}
+
+// WriteDefinition is create table and insert prepare.
+func (w *Writer) WriteDefinition(cmode CreateMode) error {
+	wn := w.Names()
+	if wn == nil {
 		if w.ColumnNum() == 0 {
 			return fmt.Errorf("column num is 0")
 		}
-		w.Types = make([]string, w.ColumnNum())
+		wn = make([]string, w.ColumnNum())
 		for i := 0; i < w.ColumnNum(); i++ {
-			w.Types[i] = "text"
+			wn[i] = fmt.Sprintf("c%d", i+1)
+		}
+		err := w.SetNames(wn)
+		if err != nil {
+			return err
+		}
+	}
+	wt := w.Types()
+	if wt == nil {
+		if w.ColumnNum() == 0 {
+			return fmt.Errorf("column num is 0")
+		}
+		wt = make([]string, w.ColumnNum())
+		for i := 0; i < w.ColumnNum(); i++ {
+			wt[i] = "text"
+		}
+		err := w.SetTypes(wt)
+		if err != nil {
+			return err
 		}
 	}
 	if cmode > NotCreate {
@@ -177,11 +225,12 @@ func (w *Writer) createTable(cmode CreateMode) error {
 		}
 	}
 	if len(typeNames) == 0 {
-		typeNames = w.Types
+		typeNames = w.Types()
 	}
-	col := make([]string, len(w.Names))
-	for i := 0; i < len(w.Names); i++ {
-		col[i] = w.quoting(w.Names[i]) + " " + typeNames[i] + constraints[i]
+	wn := w.Names()
+	col := make([]string, len(wn))
+	for i := 0; i < len(wn); i++ {
+		col[i] = w.quoting(wn[i]) + " " + typeNames[i] + constraints[i]
 	}
 	primaryKey := ""
 	pk := tbln.SplitRow(toString(w.ExtraValue("primarykey")))
@@ -204,8 +253,9 @@ func (w *Writer) createConstraints() []string {
 	if len(nu) != w.ColumnNum() {
 		nu = nil
 	}
-	cs := make([]string, len(w.Names))
-	for i := 0; i < len(w.Names); i++ {
+	wn := w.Names()
+	cs := make([]string, len(wn))
+	for i := 0; i < len(wn); i++ {
 		if (nu != nil) && nu[i] == "NO" {
 			cs[i] += " NOT NULL"
 		}
@@ -213,17 +263,21 @@ func (w *Writer) createConstraints() []string {
 	return cs
 }
 
-func (w *Writer) prepare(imode InsertMode) error {
+func (w *Writer) prepareInsert(imode InsertMode) error {
 	var err error
-	names := make([]string, len(w.Names))
-	ph := make([]string, len(w.Names))
-	for i := 0; i < len(w.Names); i++ {
-		names[i] = w.quoting(w.Names[i])
+	wn := w.Names()
+	names := make([]string, len(wn))
+	ph := make([]string, len(wn))
+	wt := w.Types()
+	w.phtypes = make([]string, len(wt))
+	for i := 0; i < len(wn); i++ {
+		names[i] = w.quoting(wn[i])
 		if w.Style.PlaceHolder == "$" {
 			ph[i] = fmt.Sprintf("$%d", i+1)
 		} else {
 			ph[i] = "?"
 		}
+		w.phtypes[i] = wt[i]
 	}
 	// Construct SQL that does not generate an error
 	// for each database when insert mode is OrIgnore.
@@ -255,6 +309,80 @@ func (w *Writer) prepare(imode InsertMode) error {
 	w.stmt, err = w.Tx.Prepare(insert)
 	if err != nil {
 		return fmt.Errorf("%s: %s", err, insert)
+	}
+	return nil
+}
+
+func (w *Writer) prepareUpdate(pkeys []tbln.Pkey) error {
+	var err error
+	wn := w.Names()
+	setcolumns := make([]string, len(wn))
+	names := make([]string, len(wn))
+	ph := make([]string, len(wn))
+	wt := w.Types()
+	w.phtypes = make([]string, len(wt)+len(pkeys))
+	for i := 0; i < len(wn); i++ {
+		names[i] = w.quoting(wn[i])
+		if w.Style.PlaceHolder == "$" {
+			ph[i] = fmt.Sprintf("$%d", i+1)
+		} else {
+			ph[i] = "?"
+		}
+		setcolumns[i] = fmt.Sprintf("%s = %s", names[i], ph[i])
+		w.phtypes[i] = wt[i]
+	}
+	conditions := make([]string, len(pkeys))
+	pk := make([]string, len(pkeys))
+	phpk := make([]string, len(pkeys))
+	for i := 0; i < len(pk); i++ {
+		pk[i] = w.quoting(pkeys[i].Name)
+		if w.Style.PlaceHolder == "$" {
+			phpk[i] = fmt.Sprintf("$%d", len(setcolumns)+i+1)
+		} else {
+			phpk[i] = "?"
+		}
+		conditions[i] = fmt.Sprintf("%s = %s", pk[i], phpk[i])
+		w.phtypes[len(setcolumns)+i] = pkeys[i].Typ
+	}
+	// #nosec G201
+	update := fmt.Sprintf(
+		"UPDATE %s SET %s WHERE %s;",
+		w.tableFullName, strings.Join(setcolumns, ", "), strings.Join(conditions, " AND "),
+	)
+	debug.Printf("SQL:%s", update)
+	w.stmt, err = w.Tx.Prepare(update)
+	if err != nil {
+		return fmt.Errorf("%s: %s", err, update)
+	}
+	return nil
+}
+
+func (w *Writer) prepareDelete(pkeys []tbln.Pkey) error {
+	var err error
+	w.phtypes = nil
+	conditions := make([]string, len(pkeys))
+	pk := make([]string, len(pkeys))
+	phpk := make([]string, len(pkeys))
+	w.phtypes = make([]string, len(pkeys))
+	for i := 0; i < len(pkeys); i++ {
+		pk[i] = w.quoting(pkeys[i].Name)
+		if w.Style.PlaceHolder == "$" {
+			phpk[i] = fmt.Sprintf("$%d", i+1)
+		} else {
+			phpk[i] = "?"
+		}
+		conditions[i] = fmt.Sprintf("%s = %s", pk[i], phpk[i])
+		w.phtypes[i] = pkeys[i].Typ
+	}
+	// #nosec G201
+	update := fmt.Sprintf(
+		"DELETE FROM %s WHERE %s;",
+		w.tableFullName, strings.Join(conditions, " AND "),
+	)
+	debug.Printf("SQL:%s", update)
+	w.stmt, err = w.Tx.Prepare(update)
+	if err != nil {
+		return fmt.Errorf("%s: %s", err, update)
 	}
 	return nil
 }

@@ -106,7 +106,7 @@ func (tr *Reader) ReadRow() ([]string, error) {
 		if len(tr.mySQLcolType) == len(tr.values) {
 			mtypes = tr.mySQLcolType
 		} else {
-			mtypes = tr.Types
+			mtypes = tr.Types()
 		}
 		for i, col := range tr.values {
 			rec[i] = mySQLtoString(mtypes[i], col)

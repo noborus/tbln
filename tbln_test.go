@@ -150,13 +150,13 @@ func TestTbln_SumHash(t *testing.T) {
 		},
 		{
 			name:    "testNames",
-			fields:  fields{Definition: &Definition{Extras: make(map[string]Extra), Hashes: make(map[string][]byte), Names: []string{"id"}, columnNum: 1}, Rows: [][]string{{"1"}}, RowNum: 1},
+			fields:  fields{Definition: &Definition{Extras: make(map[string]Extra), Hashes: make(map[string][]byte), names: []string{"id"}, columnNum: 1}, Rows: [][]string{{"1"}}, RowNum: 1},
 			want:    "e5ce5f72c836840efdbcbf7639075966944253ef438a305761d888158a6b22a8",
 			wantErr: false,
 		},
 		{
 			name:    "testFullRow",
-			fields:  fields{Definition: &Definition{Extras: make(map[string]Extra), Hashes: make(map[string][]byte), Names: []string{"id", "name"}, Types: []string{"int", "text"}, columnNum: 2}, Rows: [][]string{{"1", "test"}}, RowNum: 1},
+			fields:  fields{Definition: &Definition{Extras: make(map[string]Extra), Hashes: make(map[string][]byte), names: []string{"id", "name"}, types: []string{"int", "text"}, columnNum: 2}, Rows: [][]string{{"1", "test"}}, RowNum: 1},
 			want:    "fcc150288d592d5c0cf13eed4b1054f6fadbfd2c48cde10954b44d6b7fc42623",
 			wantErr: false,
 		},
@@ -169,12 +169,12 @@ func TestTbln_SumHash(t *testing.T) {
 				RowNum:     tt.fields.RowNum,
 				Rows:       tt.fields.Rows,
 			}
-			if err := tb.SetNames(tb.Names); err != nil {
+			if err := tb.SetNames(tb.names); err != nil {
 				t.Errorf("Tbln.SetNames error = %v", err)
 				return
 
 			}
-			if err := tb.SetTypes(tb.Types); err != nil {
+			if err := tb.SetTypes(tb.types); err != nil {
 				t.Errorf("Tbln.SetTypes error = %v", err)
 				return
 			}

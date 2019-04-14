@@ -12,8 +12,8 @@ type Definition struct {
 	tableName string
 	algorithm string
 	Comments  []string
-	Names     []string
-	Types     []string
+	names     []string
+	types     []string
 	Extras    map[string]Extra
 	Hashes    map[string][]byte
 	Signs     Signatures
@@ -96,6 +96,11 @@ func (d *Definition) SetTableName(name string) {
 	d.SetExtra("TableName", name)
 }
 
+// Names return column names.
+func (d *Definition) Names() []string {
+	return d.names
+}
+
 // SetNames is set Column Name to the Table.
 func (d *Definition) SetNames(names []string) error {
 	if names != nil {
@@ -103,9 +108,14 @@ func (d *Definition) SetNames(names []string) error {
 			return err
 		}
 	}
-	d.Names = names
+	d.names = names
 	d.SetExtra("name", JoinRow(names))
 	return nil
+}
+
+// Types return column types.
+func (d *Definition) Types() []string {
+	return d.types
 }
 
 // SetTypes is set Column Type to Table.
@@ -115,7 +125,7 @@ func (d *Definition) SetTypes(types []string) error {
 			return err
 		}
 	}
-	d.Types = types
+	d.types = types
 	d.SetExtra("type", JoinRow(types))
 	return nil
 }
@@ -191,4 +201,33 @@ func (d *Definition) SetHashes(hashes []string) error {
 	}
 	d.Hashes[hashes[0]] = b
 	return nil
+}
+
+// PrimaryKey return PrimaryKey
+func (d *Definition) PrimaryKey() []string {
+	return SplitRow(fmt.Sprintf("%s", d.ExtraValue("primarykey")))
+
+}
+
+// GetPKeyPos return PrimaryKey position
+func (d *Definition) GetPKeyPos() ([]int, error) {
+	pk := d.PrimaryKey()
+	if len(pk) == 0 {
+		return nil, fmt.Errorf("no primary key")
+	}
+	pkpos := make([]int, 0)
+	for _, p := range pk {
+		for n, v := range d.Names() {
+			if p == v {
+				pkpos = append(pkpos, n)
+				break
+			}
+		}
+	}
+	return pkpos, nil
+}
+
+// GetDefinition return Definition
+func (d *Definition) GetDefinition() *Definition {
+	return d
 }
