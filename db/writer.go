@@ -31,8 +31,12 @@ type InsertMode int
 const (
 	// Normal does normal insert.
 	Normal = iota
-	// OrIgnore  ignores at insert conflict.
+	// OrIgnore ignores at insert conflict.
 	OrIgnore
+	// Merge run the insert and update.
+	Merge
+	// Sync synchronizes tbln.
+	Sync
 )
 
 // Writer writes records to database table.
@@ -83,8 +87,8 @@ func (w *Writer) WriteRow(row []string) error {
 }
 
 // WriteTable writes all rows to the table.
-func WriteTable(tdb *TDB, tbln *tbln.Tbln, schema string, cmode CreateMode, imode InsertMode) error {
-	w, err := NewWriter(tdb, tbln.Definition)
+func WriteTable(tdb *TDB, tb *tbln.Tbln, schema string, cmode CreateMode, imode InsertMode) error {
+	w, err := NewWriter(tdb, tb.Definition)
 	if err != nil {
 		return err
 	}
@@ -107,7 +111,7 @@ func WriteTable(tdb *TDB, tbln *tbln.Tbln, schema string, cmode CreateMode, imod
 	if err != nil {
 		return err
 	}
-	for _, row := range tbln.Rows {
+	for _, row := range tb.Rows {
 		err = w.WriteRow(row)
 		if err != nil {
 			return err

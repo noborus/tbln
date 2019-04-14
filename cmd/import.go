@@ -6,6 +6,7 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/noborus/tbln"
 	"github.com/noborus/tbln/db"
 
 	"github.com/spf13/cobra"
@@ -44,8 +45,10 @@ func init() {
  recreate	- Drop and re-create the table.
  only	- Only create a table, do not insert data.
  `)
-	importCmd.PersistentFlags().StringP("conflict", "", "normal", `insert mode
+	importCmd.PersistentFlags().StringP("conflict", "", "no", `merge mode when conflict
  ignore - Ignores at insert conflict
+ merge - insert update when conflicted
+ sync - Synchronize (also execute delete)
  `)
 	importCmd.PersistentFlags().StringP("table", "t", "", "table name")
 	importCmd.PersistentFlags().BoolP("force-verify-sign", "", false, "force signature verification")
@@ -60,7 +63,7 @@ func dbImport(cmd *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
-	at, err := verifiedTbln(cmd, args)
+	tb, err := verifiedTbln(cmd, args)
 	if err != nil {
 		return err
 	}
@@ -85,11 +88,11 @@ func dbImport(cmd *cobra.Command, args []string) error {
 		return err
 	}
 	if tableName != "" {
-		at.SetTableName(tableName)
+		tb.SetTableName(tableName)
 	}
-	if at.TableName() == "" {
+	if tb.TableName() == "" {
 		base := filepath.Base(fileName[:len(fileName)-len(filepath.Ext(fileName))])
-		at.SetTableName(base)
+		tb.SetTableName(base)
 	}
 	var cmode db.CreateMode
 	if modeStr, err := cmd.PersistentFlags().GetString("mode"); err == nil {
@@ -113,10 +116,17 @@ func dbImport(cmd *cobra.Command, args []string) error {
 		return err
 	}
 	var imode db.InsertMode
-	if conflict == "ignore" {
+	switch conflict {
+	case "ignore":
 		imode = db.OrIgnore
+	case "merge":
+		imode = db.Merge
+	case "sync":
+		imode = db.Sync
+	default:
+		imode = db.Normal
 	}
-	err = db.WriteTable(conn, at, schema, cmode, imode)
+	err = writeImport(conn, tb, schema, cmode, imode)
 	if err != nil {
 		return err
 	}
@@ -124,6 +134,26 @@ func dbImport(cmd *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
-	log.Printf("%s import success\n", at.TableName())
+	log.Printf("[%s] import success\n", tb.TableName())
 	return conn.Close()
+}
+
+func writeImport(conn *db.TDB, tb *tbln.Tbln, schema string, cmode db.CreateMode, imode db.InsertMode) error {
+	if imode >= db.Merge {
+		err := mergeImport(conn, tb, schema, imode)
+		if err == nil {
+			return nil
+		}
+		log.Printf("Table Not found. Create Table [%s]\n", tb.TableName())
+	}
+	return db.WriteTable(conn, tb, schema, cmode, imode)
+}
+
+func mergeImport(conn *db.TDB, tb *tbln.Tbln, schema string, imode db.InsertMode) error {
+	sr := tbln.NewSelfReader(tb)
+	delete := false
+	if imode == db.Sync {
+		delete = true
+	}
+	return conn.MergeTable(schema, tb.TableName(), sr, delete)
 }
