@@ -7,22 +7,28 @@ import (
 	"strings"
 )
 
-// Reader reads records from a tbln file.
-type Reader struct {
+// Reader is TBLN Reader interface.
+type Reader interface {
+	ReadRow() ([]string, error)
+	GetDefinition() *Definition
+}
+
+// FileReader reads records from a tbln file.
+type FileReader struct {
 	*Definition
 	r *bufio.Reader
 }
 
 // NewReader returns a new Reader that reads from tr.
-func NewReader(r io.Reader) *Reader {
-	return &Reader{
+func NewReader(r io.Reader) *FileReader {
+	return &FileReader{
 		Definition: NewDefinition(),
 		r:          bufio.NewReader(r),
 	}
 }
 
 // ReadRow reads one record (a slice of fields) from tr.
-func (tr *Reader) ReadRow() ([]string, error) {
+func (tr *FileReader) ReadRow() ([]string, error) {
 	rec, err := tr.scanLine()
 	if err != nil || rec == nil {
 		return nil, err
@@ -64,7 +70,7 @@ func ReadAll(r io.Reader) (*Tbln, error) {
 
 // scanLine reads from tr and returns either one row or a blank line.
 // Comments and Extra lines are read until reaching a row or blank line.
-func (tr *Reader) scanLine() ([]string, error) {
+func (tr *FileReader) scanLine() ([]string, error) {
 	for {
 		line, isPrefix, err := tr.r.ReadLine()
 		if err != nil {
@@ -95,7 +101,7 @@ func (tr *Reader) scanLine() ([]string, error) {
 // Analyze Extra.
 // Save the necessary items (name, type, TableName, Hash) in Extra in a variable.
 // Save other items in Extras.
-func (tr *Reader) analyzeExtra(extstr string) error {
+func (tr *FileReader) analyzeExtra(extstr string) error {
 	extstr = strings.TrimLeft(extstr, "; ")
 	keypos := strings.Index(extstr, ":")
 	if keypos <= 0 {

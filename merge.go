@@ -22,7 +22,7 @@ func (d *DiffRow) MergeRow() []string {
 }
 
 // MergeAll merges two tbln and returns one tbln.
-func MergeAll(src, dst Comparer) (*Tbln, error) {
+func MergeAll(src, dst Reader) (*Tbln, error) {
 	tb := &Tbln{}
 	diff, err := NewCompare(src, dst)
 	if err != nil {

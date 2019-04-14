@@ -33,7 +33,7 @@ func mergeTableRow(dml *dml, d *tbln.DiffRow, delete bool) *dml {
 }
 
 // MergeTable writes all rows to the table.
-func (tdb *TDB) MergeTable(schema string, tableName string, dst tbln.Comparer, delete bool) error {
+func (tdb *TDB) MergeTable(schema string, tableName string, dst tbln.Reader, delete bool) error {
 	src, err := tdb.ReadTable(schema, tableName, nil)
 	if err != nil {
 		return err

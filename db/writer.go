@@ -86,28 +86,13 @@ func (w *Writer) WriteRow(row []string) error {
 	return err
 }
 
-// WriteTable writes all rows to the table.
+// WriteTable writes all rows to the table from tbln.
 func WriteTable(tdb *TDB, tb *tbln.Tbln, schema string, cmode CreateMode, imode InsertMode) error {
 	w, err := NewWriter(tdb, tb.Definition)
 	if err != nil {
 		return err
 	}
-	if w.TableName() == "" {
-		return fmt.Errorf("table name required")
-	}
-	if schema != "" {
-		w.tableFullName = w.quoting(schema) + "." + w.quoting(w.TableName())
-	} else {
-		w.tableFullName = w.quoting(w.TableName())
-	}
-	err = w.WriteDefinition(cmode)
-	if err != nil {
-		return err
-	}
-	if cmode == CreateOnly {
-		return nil
-	}
-	err = w.prepareInsert(imode)
+	err = writePrePare(w, schema, cmode, imode)
 	if err != nil {
 		return err
 	}
@@ -118,6 +103,51 @@ func WriteTable(tdb *TDB, tb *tbln.Tbln, schema string, cmode CreateMode, imode 
 		}
 	}
 	return nil
+}
+
+// WriteReader writes all rows to the table from reader.
+func (tdb *TDB) WriteReader(tr tbln.Reader, schema string, tableName string, cmode CreateMode, imode InsertMode) error {
+	w, err := NewWriter(tdb, tr.GetDefinition())
+	if err != nil {
+		return err
+	}
+	w.SetTableName(tableName)
+	err = writePrePare(w, schema, cmode, imode)
+	if err != nil {
+		return err
+	}
+	for {
+		row, err := tr.ReadRow()
+		if err != nil {
+			return err
+		}
+		if row == nil {
+			return nil
+		}
+		err = w.WriteRow(row)
+		if err != nil {
+			return err
+		}
+	}
+}
+
+func writePrePare(w *Writer, schema string, cmode CreateMode, imode InsertMode) error {
+	if w.TableName() == "" {
+		return fmt.Errorf("table name required")
+	}
+	if schema != "" {
+		w.tableFullName = w.quoting(schema) + "." + w.quoting(w.TableName())
+	} else {
+		w.tableFullName = w.quoting(w.TableName())
+	}
+	err := w.WriteDefinition(cmode)
+	if err != nil {
+		return err
+	}
+	if cmode == CreateOnly {
+		return nil
+	}
+	return w.prepareInsert(imode)
 }
 
 // WriteDefinition is create table and insert prepare.

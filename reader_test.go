@@ -84,7 +84,7 @@ func TestReader_scanLine(t *testing.T) {
 	for _, tt := range tests {
 		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
-			tr := &Reader{
+			tr := &FileReader{
 				Definition: NewDefinition(),
 				r:          tt.fields.r,
 			}
@@ -164,7 +164,7 @@ func TestReader_analyzeExtra(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			tr := &Reader{
+			tr := &FileReader{
 				Definition: tt.fields.Definition,
 				r:          tt.fields.r,
 			}
@@ -207,7 +207,7 @@ func TestReader_ReadRow(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			tr := &Reader{
+			tr := &FileReader{
 				Definition: tt.fields.Definition,
 				r:          tt.fields.r,
 			}

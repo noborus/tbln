@@ -7,16 +7,10 @@ import (
 	"strings"
 )
 
-// Comparer is TBLN Compare interface.
-type Comparer interface {
-	ReadRow() ([]string, error)
-	GetDefinition() *Definition
-}
-
 // Compare is a structure that compares two tbln reads
 type Compare struct {
-	src    Comparer
-	dst    Comparer
+	src    Reader
+	dst    Reader
 	srcRow []string
 	dstRow []string
 	sNext  bool
@@ -38,8 +32,8 @@ type DiffRow struct {
 	Dst []string
 }
 
-// NewCompare returns a Compare structure
-func NewCompare(src, dst Comparer) (*Compare, error) {
+// NewCompare returns a Reader interface
+func NewCompare(src, dst Reader) (*Compare, error) {
 	cmp := &Compare{
 		src:   src,
 		dst:   dst,
@@ -125,7 +119,7 @@ func (cmp *Compare) diffPrimaryKey() int {
 	return 0
 }
 
-func getPK(src, dst Comparer) ([]Pkey, error) {
+func getPK(src, dst Reader) ([]Pkey, error) {
 	sd := src.GetDefinition()
 	dd := dst.GetDefinition()
 	var pos []int
