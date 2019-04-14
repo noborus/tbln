@@ -21,13 +21,14 @@ type Compare struct {
 	dstRow []string
 	sNext  bool
 	dNext  bool
-	pk     []pkey
+	PK     []Pkey
 }
 
-type pkey struct {
-	pos  int
-	name string
-	typ  string
+// Pkey PrimaryKey information
+type Pkey struct {
+	Pos  int
+	Name string
+	Typ  string
 }
 
 // DiffRow contains the difference between two row.
@@ -54,7 +55,7 @@ func NewCompare(src, dst Comparer) (*Compare, error) {
 	if err != nil {
 		return nil, err
 	}
-	cmp.pk, err = getPK(src, dst)
+	cmp.PK, err = getPK(src, dst)
 	if err != nil {
 		return nil, err
 	}
@@ -101,9 +102,9 @@ func (cmp *Compare) ColumnPrimaryKey(row []string) []string {
 	if row == nil {
 		return nil
 	}
-	colPK := make([]string, 0, len(cmp.pk))
-	for _, pk := range cmp.pk {
-		colPK = append(colPK, row[pk.pos])
+	colPK := make([]string, 0, len(cmp.PK))
+	for _, pk := range cmp.PK {
+		colPK = append(colPK, row[pk.Pos])
 	}
 	return colPK
 }
@@ -115,8 +116,8 @@ func (cmp *Compare) diffPrimaryKey() int {
 	if len(cmp.dstRow) == 0 {
 		return -1
 	}
-	for _, pk := range cmp.pk {
-		ret := compareType(pk.typ, cmp.srcRow[pk.pos], cmp.dstRow[pk.pos])
+	for _, pk := range cmp.PK {
+		ret := compareType(pk.Typ, cmp.srcRow[pk.Pos], cmp.dstRow[pk.Pos])
 		if ret != 0 {
 			return ret
 		}
@@ -124,7 +125,7 @@ func (cmp *Compare) diffPrimaryKey() int {
 	return 0
 }
 
-func getPK(src, dst Comparer) ([]pkey, error) {
+func getPK(src, dst Comparer) ([]Pkey, error) {
 	sd := src.GetDefinition()
 	dd := dst.GetDefinition()
 	var pos []int
@@ -142,7 +143,7 @@ func getPK(src, dst Comparer) ([]pkey, error) {
 	if len(sPos) != len(dPos) {
 		return nil, fmt.Errorf("primary key position")
 	}
-	pk := make([]pkey, len(pos))
+	pk := make([]Pkey, len(pos))
 	for i, v := range pos {
 		if sPos[i] != dPos[i] {
 			return nil, fmt.Errorf("primary key position")
@@ -153,7 +154,7 @@ func getPK(src, dst Comparer) ([]pkey, error) {
 			return nil, fmt.Errorf("unmatch data type")
 		}
 		sn := sd.Names()
-		pk[i] = pkey{v, sn[i], st[i]}
+		pk[i] = Pkey{v, sn[i], st[i]}
 	}
 	return pk, nil
 }

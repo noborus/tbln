@@ -42,6 +42,7 @@ type Writer struct {
 	tableFullName string // schema.table
 	stmt          *sql.Stmt
 	ReplaceLN     bool
+	phtypes       []string
 }
 
 // NewWriter returns a new Writer that writes to database table.
@@ -63,7 +64,6 @@ func NewWriter(tdb *TDB, definition *tbln.Definition) (*Writer, error) {
 // A record is a slice of strings with each string being one field.
 func (w *Writer) WriteRow(row []string) error {
 	r := make([]interface{}, len(row))
-	wt := w.Types()
 	for i, v := range row {
 		// null
 		if v == "" {
@@ -73,11 +73,10 @@ func (w *Writer) WriteRow(row []string) error {
 		if w.ReplaceLN {
 			v = strings.ReplaceAll(v, "\\n", "\n")
 		}
-		if i < len(wt) {
-			r[i] = w.convertDBType(wt[i], v)
-		} else {
-			r[i] = v
+		if i > len(w.phtypes) {
+			return fmt.Errorf("can not convert type")
 		}
+		r[i] = w.convertDBType(w.phtypes[i], v)
 	}
 	_, err := w.stmt.Exec(r...)
 	return err
@@ -235,6 +234,8 @@ func (w *Writer) prepareInsert(imode InsertMode) error {
 	wn := w.Names()
 	names := make([]string, len(wn))
 	ph := make([]string, len(wn))
+	wt := w.Types()
+	w.phtypes = make([]string, len(wt))
 	for i := 0; i < len(wn); i++ {
 		names[i] = w.quoting(wn[i])
 		if w.Style.PlaceHolder == "$" {
@@ -242,6 +243,7 @@ func (w *Writer) prepareInsert(imode InsertMode) error {
 		} else {
 			ph[i] = "?"
 		}
+		w.phtypes[i] = wt[i]
 	}
 	// Construct SQL that does not generate an error
 	// for each database when insert mode is OrIgnore.
@@ -277,12 +279,14 @@ func (w *Writer) prepareInsert(imode InsertMode) error {
 	return nil
 }
 
-func (w *Writer) prepareUpdate(pk []string) error {
+func (w *Writer) prepareUpdate(pkeys []tbln.Pkey) error {
 	var err error
 	wn := w.Names()
 	setcolumns := make([]string, len(wn))
 	names := make([]string, len(wn))
 	ph := make([]string, len(wn))
+	wt := w.Types()
+	w.phtypes = make([]string, len(wt)+len(pkeys))
 	for i := 0; i < len(wn); i++ {
 		names[i] = w.quoting(wn[i])
 		if w.Style.PlaceHolder == "$" {
@@ -291,17 +295,20 @@ func (w *Writer) prepareUpdate(pk []string) error {
 			ph[i] = "?"
 		}
 		setcolumns[i] = fmt.Sprintf("%s = %s", names[i], ph[i])
+		w.phtypes[i] = wt[i]
 	}
-	conditions := make([]string, len(pk))
-	phpk := make([]string, len(pk))
+	conditions := make([]string, len(pkeys))
+	pk := make([]string, len(pkeys))
+	phpk := make([]string, len(pkeys))
 	for i := 0; i < len(pk); i++ {
-		pk[i] = w.quoting(pk[i])
+		pk[i] = w.quoting(pkeys[i].Name)
 		if w.Style.PlaceHolder == "$" {
 			phpk[i] = fmt.Sprintf("$%d", len(setcolumns)+i+1)
 		} else {
 			phpk[i] = "?"
 		}
 		conditions[i] = fmt.Sprintf("%s = %s", pk[i], phpk[i])
+		w.phtypes[len(setcolumns)+i] = pkeys[i].Typ
 	}
 	// #nosec G201
 	update := fmt.Sprintf(
@@ -316,20 +323,23 @@ func (w *Writer) prepareUpdate(pk []string) error {
 	return nil
 }
 
-func (w *Writer) prepareDelete(pk []string) error {
+func (w *Writer) prepareDelete(pkeys []tbln.Pkey) error {
 	var err error
-	conditions := make([]string, len(pk))
-	phpk := make([]string, len(pk))
-	for i := 0; i < len(pk); i++ {
-		pk[i] = w.quoting(pk[i])
+	w.phtypes = nil
+	conditions := make([]string, len(pkeys))
+	pk := make([]string, len(pkeys))
+	phpk := make([]string, len(pkeys))
+	w.phtypes = make([]string, len(pkeys))
+	for i := 0; i < len(pkeys); i++ {
+		pk[i] = w.quoting(pkeys[i].Name)
 		if w.Style.PlaceHolder == "$" {
 			phpk[i] = fmt.Sprintf("$%d", i+1)
 		} else {
 			phpk[i] = "?"
 		}
 		conditions[i] = fmt.Sprintf("%s = %s", pk[i], phpk[i])
+		w.phtypes[i] = pkeys[i].Typ
 	}
-
 	// #nosec G201
 	update := fmt.Sprintf(
 		"DELETE FROM %s WHERE %s;",

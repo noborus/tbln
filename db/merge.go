@@ -100,7 +100,7 @@ func (w *Writer) insert(insRow [][]string) error {
 }
 
 func (w *Writer) update(updRow [][]string, cmp *tbln.Compare) error {
-	err := w.prepareUpdate(w.PrimaryKey())
+	err := w.prepareUpdate(cmp.PK)
 	if err != nil {
 		return err
 	}
@@ -114,7 +114,7 @@ func (w *Writer) update(updRow [][]string, cmp *tbln.Compare) error {
 }
 
 func (w *Writer) delete(delRow [][]string, cmp *tbln.Compare) error {
-	err := w.prepareDelete(w.PrimaryKey())
+	err := w.prepareDelete(cmp.PK)
 	if err != nil {
 		return err
 	}
