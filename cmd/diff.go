@@ -5,7 +5,6 @@ import (
 	"os"
 
 	"github.com/noborus/tbln"
-	"github.com/noborus/tbln/db"
 	"github.com/spf13/cobra"
 )
 
@@ -35,88 +34,16 @@ func init() {
 }
 
 func diff(cmd *cobra.Command, args []string) error {
-	var err error
-	var fromReader, toReader tbln.Reader
-
-	var fromFileName, toFileName string
-	if fromFileName, err = cmd.PersistentFlags().GetString("from-file"); err != nil {
+	fromReader, err := getFromReader(cmd, args)
+	if err != nil {
 		return err
 	}
-	if fromFileName != "" {
-		dst, err := os.Open(fromFileName)
-		if err != nil {
-			return err
-		}
-		fromReader = tbln.NewReader(dst)
-	}
-	var fromDb, fromDsn string
-	if fromDb, err = cmd.PersistentFlags().GetString("from-db"); err != nil {
+	toReader, err := getToReader(cmd, args)
+	if err != nil {
 		return err
 	}
-	if fromDb != "" {
-		if fromDsn, err = cmd.PersistentFlags().GetString("from-dsn"); err != nil {
-			return err
-		}
-		fromConn, err := db.Open(fromDb, fromDsn)
-		if err != nil {
-			return fmt.Errorf("%s: %s", fromDb, err)
-		}
-		err = fromConn.Begin()
-		if err != nil {
-			return fmt.Errorf("%s: %s", fromDb, err)
-		}
-		var schema string
-		if schema, err = cmd.PersistentFlags().GetString("from-schema"); err != nil {
-			return err
-		}
-		var tableName string
-		if tableName, err = cmd.PersistentFlags().GetString("from-table"); err != nil {
-			return err
-		}
-		fromReader, err = fromConn.ReadTable(schema, tableName, nil)
-		if err != nil {
-			return err
-		}
-	}
-
-	if toFileName, err = cmd.PersistentFlags().GetString("to-file"); err != nil {
-		return err
-	}
-	if toFileName != "" {
-		src, err := os.Open(toFileName)
-		if err != nil {
-			return err
-		}
-		toReader = tbln.NewReader(src)
-	}
-	var toDb, toDsn string
-	if toDb, err = cmd.PersistentFlags().GetString("to-db"); err != nil {
-		return err
-	}
-	if toDb != "" {
-		if toDsn, err = cmd.PersistentFlags().GetString("to-dsn"); err != nil {
-			return err
-		}
-		toConn, err := db.Open(toDb, toDsn)
-		if err != nil {
-			return fmt.Errorf("%s: %s", toDb, err)
-		}
-		err = toConn.Begin()
-		if err != nil {
-			return fmt.Errorf("%s: %s", toDb, err)
-		}
-		var schema string
-		if schema, err = cmd.PersistentFlags().GetString("to-schema"); err != nil {
-			return err
-		}
-		var tableName string
-		if tableName, err = cmd.PersistentFlags().GetString("to-table"); err != nil {
-			return err
-		}
-		toReader, err = toConn.ReadTable(schema, tableName, nil)
-		if err != nil {
-			return err
-		}
+	if fromReader == nil || toReader == nil {
+		return fmt.Errorf("requires from and to")
 	}
 	err = tbln.DiffAll(os.Stdout, toReader, fromReader)
 	if err != nil {
