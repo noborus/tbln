@@ -106,7 +106,7 @@ func WriteTable(tdb *TDB, tb *tbln.Tbln, schema string, cmode CreateMode, imode 
 }
 
 // WriteReader writes all rows to the table from reader.
-func (tdb *TDB) WriteReader(tr tbln.Reader, schema string, tableName string, cmode CreateMode, imode InsertMode) error {
+func (tdb *TDB) WriteReader(schema string, tableName string, tr tbln.Reader, cmode CreateMode, imode InsertMode) error {
 	w, err := NewWriter(tdb, tr.GetDefinition())
 	if err != nil {
 		return err

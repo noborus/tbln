@@ -1,6 +1,9 @@
 package tbln
 
-import "fmt"
+import (
+	"fmt"
+	"io"
+)
 
 // Diff returns diff format
 func (d *DiffRow) Diff() string {
@@ -16,4 +19,20 @@ func (d *DiffRow) Diff() string {
 	default:
 		return ""
 	}
+}
+
+// DiffAll Write diff to writer from two readers.
+func DiffAll(writer io.Writer, src, dst Reader) error {
+	d, err := NewCompare(src, dst)
+	if err != nil {
+		return err
+	}
+	for {
+		dd, err := d.ReadDiffRow()
+		if err != nil {
+			break
+		}
+		fmt.Fprintf(writer, "%s\n", dd.Diff())
+	}
+	return err
 }
