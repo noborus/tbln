@@ -12,8 +12,9 @@ import (
 
 // mergeCmd represents the merge command
 var mergeCmd = &cobra.Command{
-	Use:   "merge [flags]",
-	Short: "Merge two TBLNs",
+	Use:          "merge [flags]",
+	SilenceUsage: true,
+	Short:        "Merge two TBLNs",
 	Long: `Merge two TBLNs.
 
 	The two TBLNs should basically have the same structure.`,
@@ -168,5 +169,4 @@ func merge(cmd *cobra.Command, args []string) error {
 		return err
 	}
 	return outputFile(tb, cmd)
-
 }
