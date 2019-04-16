@@ -31,6 +31,9 @@ func init() {
 	diffCmd.PersistentFlags().StringP("to-dsn", "", "", "TO dsn name")
 	diffCmd.PersistentFlags().StringP("to-schema", "", "", "To schema Name")
 	diffCmd.PersistentFlags().StringP("to-table", "", "", "TO table name")
+	diffCmd.PersistentFlags().BoolP("all", "", false, "Show all, including unchanged rows")
+	diffCmd.PersistentFlags().BoolP("change", "", false, "Show only changed rows")
+	diffCmd.PersistentFlags().BoolP("update", "", false, "Show only rows to add and update")
 }
 
 func diff(cmd *cobra.Command, args []string) error {
@@ -45,7 +48,28 @@ func diff(cmd *cobra.Command, args []string) error {
 	if fromReader == nil || toReader == nil {
 		return fmt.Errorf("requires from and to")
 	}
-	err = tbln.DiffAll(os.Stdout, toReader, fromReader)
+	var all, change, update bool
+	if all, err = cmd.PersistentFlags().GetBool("all"); err != nil {
+		return err
+	}
+	if change, err = cmd.PersistentFlags().GetBool("change"); err != nil {
+		return err
+	}
+	if update, err = cmd.PersistentFlags().GetBool("update"); err != nil {
+		return err
+	}
+	var flag tbln.DiffMode
+	switch {
+	case all:
+		flag = tbln.AllDiff
+	case change:
+		flag = tbln.OnlyDiff
+	case update:
+		flag = tbln.OnlyAdd
+	default:
+		flag = tbln.AllDiff
+	}
+	err = tbln.DiffAll(os.Stdout, toReader, fromReader, flag)
 	if err != nil {
 		return err
 	}
