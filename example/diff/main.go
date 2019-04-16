@@ -86,6 +86,6 @@ func main() {
 		if err != nil {
 			break
 		}
-		fmt.Printf("%s\n", dd.Diff())
+		fmt.Printf("%s\n", dd.Diff(tbln.AllDiff))
 	}
 }

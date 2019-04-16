@@ -44,8 +44,9 @@ func init() {
 
 func getFromReader(cmd *cobra.Command, args []string) (tbln.Reader, error) {
 	var err error
-	var fromFileName string
 	var fromReader tbln.Reader
+
+	var fromFileName string
 	if fromFileName, err = cmd.PersistentFlags().GetString("from-file"); err != nil {
 		return nil, err
 	}
@@ -58,44 +59,45 @@ func getFromReader(cmd *cobra.Command, args []string) (tbln.Reader, error) {
 			return nil, err
 		}
 		fromReader = tbln.NewReader(f)
+		return fromReader, nil
 	}
+
 	var fromDb, fromDsn string
 	if fromDb, err = cmd.PersistentFlags().GetString("from-db"); err != nil {
 		return nil, err
 	}
-	if fromDb != "" {
-		if fromDsn, err = cmd.PersistentFlags().GetString("from-dsn"); err != nil {
-			return nil, err
-		}
-		fromConn, err := db.Open(fromDb, fromDsn)
-		if err != nil {
-			return nil, fmt.Errorf("%s: %s", fromDb, err)
-		}
-		err = fromConn.Begin()
-		if err != nil {
-			return nil, fmt.Errorf("%s: %s", fromDb, err)
-		}
-		var schema string
-		if schema, err = cmd.PersistentFlags().GetString("from-schema"); err != nil {
-			return nil, err
-		}
-		var tableName string
-		if tableName, err = cmd.PersistentFlags().GetString("from-table"); err != nil {
-			return nil, err
-		}
-		fromReader, err = fromConn.ReadTable(schema, tableName, nil)
-		if err != nil {
-			return nil, err
-		}
+	if fromDsn, err = cmd.PersistentFlags().GetString("from-dsn"); err != nil {
+		return nil, err
+	}
+
+	fromConn, err := db.Open(fromDb, fromDsn)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %s", fromDb, err)
+	}
+	err = fromConn.Begin()
+	if err != nil {
+		return nil, fmt.Errorf("%s: %s", fromDb, err)
+	}
+	var schema string
+	if schema, err = cmd.PersistentFlags().GetString("from-schema"); err != nil {
+		return nil, err
+	}
+	var tableName string
+	if tableName, err = cmd.PersistentFlags().GetString("from-table"); err != nil {
+		return nil, err
+	}
+	fromReader, err = fromConn.ReadTable(schema, tableName, nil)
+	if err != nil {
+		return nil, err
 	}
 	return fromReader, nil
 }
 
 func getToReader(cmd *cobra.Command, args []string) (tbln.Reader, error) {
 	var err error
-	var toFileName string
 	var toReader tbln.Reader
-	var toDb, toDsn string
+
+	var toFileName string
 	if toFileName, err = cmd.PersistentFlags().GetString("to-file"); err != nil {
 		return nil, err
 	}
@@ -108,34 +110,36 @@ func getToReader(cmd *cobra.Command, args []string) (tbln.Reader, error) {
 			return nil, err
 		}
 		toReader = tbln.NewReader(src)
+		return toReader, nil
 	}
+
+	var toDb, toDsn string
 	if toDb, err = cmd.PersistentFlags().GetString("to-db"); err != nil {
 		return nil, err
 	}
-	if toDb != "" {
-		if toDsn, err = cmd.PersistentFlags().GetString("to-dsn"); err != nil {
-			return nil, err
-		}
-		toConn, err := db.Open(toDb, toDsn)
-		if err != nil {
-			return nil, fmt.Errorf("%s: %s", toDb, err)
-		}
-		err = toConn.Begin()
-		if err != nil {
-			return nil, fmt.Errorf("%s: %s", toDb, err)
-		}
-		var schema string
-		if schema, err = cmd.PersistentFlags().GetString("to-schema"); err != nil {
-			return nil, err
-		}
-		var tableName string
-		if tableName, err = cmd.PersistentFlags().GetString("to-table"); err != nil {
-			return nil, err
-		}
-		toReader, err = toConn.ReadTable(schema, tableName, nil)
-		if err != nil {
-			return nil, err
-		}
+	if toDsn, err = cmd.PersistentFlags().GetString("to-dsn"); err != nil {
+		return nil, err
+	}
+
+	toConn, err := db.Open(toDb, toDsn)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %s", toDb, err)
+	}
+	err = toConn.Begin()
+	if err != nil {
+		return nil, fmt.Errorf("%s: %s", toDb, err)
+	}
+	var schema string
+	if schema, err = cmd.PersistentFlags().GetString("to-schema"); err != nil {
+		return nil, err
+	}
+	var tableName string
+	if tableName, err = cmd.PersistentFlags().GetString("to-table"); err != nil {
+		return nil, err
+	}
+	toReader, err = toConn.ReadTable(schema, tableName, nil)
+	if err != nil {
+		return nil, err
 	}
 	return toReader, nil
 }
@@ -165,6 +169,7 @@ func mergeWriteTable(fromReader tbln.Reader, cmd *cobra.Command, args []string) 
 	if tableName, err = cmd.PersistentFlags().GetString("to-table"); err != nil {
 		return err
 	}
+
 	var conflict string
 	if conflict, err = cmd.PersistentFlags().GetString("conflict"); err != nil {
 		return err
