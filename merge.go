@@ -17,20 +17,20 @@ func (d *DiffRow) MergeRow() []string {
 	case 2:
 		return d.Dst
 	default:
-		return []string{}
+		return nil
 	}
 }
 
 // MergeAll merges two tbln and returns one tbln.
-func MergeAll(src, dst Reader) (*Tbln, error) {
+func MergeAll(t1, t2 Reader) (*Tbln, error) {
 	tb := &Tbln{}
-	diff, err := NewCompare(src, dst)
+	diff, err := NewCompare(t1, t2)
 	if err != nil {
 		return nil, err
 	}
-	sDefinition := src.GetDefinition()
-	dDefinition := dst.GetDefinition()
-	tb.Definition, err = MergeDefinition(sDefinition, dDefinition)
+	t1Definition := t1.GetDefinition()
+	t2Definition := t2.GetDefinition()
+	tb.Definition, err = MergeDefinition(t1Definition, t2Definition)
 	if err != nil {
 		return nil, err
 	}
@@ -49,26 +49,26 @@ func MergeAll(src, dst Reader) (*Tbln, error) {
 }
 
 // MergeDefinition merges two tbln Definitions.
-func MergeDefinition(src, dst *Definition) (*Definition, error) {
-	if src.columnNum != dst.columnNum {
+func MergeDefinition(t1d, t2d *Definition) (*Definition, error) {
+	if t1d.columnNum != t2d.columnNum {
 		return nil, fmt.Errorf("different column num")
 	}
 	d := NewDefinition()
-	d.Comments = mergeComment(src, dst)
-	d.Extras = src.Extras
-	for k, v := range dst.Extras {
+	d.Comments = mergeComment(t1d, t2d)
+	d.Extras = t1d.Extras
+	for k, v := range t2d.Extras {
 		d.Extras[k] = v
 	}
 	return d, nil
 }
 
-func mergeComment(src, dst *Definition) []string {
-	comments := make([]string, len(src.Comments))
-	copy(comments, src.Comments)
+func mergeComment(t1d, t2d *Definition) []string {
+	comments := make([]string, len(t1d.Comments))
+	copy(comments, t1d.Comments)
 
-	for _, dc := range dst.Comments {
+	for _, dc := range t2d.Comments {
 		appFlag := true
-		for _, sc := range src.Comments {
+		for _, sc := range t1d.Comments {
 			if dc == sc {
 				appFlag = false
 				break

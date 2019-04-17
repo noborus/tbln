@@ -16,6 +16,10 @@ There is also a [CLI](cmd/README.md) tool that uses them.
 * TBLN can contain multiple columns like CSV.
 * Database tables and import/export are possible.
 * It can include the signature with the hash value in the file.
+* Merge, sync and diff is possible
+    * TBLN file and TBLN file
+    * TBLN file and DB Table
+    * DB Table and DB Table
 
 Please refer to [TBLN](https://tbln.dev/) for the specification of TBLN.
 
@@ -99,7 +103,8 @@ func main() {
 }
 ```
 
-### TBLN files can be tables in a database.
+### TBLN files can be imported and exported into the database.
+
 
 Example of importing into PostgreSQL.
 
