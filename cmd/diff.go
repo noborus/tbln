@@ -69,7 +69,7 @@ func diff(cmd *cobra.Command, args []string) error {
 	default:
 		flag = tbln.AllDiff
 	}
-	err = tbln.DiffAll(os.Stdout, toReader, fromReader, flag)
+	err = tbln.DiffAll(os.Stdout, fromReader, toReader, flag)
 	if err != nil {
 		return err
 	}
