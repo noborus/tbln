@@ -10,12 +10,15 @@ Usage:
   tbln [command]
 
 Available Commands:
+  diff        Diff two TBLNs
+  except      Difference set two TBLNs
   export      Export database table or query
   genkey      Generate a new key pair
   hash        Add hash value to TBLN file
   help        Help about any command
   import      Import database table
   keystore    keystore is a command to operate keystore
+  merge       Merge two TBLNs
   sign        Sign a TBLN file with a private key
   verify      Verify signature and checksum of TBLN file
   version     Print the version number of tbln

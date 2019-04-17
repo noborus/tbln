@@ -105,7 +105,7 @@ func (w *Writer) update(updRow [][]string, cmp *tbln.Compare) error {
 		return err
 	}
 	for _, upd := range updRow {
-		err = w.WriteRow(append(upd, cmp.ColumnPrimaryKey(upd)...))
+		err = w.WriteRow(append(upd, tbln.ColumnPrimaryKey(cmp.PK, upd)...))
 		if err != nil {
 			return err
 		}
@@ -119,7 +119,7 @@ func (w *Writer) delete(delRow [][]string, cmp *tbln.Compare) error {
 		return err
 	}
 	for _, del := range delRow {
-		err = w.WriteRow(cmp.ColumnPrimaryKey(del))
+		err = w.WriteRow(tbln.ColumnPrimaryKey(cmp.PK, del))
 		if err != nil {
 			return err
 		}

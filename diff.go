@@ -24,7 +24,7 @@ func (d *DiffRow) Diff(diffMode DiffMode) string {
 		}
 	case 1:
 		if diffMode == OnlyAdd {
-			return fmt.Sprintf("%s", JoinRow(d.Dst))
+			return JoinRow(d.Dst)
 		}
 		return fmt.Sprintf("+%s", JoinRow(d.Dst))
 	case -1:
@@ -33,11 +33,11 @@ func (d *DiffRow) Diff(diffMode DiffMode) string {
 		}
 	case 2:
 		var str string
+		if diffMode == OnlyAdd {
+			return JoinRow(d.Dst)
+		}
 		if diffMode == AllDiff || diffMode == OnlyDiff {
 			str = fmt.Sprintf("-%s\n", JoinRow(d.Src))
-		}
-		if diffMode == OnlyAdd {
-			return fmt.Sprintf("%s", JoinRow(d.Dst))
 		}
 		return str + fmt.Sprintf("+%s", JoinRow(d.Dst))
 	default:
@@ -47,8 +47,8 @@ func (d *DiffRow) Diff(diffMode DiffMode) string {
 }
 
 // DiffAll Write diff to writer from two readers.
-func DiffAll(writer io.Writer, src, dst Reader, diffMode DiffMode) error {
-	d, err := NewCompare(src, dst)
+func DiffAll(writer io.Writer, t1, t2 Reader, diffMode DiffMode) error {
+	d, err := NewCompare(t1, t2)
 	if err != nil {
 		return err
 	}

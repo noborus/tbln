@@ -105,11 +105,11 @@ func getToReader(cmd *cobra.Command, args []string) (tbln.Reader, error) {
 		toFileName = args[1]
 	}
 	if toFileName != "" {
-		src, err := os.Open(toFileName)
+		to, err := os.Open(toFileName)
 		if err != nil {
 			return nil, err
 		}
-		toReader = tbln.NewReader(src)
+		toReader = tbln.NewReader(to)
 		return toReader, nil
 	}
 
@@ -144,7 +144,7 @@ func getToReader(cmd *cobra.Command, args []string) (tbln.Reader, error) {
 	return toReader, nil
 }
 
-func mergeWriteTable(fromReader tbln.Reader, cmd *cobra.Command, args []string) error {
+func mergeWriteTable(fromReader tbln.Reader, cmd *cobra.Command) error {
 	var err error
 	var toDb, toDsn string
 	if toDb, err = cmd.PersistentFlags().GetString("to-db"); err != nil {
@@ -219,7 +219,7 @@ func merge(cmd *cobra.Command, args []string) error {
 		return err
 	}
 	if toDb != "" && !noImport {
-		return mergeWriteTable(fromReader, cmd, args)
+		return mergeWriteTable(fromReader, cmd)
 	}
 
 	toReader, err := getToReader(cmd, args)

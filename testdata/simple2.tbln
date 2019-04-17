@@ -9,7 +9,7 @@
 ; primarykey: | id |
 ; name: | id | name |
 ; type: | int | text |
-| 1 | Bobs |
+| 1 | Bob |
 | 2 | Alice |
 | 3 | Nice |
 | 4 | hoge |

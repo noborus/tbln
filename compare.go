@@ -9,13 +9,14 @@ import (
 
 // Compare is a structure that compares two tbln reads
 type Compare struct {
-	src    Reader
-	dst    Reader
-	srcRow []string
-	dstRow []string
-	sNext  bool
-	dNext  bool
-	PK     []Pkey
+	t1     Reader
+	t2     Reader
+	t1Row  []string
+	t2Row  []string
+	t1Next bool
+	t2Next bool
+
+	PK []Pkey
 }
 
 // Pkey PrimaryKey information
@@ -33,23 +34,27 @@ type DiffRow struct {
 }
 
 // NewCompare returns a Reader interface
-func NewCompare(src, dst Reader) (*Compare, error) {
+func NewCompare(t1, t2 Reader) (*Compare, error) {
 	cmp := &Compare{
-		src:   src,
-		dst:   dst,
-		sNext: false,
-		dNext: false,
+		t1:     t1,
+		t2:     t2,
+		t1Next: false,
+		t2Next: false,
 	}
 	var err error
-	cmp.srcRow, err = src.ReadRow()
+	cmp.t1Row, err = t1.ReadRow()
 	if err != nil {
-		return nil, err
+		if err != io.EOF {
+			return nil, err
+		}
 	}
-	cmp.dstRow, err = dst.ReadRow()
+	cmp.t2Row, err = t2.ReadRow()
 	if err != nil {
-		return nil, err
+		if err != io.EOF {
+			return nil, err
+		}
 	}
-	cmp.PK, err = getPK(src, dst)
+	cmp.PK, err = cmp.getPK()
 	if err != nil {
 		return nil, err
 	}
@@ -58,60 +63,59 @@ func NewCompare(src, dst Reader) (*Compare, error) {
 
 // ReadDiffRow compares two rows and returns the difference.
 func (cmp *Compare) ReadDiffRow() (*DiffRow, error) {
-	if cmp.sNext {
+	var err error
+	if cmp.t1Next {
+		cmp.t1Row, err = cmp.t1.ReadRow()
 		// Ignore errors to continue reading both ends.
-		cmp.srcRow, _ = cmp.src.ReadRow()
+		if err != nil {
+			if err != io.EOF {
+				return nil, err
+			}
+		}
 	}
-	if cmp.dNext {
+	if cmp.t2Next {
+		cmp.t2Row, err = cmp.t2.ReadRow()
 		// Ignore errors to continue reading both ends.
-		cmp.dstRow, _ = cmp.dst.ReadRow()
+		if err != nil {
+			if err != io.EOF {
+				return nil, err
+			}
+		}
 	}
 
 	switch cmp.diffPrimaryKey() {
 	case 0:
-		cmp.sNext = true
-		cmp.dNext = true
-		if JoinRow(cmp.srcRow) == JoinRow(cmp.dstRow) {
-			return &DiffRow{0, cmp.srcRow, cmp.dstRow}, nil
+		cmp.t1Next = true
+		cmp.t2Next = true
+		if JoinRow(cmp.t1Row) == JoinRow(cmp.t2Row) {
+			return &DiffRow{0, cmp.t1Row, cmp.t2Row}, nil
 		}
-		return &DiffRow{2, cmp.srcRow, cmp.dstRow}, nil
+		return &DiffRow{2, cmp.t1Row, cmp.t2Row}, nil
 	case 1:
-		cmp.sNext = false
-		cmp.dNext = true
-		if len(cmp.dstRow) > 0 {
-			return &DiffRow{1, nil, cmp.dstRow}, nil
+		cmp.t1Next = false
+		cmp.t2Next = true
+		if len(cmp.t2Row) > 0 {
+			return &DiffRow{1, nil, cmp.t2Row}, nil
 		}
 	case -1:
-		cmp.sNext = true
-		cmp.dNext = false
-		if len(cmp.srcRow) > 0 {
-			return &DiffRow{-1, cmp.srcRow, nil}, nil
+		cmp.t1Next = true
+		cmp.t2Next = false
+		if len(cmp.t1Row) > 0 {
+			return &DiffRow{-1, cmp.t1Row, nil}, nil
 		}
 	}
 	return nil, io.EOF
 }
 
-// ColumnPrimaryKey return  columns primary key
-func (cmp *Compare) ColumnPrimaryKey(row []string) []string {
-	if row == nil {
-		return nil
-	}
-	colPK := make([]string, 0, len(cmp.PK))
-	for _, pk := range cmp.PK {
-		colPK = append(colPK, row[pk.Pos])
-	}
-	return colPK
-}
-
 func (cmp *Compare) diffPrimaryKey() int {
-	if len(cmp.srcRow) == 0 {
+	if len(cmp.t1Row) == 0 {
 		return 1
 	}
-	if len(cmp.dstRow) == 0 {
+	if len(cmp.t2Row) == 0 {
 		return -1
 	}
 	for _, pk := range cmp.PK {
-		ret := compareType(pk.Typ, cmp.srcRow[pk.Pos], cmp.dstRow[pk.Pos])
+		ret := compareType(pk.Typ, cmp.t1Row[pk.Pos], cmp.t2Row[pk.Pos])
 		if ret != 0 {
 			return ret
 		}
@@ -119,80 +123,92 @@ func (cmp *Compare) diffPrimaryKey() int {
 	return 0
 }
 
-func getPK(src, dst Reader) ([]Pkey, error) {
-	sd := src.GetDefinition()
-	dd := dst.GetDefinition()
-	var pos []int
-	dPos, err := dd.GetPKeyPos()
-	if err == nil {
-		pos = dPos
+// ColumnPrimaryKey return  columns primary key
+func ColumnPrimaryKey(pkeys []Pkey, row []string) []string {
+	if row == nil {
+		return nil
 	}
-	sPos, err := sd.GetPKeyPos()
+	colPK := make([]string, 0, len(pkeys))
+	for _, pk := range pkeys {
+		colPK = append(colPK, row[pk.Pos])
+	}
+	return colPK
+}
+
+func (cmp *Compare) getPK() ([]Pkey, error) {
+	t1d := cmp.t1.GetDefinition()
+	t2d := cmp.t2.GetDefinition()
+	var pos []int
+	t2Pos, err := t2d.GetPKeyPos()
 	if err == nil {
-		pos = sPos
+		pos = t2Pos
+	}
+	t1Pos, err := t1d.GetPKeyPos()
+	if err == nil {
+		pos = t1Pos
 	}
 	if len(pos) == 0 {
 		return nil, fmt.Errorf("no primary key")
 	}
-	if len(sPos) != len(dPos) {
+	if len(t1Pos) != len(t2Pos) {
 		return nil, fmt.Errorf("primary key position")
 	}
 	pk := make([]Pkey, len(pos))
 	for i, v := range pos {
-		if sPos[i] != dPos[i] {
+		if t1Pos[i] != t2Pos[i] {
 			return nil, fmt.Errorf("primary key position")
 		}
-		st := sd.Types()
-		dt := dd.Types()
-		if st[i] != dt[i] {
+		t1t := t1d.Types()
+		t2t := t2d.Types()
+		if t1t[i] != t2t[i] {
 			return nil, fmt.Errorf("unmatch data type")
 		}
-		sn := sd.Names()
-		pk[i] = Pkey{v, sn[i], st[i]}
+		n := t1d.Names()
+		pk[i] = Pkey{v, n[i], t1t[i]}
 	}
 	return pk, nil
 }
 
-func compareType(dtype string, src string, dst string) int {
+func compareType(dtype string, t1 string, t2 string) int {
 	switch dtype {
 	case "int":
-		return compareInt(src, dst)
+		return compareInt(t1, t2)
 	case "bigint", "double precision", "numeric":
-		return compareFloat(src, dst)
+		return compareFloat(t1, t2)
 	default:
-		return strings.Compare(src, dst)
+		return strings.Compare(t1, t2)
 	}
 }
 
-func compareInt(src string, dst string) int {
+func compareInt(t1 string, t2 string) int {
 	var err error
-	var s, d int
-	if s, err = strconv.Atoi(src); err != nil {
-		return strings.Compare(src, dst)
+	var a, b int
+	if a, err = strconv.Atoi(t1); err != nil {
+		return strings.Compare(t1, t2)
 	}
-	if d, err = strconv.Atoi(dst); err != nil {
-		return strings.Compare(src, dst)
+	if b, err = strconv.Atoi(t2); err != nil {
+		return strings.Compare(t1, t2)
 	}
-	if s > d {
+	if a > b {
 		return 1
-	} else if s < d {
+	} else if a < b {
 		return -1
 	}
 	return 0
 }
 
-func compareFloat(src string, dst string) int {
+func compareFloat(t1 string, t2 string) int {
 	var err error
-	var s, d float64
-	if s, err = strconv.ParseFloat(src, 64); err != nil {
-		return strings.Compare(src, dst)
+	var a, b float64
+	if a, err = strconv.ParseFloat(t1, 64); err != nil {
+		return strings.Compare(t1, t2)
 	}
-	if d, err = strconv.ParseFloat(dst, 64); err != nil {
-		return strings.Compare(src, dst)
+	if b, err = strconv.ParseFloat(t2, 64); err != nil {
+		return strings.Compare(t1, t2)
 	}
-	if s > d {
+	if a > b {
 		return 1
-	} else if s < d {
+	} else if a < b {
 		return -1
 	}
 	return 0
