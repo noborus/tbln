@@ -44,7 +44,7 @@ func main() {
 	sr := tbln.NewReader(r)
 	r2 := bytes.NewBufferString(data2)
 	dr := tbln.NewReader(r2)
-	tb, err := tbln.MergeAll(sr, dr)
+	tb, err := tbln.MergeAll(sr, dr, tbln.MergeUpdate)
 	if err != nil {
 		log.Fatal(err)
 	}

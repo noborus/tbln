@@ -28,9 +28,9 @@ type Pkey struct {
 
 // DiffRow contains the difference between two row.
 type DiffRow struct {
-	Les int
-	Src []string
-	Dst []string
+	Les   int
+	Self  []string
+	Other []string
 }
 
 // NewCompare returns a Reader interface

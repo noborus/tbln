@@ -14,7 +14,7 @@ type CreateMode int
 
 const (
 	// NotCreate does not execute CREATE TABLE
-	NotCreate = iota
+	NotCreate CreateMode = iota
 	// Create is mormal creation.
 	Create
 	// IfNotExists does nothing if already exists.
@@ -25,19 +25,51 @@ const (
 	CreateOnly
 )
 
+func (m CreateMode) String() string {
+	switch m {
+	case NotCreate:
+		return "NotCreate"
+	case Create:
+		return "Create"
+	case IfNotExists:
+		return "IfNotExists"
+	case ReCreate:
+		return "ReCreate"
+	case CreateOnly:
+		return "CreateOnly"
+	default:
+		return "Unknown"
+	}
+}
+
 // InsertMode represents the mode of insert conflicts.
 type InsertMode int
 
 const (
 	// Normal does normal insert.
-	Normal = iota
+	Normal InsertMode = iota
 	// OrIgnore ignores at insert conflict.
 	OrIgnore
-	// Merge run the insert and update.
-	Merge
+	// Update run the insert and update.
+	Update
 	// Sync synchronizes tbln.
 	Sync
 )
+
+func (m InsertMode) String() string {
+	switch m {
+	case Normal:
+		return "Normal"
+	case OrIgnore:
+		return "OrIgnore"
+	case Update:
+		return "Update"
+	case Sync:
+		return "Sync"
+	default:
+		return "Unknown"
+	}
+}
 
 // Writer writes records to database table.
 type Writer struct {

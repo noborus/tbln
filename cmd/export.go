@@ -34,6 +34,7 @@ the column name and column type.`,
 }
 
 func init() {
+	rootCmd.AddCommand(exportCmd)
 	exportCmd.PersistentFlags().StringVar(&srcdbName, "db", "", "database name")
 	exportCmd.PersistentFlags().StringVar(&srcdsn, "dsn", "", "dsn name")
 	exportCmd.PersistentFlags().StringP("schema", "n", "", "schema name")
@@ -46,8 +47,6 @@ func init() {
 	exportCmd.PersistentFlags().StringSliceP("disable-target", "", nil, "hash extra items not to be targeted (all or each name)")
 	exportCmd.PersistentFlags().BoolP("sign", "", false, "sign TBLN file")
 	exportCmd.PersistentFlags().BoolP("quiet", "q", false, "do not prompt for password.")
-
-	rootCmd.AddCommand(exportCmd)
 }
 
 func dbExport(cmd *cobra.Command, args []string) error {
@@ -98,29 +97,29 @@ func dbExport(cmd *cobra.Command, args []string) error {
 	}
 	defer conn.Close()
 
-	var at *tbln.Tbln
+	var tb *tbln.Tbln
 	switch {
 	case query != "":
-		at, err = db.ReadQueryAll(conn, query)
+		tb, err = db.ReadQueryAll(conn, query)
 	case schemaOnly:
-		at, err = db.GetTableInfo(conn, schema, tableName)
+		tb, err = db.GetTableInfo(conn, schema, tableName)
 	default:
-		at, err = db.ReadTableAll(conn, schema, tableName)
+		tb, err = db.ReadTableAll(conn, schema, tableName)
 	}
 	if err != nil {
 		return err
 	}
 
-	at, err = hashFile(at, cmd)
+	tb, err = hashFile(tb, cmd)
 	if err != nil {
 		return err
 	}
 	if signF {
-		at, err = signFile(at, cmd)
+		tb, err = signFile(tb, cmd)
 		if err != nil {
 			return err
 		}
 	}
 
-	return outputFile(at, cmd)
+	return outputFile(tb, cmd)
 }
