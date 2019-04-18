@@ -11,8 +11,8 @@ import (
 var exceptCmd = &cobra.Command{
 	Use:          "except",
 	SilenceUsage: true,
-	Short:        "Difference set two TBLNs",
-	Long: `Difference set two TBLNs
+	Short:        "Except for other TBLN rows from self TBLN",
+	Long: `Except for other TBLN rows from self TBLN
 
 	The two TBLNs should basically have the same structure.`,
 	RunE: except,
@@ -20,35 +20,64 @@ var exceptCmd = &cobra.Command{
 
 func init() {
 	rootCmd.AddCommand(exceptCmd)
-	exceptCmd.PersistentFlags().StringP("from-file", "", "", "TBLN FROM File")
-	exceptCmd.PersistentFlags().StringP("to-file", "", "", "TBLN TO File")
-	exceptCmd.PersistentFlags().StringP("from-db", "", "", "FROM database driver name")
-	exceptCmd.PersistentFlags().StringP("from-dsn", "", "", "FROM dsn name")
-	exceptCmd.PersistentFlags().StringP("from-schema", "", "", "FROM schema Name")
-	exceptCmd.PersistentFlags().StringP("from-table", "", "", "FROM table name")
-	exceptCmd.PersistentFlags().StringP("to-db", "", "", "TO database driver name")
-	exceptCmd.PersistentFlags().StringP("to-dsn", "", "", "TO dsn name")
-	exceptCmd.PersistentFlags().StringP("to-schema", "", "", "To schema Name")
-	exceptCmd.PersistentFlags().StringP("to-table", "", "", "TO table name")
-	exceptCmd.PersistentFlags().StringP("output", "o", "", "write to file instead of stdout")
+	exceptCmd.PersistentFlags().StringP("self-file", "", "", "TBLN self File")
+	exceptCmd.PersistentFlags().StringP("self-db", "", "", "Self database driver name")
+	exceptCmd.PersistentFlags().StringP("self-dsn", "", "", "Self dsn name")
+	exceptCmd.PersistentFlags().StringP("self-schema", "", "", "Self schema Name")
+	exceptCmd.PersistentFlags().StringP("self-table", "", "", "Self table name")
+	exceptCmd.PersistentFlags().StringP("other-file", "", "", "TBLN other File")
+	exceptCmd.PersistentFlags().StringP("other-db", "", "", "Other database driver name")
+	exceptCmd.PersistentFlags().StringP("other-dsn", "", "", "Other dsn name")
+	exceptCmd.PersistentFlags().StringP("other-schema", "", "", "Other schema Name")
+	exceptCmd.PersistentFlags().StringP("other-table", "", "", "Other table name")
+	exceptCmd.PersistentFlags().StringP("output", "o", "", "Write to file instead of stdout")
+	exceptCmd.PersistentFlags().StringSliceP("hash", "a", []string{"sha256"}, "hash algorithm(sha256 or sha512)")
+	exceptCmd.PersistentFlags().StringSliceP("enable-target", "", []string{"name", "type"}, "hash target extra item (all or each name)")
+	exceptCmd.PersistentFlags().StringSliceP("disable-target", "", nil, "hash extra items not to be targeted (all or each name)")
+	exceptCmd.PersistentFlags().BoolP("sign", "", false, "sign TBLN file")
+	exceptCmd.PersistentFlags().BoolP("quiet", "q", false, "do not prompt for password.")
+	exceptCmd.PersistentFlags().SortFlags = false
+	exceptCmd.Flags().SortFlags = false
 }
 
 func except(cmd *cobra.Command, args []string) error {
-	fromReader, err := getFromReader(cmd, args)
+	var err error
+	var signF bool
+	if signF, err = cmd.PersistentFlags().GetBool("sign"); err != nil {
+		return err
+	}
+	if signF && SecFile == "" {
+		cmd.SilenceUsage = false
+		return fmt.Errorf("requires secret key file")
+	}
+
+	otherReader, err := getOtherReader(cmd, args)
 	if err != nil {
 		return err
 	}
-	toReader, err := getToReader(cmd, args)
+	selfReader, err := getSelfReader(cmd, args)
 	if err != nil {
 		return err
 	}
-	if fromReader == nil || toReader == nil {
-		return fmt.Errorf("requires from and to")
+	if otherReader == nil || selfReader == nil {
+		return fmt.Errorf("requires from and self")
 	}
 	var tb *tbln.Tbln
-	tb, err = tbln.ExceptAll(toReader, fromReader)
+	tb, err = tbln.ExceptAll(selfReader, otherReader)
 	if err != nil {
 		return err
 	}
+
+	tb, err = hashFile(tb, cmd)
+	if err != nil {
+		return err
+	}
+	if signF {
+		tb, err = signFile(tb, cmd)
+		if err != nil {
+			return err
+		}
+	}
+
 	return outputFile(tb, cmd)
 }

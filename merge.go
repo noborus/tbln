@@ -5,24 +5,40 @@ import (
 	"io"
 )
 
+// MergeMode represents the mode of merge.
+type MergeMode int
+
+// Represents the merge mode
+const (
+	MergeIgnore MergeMode = iota
+	MergeUpdate
+	MergeDelete
+)
+
 // MergeRow reads merged rows from DiffRow
-func (d *DiffRow) MergeRow() []string {
+func (d *DiffRow) MergeRow(mode MergeMode) []string {
 	switch d.Les {
 	case 0:
-		return d.Src
+		return d.Self
 	case 1:
-		return d.Dst
+		return d.Other
 	case -1:
-		return d.Src
+		if mode == MergeDelete {
+			return nil
+		}
+		return d.Self
 	case 2:
-		return d.Dst
+		if mode == MergeIgnore {
+			return d.Self
+		}
+		return d.Other
 	default:
 		return nil
 	}
 }
 
 // MergeAll merges two tbln and returns one tbln.
-func MergeAll(t1, t2 Reader) (*Tbln, error) {
+func MergeAll(t1, t2 Reader, mode MergeMode) (*Tbln, error) {
 	tb := &Tbln{}
 	diff, err := NewCompare(t1, t2)
 	if err != nil {
@@ -43,8 +59,11 @@ func MergeAll(t1, t2 Reader) (*Tbln, error) {
 			}
 			return nil, err
 		}
-		tb.RowNum++
-		tb.Rows = append(tb.Rows, dd.MergeRow())
+		row := dd.MergeRow(mode)
+		if row != nil {
+			tb.RowNum++
+			tb.Rows = append(tb.Rows, row)
+		}
 	}
 }
 

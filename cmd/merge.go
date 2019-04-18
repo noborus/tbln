@@ -23,216 +23,249 @@ var mergeCmd = &cobra.Command{
 
 func init() {
 	rootCmd.AddCommand(mergeCmd)
-	mergeCmd.PersistentFlags().StringP("from-file", "", "", "TBLN FROM File")
-	mergeCmd.PersistentFlags().StringP("to-file", "", "", "TBLN TO File")
-	mergeCmd.PersistentFlags().StringP("from-db", "", "", "FROM database driver name")
-	mergeCmd.PersistentFlags().StringP("from-dsn", "", "", "FROM dsn name")
-	mergeCmd.PersistentFlags().StringP("from-schema", "", "", "FROM schema Name")
-	mergeCmd.PersistentFlags().StringP("from-table", "", "", "FROM table name")
-	mergeCmd.PersistentFlags().StringP("to-db", "", "", "TO database driver name")
-	mergeCmd.PersistentFlags().StringP("to-dsn", "", "", "TO dsn name")
-	mergeCmd.PersistentFlags().StringP("to-schema", "", "", "To schema Name")
-	mergeCmd.PersistentFlags().StringP("to-table", "", "", "TO table name")
-	mergeCmd.PersistentFlags().StringP("conflict", "", "no", `merge mode when conflict
- ignore - Ignores at insert conflict
- merge - insert update when conflicted
- sync - Synchronize (also execute delete)
- `)
+	mergeCmd.PersistentFlags().StringP("self-file", "", "", "TBLN self file")
+	mergeCmd.PersistentFlags().StringP("self-db", "", "", "Self database driver name")
+	mergeCmd.PersistentFlags().StringP("self-dsn", "", "", "Self dsn name")
+	mergeCmd.PersistentFlags().StringP("self-schema", "", "", "Self schema Name")
+	mergeCmd.PersistentFlags().StringP("self-table", "", "", "Self table name")
+	mergeCmd.PersistentFlags().StringP("other-file", "", "", "TBLN other file")
+	mergeCmd.PersistentFlags().StringP("other-db", "", "", "other database driver name")
+	mergeCmd.PersistentFlags().StringP("other-dsn", "", "", "other dsn name")
+	mergeCmd.PersistentFlags().StringP("other-schema", "", "", "other schema Name")
+	mergeCmd.PersistentFlags().StringP("other-table", "", "", "other table name")
+	mergeCmd.PersistentFlags().BoolP("ignore", "", false, "Ignore when conflict occurs")
+	mergeCmd.PersistentFlags().BoolP("update", "", true, "Update when a conflict occurs")
+	mergeCmd.PersistentFlags().BoolP("delete", "", false, "Execute update and delete rows not in other")
 	mergeCmd.PersistentFlags().BoolP("no-import", "", false, "output without importing into database")
 	mergeCmd.PersistentFlags().StringP("output", "o", "", "write to file instead of stdout")
+	mergeCmd.PersistentFlags().StringSliceP("hash", "a", []string{"sha256"}, "hash algorithm(sha256 or sha512)")
+	mergeCmd.PersistentFlags().StringSliceP("enable-target", "", []string{"name", "type"}, "hash target extra item (all or each name)")
+	mergeCmd.PersistentFlags().StringSliceP("disable-target", "", nil, "hash extra items not to be targeted (all or each name)")
+	mergeCmd.PersistentFlags().BoolP("sign", "", false, "sign TBLN file")
+	mergeCmd.PersistentFlags().BoolP("quiet", "q", false, "do not prompt for password.")
+	mergeCmd.PersistentFlags().SortFlags = false
+	mergeCmd.Flags().SortFlags = false
 }
 
-func getFromReader(cmd *cobra.Command, args []string) (tbln.Reader, error) {
+func getOtherReader(cmd *cobra.Command, args []string) (tbln.Reader, error) {
 	var err error
-	var fromReader tbln.Reader
+	var otherReader tbln.Reader
 
-	var fromFileName string
-	if fromFileName, err = cmd.PersistentFlags().GetString("from-file"); err != nil {
+	var otherFileName string
+	if otherFileName, err = cmd.PersistentFlags().GetString("other-file"); err != nil {
 		return nil, err
 	}
-	if fromFileName == "" && len(args) >= 2 {
-		fromFileName = args[0]
+	if otherFileName == "" && len(args) >= 2 {
+		otherFileName = args[0]
 	}
-	if fromFileName != "" {
-		f, err := os.Open(fromFileName)
+	if otherFileName != "" {
+		f, err := os.Open(otherFileName)
 		if err != nil {
 			return nil, err
 		}
-		fromReader = tbln.NewReader(f)
-		return fromReader, nil
+		otherReader = tbln.NewReader(f)
+		return otherReader, nil
 	}
 
-	var fromDb, fromDsn string
-	if fromDb, err = cmd.PersistentFlags().GetString("from-db"); err != nil {
+	var otherDb, otherDsn string
+	if otherDb, err = cmd.PersistentFlags().GetString("other-db"); err != nil {
 		return nil, err
 	}
-	if fromDsn, err = cmd.PersistentFlags().GetString("from-dsn"); err != nil {
+	if otherDsn, err = cmd.PersistentFlags().GetString("other-dsn"); err != nil {
 		return nil, err
 	}
 
-	fromConn, err := db.Open(fromDb, fromDsn)
-	if err != nil {
-		return nil, fmt.Errorf("%s: %s", fromDb, err)
+	if otherDb == "" {
+		cmd.SilenceUsage = false
+		return nil, fmt.Errorf("not enough arguments")
 	}
-	err = fromConn.Begin()
+	otherConn, err := db.Open(otherDb, otherDsn)
 	if err != nil {
-		return nil, fmt.Errorf("%s: %s", fromDb, err)
+		return nil, fmt.Errorf("%s: %s", otherDb, err)
+	}
+	err = otherConn.Begin()
+	if err != nil {
+		return nil, fmt.Errorf("%s: %s", otherDb, err)
 	}
 	var schema string
-	if schema, err = cmd.PersistentFlags().GetString("from-schema"); err != nil {
+	if schema, err = cmd.PersistentFlags().GetString("other-schema"); err != nil {
 		return nil, err
 	}
 	var tableName string
-	if tableName, err = cmd.PersistentFlags().GetString("from-table"); err != nil {
+	if tableName, err = cmd.PersistentFlags().GetString("other-table"); err != nil {
 		return nil, err
 	}
-	fromReader, err = fromConn.ReadTable(schema, tableName, nil)
+	otherReader, err = otherConn.ReadTable(schema, tableName, nil)
 	if err != nil {
 		return nil, err
 	}
-	return fromReader, nil
+	return otherReader, nil
 }
 
-func getToReader(cmd *cobra.Command, args []string) (tbln.Reader, error) {
+func getSelfReader(cmd *cobra.Command, args []string) (tbln.Reader, error) {
 	var err error
-	var toReader tbln.Reader
+	var selfReader tbln.Reader
 
 	var toFileName string
-	if toFileName, err = cmd.PersistentFlags().GetString("to-file"); err != nil {
+	if toFileName, err = cmd.PersistentFlags().GetString("self-file"); err != nil {
 		return nil, err
 	}
 	if toFileName == "" && len(args) >= 2 {
 		toFileName = args[1]
 	}
 	if toFileName != "" {
-		to, err := os.Open(toFileName)
+		self, err := os.Open(toFileName)
 		if err != nil {
 			return nil, err
 		}
-		toReader = tbln.NewReader(to)
-		return toReader, nil
+		selfReader = tbln.NewReader(self)
+		return selfReader, nil
 	}
 
-	var toDb, toDsn string
-	if toDb, err = cmd.PersistentFlags().GetString("to-db"); err != nil {
+	var selfDb, selfDsn string
+	if selfDb, err = cmd.PersistentFlags().GetString("self-db"); err != nil {
 		return nil, err
 	}
-	if toDsn, err = cmd.PersistentFlags().GetString("to-dsn"); err != nil {
+	if selfDsn, err = cmd.PersistentFlags().GetString("self-dsn"); err != nil {
 		return nil, err
 	}
 
-	toConn, err := db.Open(toDb, toDsn)
+	if selfDb == "" {
+		cmd.SilenceUsage = false
+		return nil, fmt.Errorf("not enough arguments")
+	}
+	toConn, err := db.Open(selfDb, selfDsn)
 	if err != nil {
-		return nil, fmt.Errorf("%s: %s", toDb, err)
+		return nil, fmt.Errorf("%s: %s", selfDb, err)
 	}
 	err = toConn.Begin()
 	if err != nil {
-		return nil, fmt.Errorf("%s: %s", toDb, err)
+		return nil, fmt.Errorf("%s: %s", selfDb, err)
 	}
 	var schema string
-	if schema, err = cmd.PersistentFlags().GetString("to-schema"); err != nil {
+	if schema, err = cmd.PersistentFlags().GetString("self-schema"); err != nil {
 		return nil, err
 	}
 	var tableName string
-	if tableName, err = cmd.PersistentFlags().GetString("to-table"); err != nil {
+	if tableName, err = cmd.PersistentFlags().GetString("self-table"); err != nil {
 		return nil, err
 	}
-	toReader, err = toConn.ReadTable(schema, tableName, nil)
+	selfReader, err = toConn.ReadTable(schema, tableName, nil)
 	if err != nil {
 		return nil, err
 	}
-	return toReader, nil
+	return selfReader, nil
 }
 
-func mergeWriteTable(fromReader tbln.Reader, cmd *cobra.Command) error {
+func mergeWriteTable(otherReader tbln.Reader, cmd *cobra.Command) error {
 	var err error
-	var toDb, toDsn string
-	if toDb, err = cmd.PersistentFlags().GetString("to-db"); err != nil {
+	var selfDb, selfDsn string
+	if selfDb, err = cmd.PersistentFlags().GetString("self-db"); err != nil {
 		return err
 	}
-	if toDsn, err = cmd.PersistentFlags().GetString("to-dsn"); err != nil {
+	if selfDsn, err = cmd.PersistentFlags().GetString("self-dsn"); err != nil {
 		return err
 	}
-	toConn, err := db.Open(toDb, toDsn)
+	Conn, err := db.Open(selfDb, selfDsn)
 	if err != nil {
-		return fmt.Errorf("%s: %s", toDb, err)
+		return fmt.Errorf("%s: %s", selfDb, err)
 	}
-	err = toConn.Begin()
+	err = Conn.Begin()
 	if err != nil {
-		return fmt.Errorf("%s: %s", toDb, err)
+		return fmt.Errorf("%s: %s", selfDb, err)
 	}
 	var schema string
-	if schema, err = cmd.PersistentFlags().GetString("to-schema"); err != nil {
+	if schema, err = cmd.PersistentFlags().GetString("self-schema"); err != nil {
 		return err
 	}
 	var tableName string
-	if tableName, err = cmd.PersistentFlags().GetString("to-table"); err != nil {
+	if tableName, err = cmd.PersistentFlags().GetString("self-table"); err != nil {
 		return err
 	}
 
-	var conflict string
-	if conflict, err = cmd.PersistentFlags().GetString("conflict"); err != nil {
+	var ignore, delete bool
+	if ignore, err = cmd.PersistentFlags().GetBool("ignore"); err != nil {
 		return err
 	}
-	var imode db.InsertMode
-	switch conflict {
-	case "ignore":
-		imode = db.OrIgnore
-	case "merge":
-		imode = db.Merge
-	case "sync":
-		imode = db.Sync
-	default:
-		imode = db.Normal
+	if delete, err = cmd.PersistentFlags().GetBool("delete"); err != nil {
+		return err
 	}
-
-	if imode != db.OrIgnore {
-		delete := false
-		if imode == db.Sync {
-			delete = true
-		}
-		err = toConn.MergeTable(schema, tableName, fromReader, delete)
+	if !ignore {
+		err = Conn.MergeTable(schema, tableName, otherReader, delete)
 		if err == nil {
-			return toConn.Commit()
+			return Conn.Commit()
 		}
 		log.Printf("Table Not found. Create Table [%s]\n", tableName)
 	}
-	err = toConn.WriteReader(schema, tableName, fromReader, db.Create, db.OrIgnore)
+	err = Conn.WriteReader(schema, tableName, otherReader, db.Create, db.OrIgnore)
 	if err != nil {
 		return err
 	}
-	return toConn.Commit()
+	return Conn.Commit()
 }
 
 func merge(cmd *cobra.Command, args []string) error {
-	fromReader, err := getFromReader(cmd, args)
+	otherReader, err := getOtherReader(cmd, args)
 	if err != nil {
 		return err
+	}
+	var signF bool
+	if signF, err = cmd.PersistentFlags().GetBool("sign"); err != nil {
+		return err
+	}
+	if signF && SecFile == "" {
+		cmd.SilenceUsage = false
+		return fmt.Errorf("requires secret key file")
 	}
 
 	var noImport bool
 	if noImport, err = cmd.PersistentFlags().GetBool("no-import"); err != nil {
 		return err
 	}
-	var toDb string
-	if toDb, err = cmd.PersistentFlags().GetString("to-db"); err != nil {
+	var selfDb string
+	if selfDb, err = cmd.PersistentFlags().GetString("self-db"); err != nil {
 		return err
 	}
-	if toDb != "" && !noImport {
-		return mergeWriteTable(fromReader, cmd)
+	if selfDb != "" && !noImport {
+		return mergeWriteTable(otherReader, cmd)
 	}
-
-	toReader, err := getToReader(cmd, args)
+	mode := tbln.MergeUpdate
+	var ignore, delete bool
+	if ignore, err = cmd.PersistentFlags().GetBool("ignore"); err != nil {
+		return err
+	}
+	if ignore {
+		mode = tbln.MergeIgnore
+	}
+	if delete, err = cmd.PersistentFlags().GetBool("delete"); err != nil {
+		return err
+	}
+	if delete {
+		mode = tbln.MergeDelete
+	}
+	selfReader, err := getSelfReader(cmd, args)
 	if err != nil {
 		return err
 	}
-	if fromReader == nil || toReader == nil {
-		return fmt.Errorf("requires from and to")
+	if otherReader == nil || selfReader == nil {
+		return fmt.Errorf("requires other and self")
 	}
 	var tb *tbln.Tbln
-	tb, err = tbln.MergeAll(toReader, fromReader)
+	tb, err = tbln.MergeAll(selfReader, otherReader, mode)
 	if err != nil {
 		return err
 	}
+
+	tb, err = hashFile(tb, cmd)
+	if err != nil {
+		return err
+	}
+	if signF {
+		tb, err = signFile(tb, cmd)
+		if err != nil {
+			return err
+		}
+	}
+
 	return outputFile(tb, cmd)
 }

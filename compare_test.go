@@ -135,37 +135,37 @@ func TestCompare_ReadDiffRow(t *testing.T) {
 		{
 			name:    "test1",
 			fields:  fields{t1: NewReader(bytes.NewBufferString(TestData)), t2: NewReader(bytes.NewBufferString(TestData2))},
-			want:    &DiffRow{Les: 2, Src: []string{"1", "Bob", "19"}, Dst: []string{"1", "Alice", "14"}},
+			want:    &DiffRow{Les: 2, Self: []string{"1", "Bob", "19"}, Other: []string{"1", "Alice", "14"}},
 			wantErr: false,
 		},
 		{
 			name:    "testString1",
 			fields:  fields{t1: NewReader(bytes.NewBufferString(TestDataSt)), t2: NewReader(bytes.NewBufferString(TestDataSt2))},
-			want:    &DiffRow{Les: 1, Src: nil, Dst: []string{"Alice"}},
+			want:    &DiffRow{Les: 1, Self: nil, Other: []string{"Alice"}},
 			wantErr: false,
 		},
 		{
 			name:    "testString2",
 			fields:  fields{t1: NewReader(bytes.NewBufferString(TestDataSt)), t2: NewReader(bytes.NewBufferString(TestDataSt3))},
-			want:    &DiffRow{Les: 0, Src: []string{"Bob"}, Dst: []string{"Bob"}},
+			want:    &DiffRow{Les: 0, Self: []string{"Bob"}, Other: []string{"Bob"}},
 			wantErr: false,
 		},
 		{
 			name:    "testString3",
 			fields:  fields{t1: NewReader(bytes.NewBufferString(TestDataSt2)), t2: NewReader(bytes.NewBufferString(TestDataSt))},
-			want:    &DiffRow{Les: -1, Src: []string{"Alice"}, Dst: nil},
+			want:    &DiffRow{Les: -1, Self: []string{"Alice"}, Other: nil},
 			wantErr: false,
 		},
 		{
 			name:    "testString4",
 			fields:  fields{t1: NewReader(bytes.NewBufferString(TestDataSt)), t2: NewReader(bytes.NewBufferString(TestDataSt4))},
-			want:    &DiffRow{Les: -1, Src: []string{"Bob"}, Dst: nil},
+			want:    &DiffRow{Les: -1, Self: []string{"Bob"}, Other: nil},
 			wantErr: false,
 		},
 		{
 			name:    "testFloat",
 			fields:  fields{t1: NewReader(bytes.NewBufferString(TestDataFl)), t2: NewReader(bytes.NewBufferString(TestDataFl2))},
-			want:    &DiffRow{Les: -1, Src: []string{"3.14"}, Dst: nil},
+			want:    &DiffRow{Les: -1, Self: []string{"3.14"}, Other: nil},
 			wantErr: false,
 		},
 	}
@@ -202,7 +202,7 @@ func TestCompare_ReadDiffRow2(t *testing.T) {
 		{
 			name:    "testString1",
 			fields:  fields{t1: NewReader(bytes.NewBufferString(TestDataSt2)), t2: NewReader(bytes.NewBufferString(TestDataSt3))},
-			want:    &DiffRow{Les: 1, Src: nil, Dst: []string{"Bob"}},
+			want:    &DiffRow{Les: 1, Self: nil, Other: []string{"Bob"}},
 			wantErr: false,
 		},
 	}

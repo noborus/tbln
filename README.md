@@ -9,7 +9,9 @@
 
 This repository contains Go library for reading and writing files,
 and Go library for reading and writing [RDBMS](db/README.md) tables.
-There is also a [CLI](cmd/README.md) tool that uses them.
+
+Here is a document about the library.
+See [CLI](cmd/README.md) for CLI Tool.
 
 ## Features
 
@@ -25,9 +27,11 @@ Please refer to [TBLN](https://tbln.dev/) for the specification of TBLN.
 
 ## Install
 
-```
+```bash
 $ go get github.com/noborus/tbln
 ```
+
+Notes: Requires a version of Go that supports modules. e.g. Go 1.11+
 
 ## Example
 

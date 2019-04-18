@@ -10,36 +10,49 @@ type DiffMode int
 
 // Represents the diff mode
 const (
-	OnlyAdd = iota
+	OnlyAdd DiffMode = iota
 	OnlyDiff
 	AllDiff
 )
+
+func (m DiffMode) String() string {
+	switch m {
+	case OnlyAdd:
+		return "OnlyAdd"
+	case OnlyDiff:
+		return "OnlyDiff"
+	case AllDiff:
+		return "AllDiff"
+	default:
+		return "Unknown"
+	}
+}
 
 // Diff returns diff format
 func (d *DiffRow) Diff(diffMode DiffMode) string {
 	switch d.Les {
 	case 0:
 		if diffMode == AllDiff {
-			return fmt.Sprintf(" %s", JoinRow(d.Src))
+			return fmt.Sprintf(" %s", JoinRow(d.Self))
 		}
 	case 1:
 		if diffMode == OnlyAdd {
-			return JoinRow(d.Dst)
+			return JoinRow(d.Other)
 		}
-		return fmt.Sprintf("+%s", JoinRow(d.Dst))
+		return fmt.Sprintf("+%s", JoinRow(d.Other))
 	case -1:
 		if diffMode == AllDiff || diffMode == OnlyDiff {
-			return fmt.Sprintf("-%s", JoinRow(d.Src))
+			return fmt.Sprintf("-%s", JoinRow(d.Self))
 		}
 	case 2:
 		var str string
 		if diffMode == OnlyAdd {
-			return JoinRow(d.Dst)
+			return JoinRow(d.Other)
 		}
 		if diffMode == AllDiff || diffMode == OnlyDiff {
-			str = fmt.Sprintf("-%s\n", JoinRow(d.Src))
+			str = fmt.Sprintf("-%s\n", JoinRow(d.Self))
 		}
-		return str + fmt.Sprintf("+%s", JoinRow(d.Dst))
+		return str + fmt.Sprintf("+%s", JoinRow(d.Other))
 	default:
 		return ""
 	}

@@ -61,7 +61,7 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	rr := tbln.NewSelfReader(at)
+	rr := tbln.NewOwnReader(at)
 	/*
 		conn, err := db.Open("postgres", "")
 		// conn, err := db.Open("mysql", "root:@/noborus")

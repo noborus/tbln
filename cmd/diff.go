@@ -10,7 +10,7 @@ import (
 
 // diffCmd represents the diff command
 var diffCmd = &cobra.Command{
-	Use:          "diff [flags]",
+	Use:          "diff [flags] [file or DB] [file or DB]",
 	SilenceUsage: true,
 	Short:        "Diff two TBLNs",
 	Long: `Diff two TBLNs
@@ -21,37 +21,36 @@ var diffCmd = &cobra.Command{
 
 func init() {
 	rootCmd.AddCommand(diffCmd)
-	diffCmd.PersistentFlags().StringP("from-file", "", "", "TBLN FROM File")
-	diffCmd.PersistentFlags().StringP("to-file", "", "", "TBLN TO File")
-	diffCmd.PersistentFlags().StringP("from-db", "", "", "FROM database driver name")
-	diffCmd.PersistentFlags().StringP("from-dsn", "", "", "FROM dsn name")
-	diffCmd.PersistentFlags().StringP("from-schema", "", "", "FROM schema Name")
-	diffCmd.PersistentFlags().StringP("from-table", "", "", "FROM table name")
-	diffCmd.PersistentFlags().StringP("to-db", "", "", "TO database driver name")
-	diffCmd.PersistentFlags().StringP("to-dsn", "", "", "TO dsn name")
-	diffCmd.PersistentFlags().StringP("to-schema", "", "", "To schema Name")
-	diffCmd.PersistentFlags().StringP("to-table", "", "", "TO table name")
-	diffCmd.PersistentFlags().BoolP("all", "", false, "Show all, including unchanged rows")
+	diffCmd.PersistentFlags().StringP("self-file", "", "", "TBLN self file")
+	diffCmd.PersistentFlags().StringP("self-db", "", "", "Self database driver name")
+	diffCmd.PersistentFlags().StringP("self-dsn", "", "", "Self dsn name")
+	diffCmd.PersistentFlags().StringP("self-schema", "", "", "Self schema Name")
+	diffCmd.PersistentFlags().StringP("self-table", "", "", "Self table name")
+	diffCmd.PersistentFlags().StringP("other-file", "", "", "TBLN other file")
+	diffCmd.PersistentFlags().StringP("other-db", "", "", "other database driver name")
+	diffCmd.PersistentFlags().StringP("other-dsn", "", "", "other dsn name")
+	diffCmd.PersistentFlags().StringP("other-schema", "", "", "other schema Name")
+	diffCmd.PersistentFlags().StringP("other-table", "", "", "other table name")
+	diffCmd.PersistentFlags().BoolP("all", "", true, "Show all, including unchanged rows")
 	diffCmd.PersistentFlags().BoolP("change", "", false, "Show only changed rows")
 	diffCmd.PersistentFlags().BoolP("update", "", false, "Show only rows to add and update")
+	diffCmd.PersistentFlags().SortFlags = false
+	diffCmd.Flags().SortFlags = false
 }
 
 func diff(cmd *cobra.Command, args []string) error {
-	fromReader, err := getFromReader(cmd, args)
+	otherReader, err := getOtherReader(cmd, args)
 	if err != nil {
 		return err
 	}
-	toReader, err := getToReader(cmd, args)
+	selfReader, err := getSelfReader(cmd, args)
 	if err != nil {
 		return err
 	}
-	if fromReader == nil || toReader == nil {
-		return fmt.Errorf("requires from and to")
+	if otherReader == nil || selfReader == nil {
+		return fmt.Errorf("requires other and self")
 	}
-	var all, change, update bool
-	if all, err = cmd.PersistentFlags().GetBool("all"); err != nil {
-		return err
-	}
+	var change, update bool
 	if change, err = cmd.PersistentFlags().GetBool("change"); err != nil {
 		return err
 	}
@@ -60,8 +59,6 @@ func diff(cmd *cobra.Command, args []string) error {
 	}
 	var flag tbln.DiffMode
 	switch {
-	case all:
-		flag = tbln.AllDiff
 	case change:
 		flag = tbln.OnlyDiff
 	case update:
@@ -69,7 +66,7 @@ func diff(cmd *cobra.Command, args []string) error {
 	default:
 		flag = tbln.AllDiff
 	}
-	err = tbln.DiffAll(os.Stdout, fromReader, toReader, flag)
+	err = tbln.DiffAll(os.Stdout, otherReader, selfReader, flag)
 	if err != nil {
 		return err
 	}

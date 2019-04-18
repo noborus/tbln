@@ -17,15 +17,15 @@ func mergeTableRow(dml *dml, d *tbln.DiffRow, delete bool) *dml {
 	case 0:
 		return dml
 	case 1:
-		dml.insert = append(dml.insert, d.Dst)
+		dml.insert = append(dml.insert, d.Other)
 		return dml
 	case -1:
 		if delete {
-			dml.delete = append(dml.delete, d.Src)
+			dml.delete = append(dml.delete, d.Self)
 		}
 		return dml
 	case 2:
-		dml.update = append(dml.update, d.Dst)
+		dml.update = append(dml.update, d.Other)
 		return dml
 	default:
 		return dml
@@ -33,12 +33,12 @@ func mergeTableRow(dml *dml, d *tbln.DiffRow, delete bool) *dml {
 }
 
 // MergeTable writes all rows to the table.
-func (tdb *TDB) MergeTable(schema string, tableName string, dst tbln.Reader, delete bool) error {
-	src, err := tdb.ReadTable(schema, tableName, nil)
+func (tdb *TDB) MergeTable(schema string, tableName string, other tbln.Reader, delete bool) error {
+	self, err := tdb.ReadTable(schema, tableName, nil)
 	if err != nil {
 		return err
 	}
-	cmp, err := tbln.NewCompare(src, dst)
+	cmp, err := tbln.NewCompare(self, other)
 	if err != nil {
 		return err
 	}
@@ -54,7 +54,7 @@ func (tdb *TDB) MergeTable(schema string, tableName string, dst tbln.Reader, del
 		dml = mergeTableRow(dml, dd, delete)
 	}
 
-	w, err := NewWriter(tdb, src.Definition)
+	w, err := NewWriter(tdb, self.Definition)
 	if err != nil {
 		return err
 	}

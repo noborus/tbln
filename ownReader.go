@@ -2,22 +2,22 @@ package tbln
 
 import "io"
 
-// SelfReader reads records from Tbln.
-type SelfReader struct {
+// OwnReader reads records from Tbln.
+type OwnReader struct {
 	*Tbln
 	readRowNum int
 }
 
-// NewSelfReader return TblnReader.
-func NewSelfReader(t *Tbln) *SelfReader {
-	return &SelfReader{
+// NewOwnReader return TblnReader.
+func NewOwnReader(t *Tbln) *OwnReader {
+	return &OwnReader{
 		Tbln:       t,
 		readRowNum: 0,
 	}
 }
 
 // ReadRow one record (a slice of fields) from Tbln.
-func (rr *SelfReader) ReadRow() ([]string, error) {
+func (rr *OwnReader) ReadRow() ([]string, error) {
 	if rr.readRowNum >= rr.RowNum {
 		return nil, io.EOF
 	}

@@ -35,6 +35,7 @@ var importCmd = &cobra.Command{
 }
 
 func init() {
+	rootCmd.AddCommand(importCmd)
 	importCmd.PersistentFlags().StringVar(&destdbName, "db", "", "database name")
 	importCmd.PersistentFlags().StringVar(&destdsn, "dsn", "", "dsn name")
 	importCmd.PersistentFlags().StringP("Schema", "n", "", "schema Name")
@@ -45,17 +46,16 @@ func init() {
  recreate	- Drop and re-create the table.
  only	- Only create a table, do not insert data.
  `)
-	importCmd.PersistentFlags().StringP("conflict", "", "no", `merge mode when conflict
- ignore - Ignores at insert conflict
- merge - insert update when conflicted
- sync - Synchronize (also execute delete)
- `)
+	importCmd.PersistentFlags().BoolP("ignore", "", false, "Ignore when conflict occurs")
+	importCmd.PersistentFlags().BoolP("update", "", false, "Update when a conflict occurs")
+	importCmd.PersistentFlags().BoolP("delete", "", false, "Execute update and delete rows not in other")
 	importCmd.PersistentFlags().StringP("table", "t", "", "table name")
 	importCmd.PersistentFlags().BoolP("force-verify-sign", "", false, "force signature verification")
 	importCmd.PersistentFlags().BoolP("no-verify-sign", "", false, "ignore signature verify")
 	importCmd.PersistentFlags().BoolP("no-verify", "", false, "ignore verify")
 	importCmd.PersistentFlags().StringP("file", "f", "", "TBLN File")
-	rootCmd.AddCommand(importCmd)
+	importCmd.PersistentFlags().SortFlags = false
+	importCmd.Flags().SortFlags = false
 }
 
 func dbImport(cmd *cobra.Command, args []string) error {
@@ -111,17 +111,23 @@ func dbImport(cmd *cobra.Command, args []string) error {
 			cmode = db.Create
 		}
 	}
-	var conflict string
-	if conflict, err = cmd.PersistentFlags().GetString("conflict"); err != nil {
+	var ignore, update, delete bool
+	if ignore, err = cmd.PersistentFlags().GetBool("ignore"); err != nil {
+		return err
+	}
+	if update, err = cmd.PersistentFlags().GetBool("update"); err != nil {
+		return err
+	}
+	if delete, err = cmd.PersistentFlags().GetBool("delete"); err != nil {
 		return err
 	}
 	var imode db.InsertMode
-	switch conflict {
-	case "ignore":
+	switch {
+	case ignore:
 		imode = db.OrIgnore
-	case "merge":
-		imode = db.Merge
-	case "sync":
+	case update:
+		imode = db.Update
+	case delete:
 		imode = db.Sync
 	default:
 		imode = db.Normal
@@ -139,7 +145,7 @@ func dbImport(cmd *cobra.Command, args []string) error {
 }
 
 func writeImport(conn *db.TDB, tb *tbln.Tbln, schema string, cmode db.CreateMode, imode db.InsertMode) error {
-	if imode >= db.Merge {
+	if imode >= db.Update {
 		err := mergeImport(conn, tb, schema, imode)
 		if err == nil {
 			return nil
@@ -150,7 +156,7 @@ func writeImport(conn *db.TDB, tb *tbln.Tbln, schema string, cmode db.CreateMode
 }
 
 func mergeImport(conn *db.TDB, tb *tbln.Tbln, schema string, imode db.InsertMode) error {
-	sr := tbln.NewSelfReader(tb)
+	sr := tbln.NewOwnReader(tb)
 	delete := false
 	if imode == db.Sync {
 		delete = true

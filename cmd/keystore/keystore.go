@@ -50,6 +50,24 @@ func create(keyStore string, keyName string, pubkey []byte) error {
 	return nil
 }
 
+func createFile(keyStore string, fileName string) error {
+	file, err := os.OpenFile(keyStore, os.O_WRONLY|os.O_CREATE, 0644)
+	if err != nil {
+		return fmt.Errorf("KeyStore create: %s", err)
+	}
+	pubkey, err := os.Open(fileName)
+	if err != nil {
+		return fmt.Errorf("public key open: %s:%s", fileName, err)
+	}
+	defer pubkey.Close()
+
+	pt, err := tbln.ReadAll(pubkey)
+	if err != nil {
+		return fmt.Errorf("public key read: %s:%s", fileName, err)
+	}
+	return rewriteStore(file, pt)
+}
+
 func add(keyStore string, keyName string, pubkey []byte) error {
 	if keyName == "" {
 		return fmt.Errorf("keyname is required")
@@ -110,20 +128,22 @@ func List(keyStore string) ([][]string, error) {
 
 // AddKey adds a public key to the KeyStore.
 func AddKey(keyStore string, fileName string) error {
+	file, err := os.OpenFile(keyStore, os.O_RDWR, 0644)
+	if err != nil {
+		return createFile(keyStore, fileName)
+	}
+	defer file.Close()
+
 	pubkey, err := os.Open(fileName)
 	if err != nil {
 		return fmt.Errorf("public key open: %s:%s", fileName, err)
 	}
 	defer pubkey.Close()
+
 	pt, err := tbln.ReadAll(pubkey)
 	if err != nil {
 		return fmt.Errorf("public key read: %s:%s", fileName, err)
 	}
-	file, err := os.OpenFile(keyStore, os.O_RDWR, 0644)
-	if err != nil {
-		return fmt.Errorf("key store open: %s", err)
-	}
-	defer file.Close()
 
 	pkeys, err := tbln.ReadAll(file)
 	if err != nil {
@@ -135,6 +155,7 @@ func AddKey(keyStore string, fileName string) error {
 			return fmt.Errorf("KeyStore AddKey: %s", err)
 		}
 	}
+
 	return rewriteStore(file, pkeys)
 }
 
