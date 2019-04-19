@@ -86,9 +86,16 @@ func (tdb *TDB) quoting(obj string) string {
 	return obj
 }
 
+func (tdb *TDB) fullTableName(schema string, tableName string) string {
+	if schema != "" {
+		return tdb.quoting(schema) + "." + tdb.quoting(tableName)
+	}
+	return tdb.quoting(tableName)
+}
+
 // GetPrimaryKey returns the primary key as a slice.
 func GetPrimaryKey(conn *sql.DB, query string, schema string, tableName string) ([]string, error) {
-	debug.Printf("SQL:%s", query)
+	debug.Printf("SQL:GetPrimaryKey:%s", query)
 	rows, err := conn.Query(query, schema, tableName)
 	if err != nil {
 		return nil, err
@@ -108,6 +115,7 @@ func GetPrimaryKey(conn *sql.DB, query string, schema string, tableName string) 
 
 // GetColumnInfo returns information of a table column as an array.
 func GetColumnInfo(conn *sql.DB, query string, args ...interface{}) (map[string][]interface{}, error) {
+	debug.Printf("SQL:GetColumnInfo:%s", query)
 	rows, err := conn.Query(query, args...)
 	if err != nil {
 		return nil, err

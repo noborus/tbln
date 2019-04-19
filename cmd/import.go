@@ -39,7 +39,7 @@ func init() {
 	importCmd.PersistentFlags().StringVar(&destdbName, "db", "", "database name")
 	importCmd.PersistentFlags().StringVar(&destdsn, "dsn", "", "dsn name")
 	importCmd.PersistentFlags().StringP("Schema", "n", "", "schema Name")
-	importCmd.PersistentFlags().StringP("mode", "m", "create", `create mode
+	importCmd.PersistentFlags().StringP("mode", "m", "ifnot", `create mode
  no		- Insert without creating a table.
  create	- Normal create.
  ifnot	- If the table does not exist, it will be created.
@@ -156,10 +156,9 @@ func writeImport(conn *db.TDB, tb *tbln.Tbln, schema string, cmode db.CreateMode
 }
 
 func mergeImport(conn *db.TDB, tb *tbln.Tbln, schema string, imode db.InsertMode) error {
-	sr := tbln.NewOwnReader(tb)
 	delete := false
 	if imode == db.Sync {
 		delete = true
 	}
-	return conn.MergeTable(schema, tb.TableName(), sr, delete)
+	return conn.MergeTableTbln(schema, tb.TableName(), tb, delete)
 }
