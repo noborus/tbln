@@ -72,15 +72,15 @@ func getOtherReader(cmd *cobra.Command, args []string) (tbln.Reader, error) {
 	}
 	u, err := dburl.Parse(url)
 	if err != nil {
-		return nil, fmt.Errorf("%s: %s", url, err)
+		return nil, fmt.Errorf("other:%s: %s", url, err)
 	}
 	otherConn, err := db.Open(u.Driver, u.DSN)
 	if err != nil {
-		return nil, fmt.Errorf("%s: %s", u.Driver, err)
+		return nil, fmt.Errorf("other:%s: %s", u.Driver, err)
 	}
 	err = otherConn.Begin()
 	if err != nil {
-		return nil, fmt.Errorf("%s: %s", u.Driver, err)
+		return nil, fmt.Errorf("other:%s: %s", u.Driver, err)
 	}
 	var schema string
 	if schema, err = cmd.PersistentFlags().GetString("other-schema"); err != nil {
@@ -123,15 +123,15 @@ func getSelfReader(cmd *cobra.Command, args []string) (tbln.Reader, error) {
 	}
 	u, err := dburl.Parse(url)
 	if err != nil {
-		return nil, fmt.Errorf("%s: %s", url, err)
+		return nil, fmt.Errorf("self:%s: %s", url, err)
 	}
 	toConn, err := db.Open(u.Driver, u.DSN)
 	if err != nil {
-		return nil, fmt.Errorf("%s: %s", u.Driver, err)
+		return nil, fmt.Errorf("self:%s: %s", u.Driver, err)
 	}
 	err = toConn.Begin()
 	if err != nil {
-		return nil, fmt.Errorf("%s: %s", u.Driver, err)
+		return nil, fmt.Errorf("self:%s: %s", u.Driver, err)
 	}
 	var schema string
 	if schema, err = cmd.PersistentFlags().GetString("schema"); err != nil {
@@ -156,15 +156,15 @@ func mergeWriteTable(otherReader tbln.Reader, cmd *cobra.Command) error {
 	}
 	u, err := dburl.Parse(url)
 	if err != nil {
-		return fmt.Errorf("%s: %s", url, err)
+		return fmt.Errorf("self:%s: %s", url, err)
 	}
 	conn, err := db.Open(u.Driver, u.DSN)
 	if err != nil {
-		return fmt.Errorf("%s: %s", u.Driver, err)
+		return fmt.Errorf("self:%s: %s", u.Driver, err)
 	}
 	err = conn.Begin()
 	if err != nil {
-		return fmt.Errorf("%s: %s", u.Driver, err)
+		return fmt.Errorf("self:%s: %s", u.Driver, err)
 	}
 
 	var schema string
@@ -198,10 +198,7 @@ func mergeWriteTable(otherReader tbln.Reader, cmd *cobra.Command) error {
 }
 
 func merge(cmd *cobra.Command, args []string) error {
-	otherReader, err := getOtherReader(cmd, args)
-	if err != nil {
-		return err
-	}
+	var err error
 	var signF bool
 	if signF, err = cmd.PersistentFlags().GetBool("sign"); err != nil {
 		return err
@@ -209,6 +206,11 @@ func merge(cmd *cobra.Command, args []string) error {
 	if signF && SecFile == "" {
 		cmd.SilenceUsage = false
 		return fmt.Errorf("requires secret key file")
+	}
+
+	otherReader, err := getOtherReader(cmd, args)
+	if err != nil {
+		return err
 	}
 
 	var noImport bool
@@ -219,13 +221,16 @@ func merge(cmd *cobra.Command, args []string) error {
 	if url, err = cmd.PersistentFlags().GetString("dburl"); err != nil {
 		return err
 	}
-	u, err := dburl.Parse(url)
-	if err != nil {
-		return fmt.Errorf("%s: %s", url, err)
+	if url != "" {
+		u, err := dburl.Parse(url)
+		if err != nil {
+			return fmt.Errorf("self:%s: %s", url, err)
+		}
+		if u.Driver != "" && !noImport {
+			return mergeWriteTable(otherReader, cmd)
+		}
 	}
-	if u.Driver != "" && !noImport {
-		return mergeWriteTable(otherReader, cmd)
-	}
+
 	mode := tbln.MergeUpdate
 	var ignore, delete bool
 	if ignore, err = cmd.PersistentFlags().GetBool("ignore"); err != nil {
