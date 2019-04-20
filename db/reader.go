@@ -21,8 +21,20 @@ type Reader struct {
 	mySQLcolType []string
 }
 
+// RangePrimaryKey is range of primary key.
+type RangePrimaryKey struct {
+	name string
+	min  interface{}
+	max  interface{}
+}
+
+// NewRangePrimaryKey return RangePrimaryKey
+func NewRangePrimaryKey(name string, min interface{}, max interface{}) RangePrimaryKey {
+	return RangePrimaryKey{name: name, min: min, max: max}
+}
+
 // ReadTable returns a new Reader from table name.
-func (tdb *TDB) ReadTable(schema string, tableName string, pkey []string) (*Reader, error) {
+func (tdb *TDB) ReadTable(schema string, tableName string, rps []RangePrimaryKey) (*Reader, error) {
 	tr := &Reader{
 		Definition: tbln.NewDefinition(),
 		TDB:        tdb,
@@ -45,33 +57,62 @@ func (tdb *TDB) ReadTable(schema string, tableName string, pkey []string) (*Read
 	tr.setTableInfo(info)
 	tr.mySQLcolType = tbln.SplitRow(toString(tr.ExtraValue("mysql_columntype")))
 	// Primary key
-	pk, err := tr.GetPrimaryKey(tr.TDB.DB, schema, tableName)
+	pkey, err := tr.GetPrimaryKey(tr.TDB.DB, schema, tableName)
 	if err != nil && err != ErrorNotSupport {
 		return nil, err
-	} else if len(pk) > 0 {
-		tr.Extras["primarykey"] = tbln.NewExtra(tbln.JoinRow(pk), false)
 	}
-	if len(pkey) == 0 && len(pk) > 0 {
-		pkey = pk
-	}
-	var orderby string
 	if len(pkey) > 0 {
-		orderby = strings.Join(pkey, ", ")
-	} else {
-		orderby = "1"
+		tr.Extras["primarykey"] = tbln.NewExtra(tbln.JoinRow(pkey), false)
 	}
-	table := tdb.quoting(tableName)
-	if schema != "" {
-		table = tdb.quoting(schema) + "." + tdb.quoting(tableName)
-	}
+
+	table := tr.fullTableName(schema, tableName)
+	conds, args := tr.conditions(pkey, rps)
+	order := tr.orderby(pkey)
+
 	// #nosec G201
-	sql := fmt.Sprintf("SELECT * FROM %s ORDER BY %s", table, orderby)
-	debug.Printf("SQL:%s", sql)
-	err = tr.query(sql)
+	sql := fmt.Sprintf("SELECT * FROM %s %s %s", table, conds, order)
+	debug.Printf("SQL:%s:%s", sql, args)
+	err = tr.query(sql, args...)
 	if err != nil {
 		return nil, fmt.Errorf("%s: [%s]", err, sql)
 	}
 	return tr, nil
+}
+
+func (tr *Reader) conditions(pkey []string, rps []RangePrimaryKey) (string, []interface{}) {
+	var args []interface{}
+	if len(rps) > 0 {
+		var cs []string
+		for i, rp := range rps {
+			if pkey[i] != rp.name {
+				debug.Printf("primary key miss match! %s:%s", pkey[i], rp.name)
+				return "", nil
+			}
+			if tr.Style.PlaceHolder == "$" {
+				cd := fmt.Sprintf("(%s >= $%d AND %s <= $%d)", tr.quoting(rp.name), i*2+1, tr.quoting(rp.name), i*2+2)
+				cs = append(cs, cd)
+			} else {
+				cd := fmt.Sprintf("(%s >= ? AND %s <= ?)", tr.quoting(rp.name), tr.quoting(rp.name))
+				cs = append(cs, cd)
+			}
+			args = append(args, rp.min)
+			args = append(args, rp.max)
+		}
+		// #nosec G202
+		return " WHERE " + strings.Join(cs, " AND "), args
+	}
+	return "", nil
+}
+
+func (tr *Reader) orderby(pkey []string) string {
+	if len(pkey) > 0 {
+		pk := make([]string, len(pkey))
+		for i, p := range pkey {
+			pk[i] = tr.quoting(p)
+		}
+		return "ORDER BY " + strings.Join(pk, ", ")
+	}
+	return "ORDER BY 1"
 }
 
 // ReadQuery returns a new Reader from SQL query.
@@ -80,7 +121,7 @@ func (tdb *TDB) ReadQuery(sql string, args ...interface{}) (*Reader, error) {
 		Definition: tbln.NewDefinition(),
 		TDB:        tdb,
 	}
-	debug.Printf("SQL:%s", sql)
+	debug.Printf("SQL:%s:%s", sql, args)
 	err := tr.query(sql, args...)
 	if err != nil {
 		return nil, fmt.Errorf("%s: (%s)", err, sql)

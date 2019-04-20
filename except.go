@@ -26,9 +26,6 @@ func ExceptAll(t1, t2 Reader) (*Tbln, error) {
 	tb.Definition = t2.GetDefinition()
 	tb.Definition.Hashes = make(map[string][]byte)
 	tb.Definition.Signs = make(Signatures)
-	if err != nil {
-		return nil, err
-	}
 	tb.Rows = make([][]string, 0)
 	for {
 		dd, err := diff.ReadDiffRow()

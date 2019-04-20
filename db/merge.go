@@ -32,6 +32,45 @@ func mergeTableRow(dml *dml, d *tbln.DiffRow, delete bool) *dml {
 	}
 }
 
+// MergeTableTbln writes all rows to the table from Tbln.
+func (tdb *TDB) MergeTableTbln(schema string, tableName string, otherTbln *tbln.Tbln, delete bool) error {
+	orows := otherTbln.Rows
+	var rps []RangePrimaryKey
+	if !delete {
+		pkpos, err := otherTbln.GetPKeyPos()
+		if err == nil {
+			if len(pkpos) > 0 {
+				for _, p := range pkpos {
+					rp := NewRangePrimaryKey(otherTbln.Names()[p], orows[0][p], orows[len(orows)-1][p])
+					rps = append(rps, rp)
+				}
+			}
+		}
+	}
+	other := tbln.NewOwnReader(otherTbln)
+
+	self, err := tdb.ReadTable(schema, tableName, rps)
+	if err != nil {
+		return err
+	}
+	cmp, err := tbln.NewCompare(self, other)
+	if err != nil {
+		return err
+	}
+	dml := &dml{}
+	for {
+		dd, err := cmp.ReadDiffRow()
+		if err != nil {
+			if err == io.EOF {
+				break
+			}
+			return err
+		}
+		dml = mergeTableRow(dml, dd, delete)
+	}
+	return tdb.mergeWrite(self.Definition, schema, cmp, dml, delete)
+}
+
 // MergeTable writes all rows to the table.
 func (tdb *TDB) MergeTable(schema string, tableName string, other tbln.Reader, delete bool) error {
 	self, err := tdb.ReadTable(schema, tableName, nil)
@@ -53,8 +92,11 @@ func (tdb *TDB) MergeTable(schema string, tableName string, other tbln.Reader, d
 		}
 		dml = mergeTableRow(dml, dd, delete)
 	}
+	return tdb.mergeWrite(self.Definition, schema, cmp, dml, delete)
+}
 
-	w, err := NewWriter(tdb, self.Definition)
+func (tdb *TDB) mergeWrite(definition *tbln.Definition, schema string, cmp *tbln.Compare, dml *dml, delete bool) error {
+	w, err := NewWriter(tdb, definition)
 	if err != nil {
 		return err
 	}
@@ -63,7 +105,6 @@ func (tdb *TDB) MergeTable(schema string, tableName string, other tbln.Reader, d
 	} else {
 		w.tableFullName = w.quoting(w.TableName())
 	}
-
 	if len(dml.insert) > 0 {
 		err = w.insert(dml.insert)
 		if err != nil {
