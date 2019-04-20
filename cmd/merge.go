@@ -25,11 +25,11 @@ var mergeCmd = &cobra.Command{
 func init() {
 	rootCmd.AddCommand(mergeCmd)
 	mergeCmd.PersistentFlags().StringP("file", "f", "", "TBLN self file")
-	mergeCmd.PersistentFlags().StringP("dburl", "d", "", "self database dburl")
+	mergeCmd.PersistentFlags().StringP("dburl", "d", "", "self database url")
 	mergeCmd.PersistentFlags().StringP("schema", "", "", "self schema Name")
 	mergeCmd.PersistentFlags().StringP("table", "", "", "self table name")
 	mergeCmd.PersistentFlags().StringP("other-file", "", "", "TBLN other file")
-	mergeCmd.PersistentFlags().StringP("other-dburl", "", "", "other database dburl")
+	mergeCmd.PersistentFlags().StringP("other-dburl", "", "", "other database url")
 	mergeCmd.PersistentFlags().StringP("other-schema", "", "", "other schema Name")
 	mergeCmd.PersistentFlags().StringP("other-table", "", "", "other table name")
 	mergeCmd.PersistentFlags().BoolP("ignore", "", false, "Ignore when conflict occurs")
@@ -122,6 +122,9 @@ func getSelfReader(cmd *cobra.Command, args []string) (tbln.Reader, error) {
 		return nil, err
 	}
 	u, err := dburl.Parse(url)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %s", url, err)
+	}
 	toConn, err := db.Open(u.Driver, u.DSN)
 	if err != nil {
 		return nil, fmt.Errorf("%s: %s", u.Driver, err)
@@ -152,6 +155,9 @@ func mergeWriteTable(otherReader tbln.Reader, cmd *cobra.Command) error {
 		return err
 	}
 	u, err := dburl.Parse(url)
+	if err != nil {
+		return fmt.Errorf("%s: %s", url, err)
+	}
 	conn, err := db.Open(u.Driver, u.DSN)
 	if err != nil {
 		return fmt.Errorf("%s: %s", u.Driver, err)
@@ -214,6 +220,9 @@ func merge(cmd *cobra.Command, args []string) error {
 		return err
 	}
 	u, err := dburl.Parse(url)
+	if err != nil {
+		return fmt.Errorf("%s: %s", url, err)
+	}
 	if u.Driver != "" && !noImport {
 		return mergeWriteTable(otherReader, cmd)
 	}

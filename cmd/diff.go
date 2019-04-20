@@ -22,11 +22,11 @@ var diffCmd = &cobra.Command{
 func init() {
 	rootCmd.AddCommand(diffCmd)
 	diffCmd.PersistentFlags().StringP("file", "f", "", "TBLN self file")
-	diffCmd.PersistentFlags().StringP("dburl", "d", "", "self database dburl")
+	diffCmd.PersistentFlags().StringP("dburl", "d", "", "self database url")
 	diffCmd.PersistentFlags().StringP("schema", "", "", "self schema Name")
 	diffCmd.PersistentFlags().StringP("table", "", "", "self table name")
 	diffCmd.PersistentFlags().StringP("other-file", "", "", "TBLN other file")
-	diffCmd.PersistentFlags().StringP("other-dburl", "", "", "other database dburl")
+	diffCmd.PersistentFlags().StringP("other-dburl", "", "", "other database url")
 	diffCmd.PersistentFlags().StringP("other-schema", "", "", "other schema Name")
 	diffCmd.PersistentFlags().StringP("other-table", "", "", "other table name")
 	diffCmd.PersistentFlags().BoolP("all", "", true, "show all, including unchanged rows")

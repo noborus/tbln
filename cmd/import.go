@@ -31,7 +31,7 @@ var importCmd = &cobra.Command{
 
 func init() {
 	rootCmd.AddCommand(importCmd)
-	importCmd.PersistentFlags().StringP("dburl", "d", "", "dburl name")
+	importCmd.PersistentFlags().StringP("dburl", "d", "", "database url")
 	importCmd.PersistentFlags().StringP("schema", "n", "", "schema Name")
 	importCmd.PersistentFlags().StringP("mode", "m", "ifnot", `create mode
  no		- Insert without creating a table.
@@ -66,6 +66,9 @@ func dbImport(cmd *cobra.Command, args []string) error {
 		return err
 	}
 	u, err := dburl.Parse(url)
+	if err != nil {
+		return fmt.Errorf("%s: %s", url, err)
+	}
 	conn, err := db.Open(u.Driver, u.DSN)
 	if err != nil {
 		return fmt.Errorf("%s: %s", u.Driver, err)

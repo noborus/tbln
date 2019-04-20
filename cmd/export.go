@@ -30,7 +30,7 @@ the column name and column type.`,
 
 func init() {
 	rootCmd.AddCommand(exportCmd)
-	exportCmd.PersistentFlags().StringP("dburl", "d", "", "dburl name")
+	exportCmd.PersistentFlags().StringP("dburl", "d", "", "database url")
 	exportCmd.PersistentFlags().StringP("schema", "n", "", "schema name")
 	exportCmd.PersistentFlags().StringP("table", "t", "", "table name")
 	exportCmd.PersistentFlags().StringP("query", "", "", "SQL query")
@@ -86,7 +86,9 @@ func dbExport(cmd *cobra.Command, args []string) error {
 		return err
 	}
 	u, err := dburl.Parse(url)
-
+	if err != nil {
+		return fmt.Errorf("%s: %s", url, err)
+	}
 	conn, err := db.Open(u.Driver, u.DSN)
 	if err != nil {
 		return fmt.Errorf("%s: %s", u.Driver, err)
