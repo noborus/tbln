@@ -8,6 +8,7 @@ import (
 
 	"github.com/noborus/tbln"
 	"github.com/noborus/tbln/db"
+	"github.com/xo/dburl"
 
 	"github.com/spf13/cobra"
 
@@ -17,12 +18,6 @@ import (
 	_ "github.com/noborus/tbln/db/postgres"
 	// SQLlite3 driver
 	_ "github.com/noborus/tbln/db/sqlite3"
-)
-
-// database variable
-var (
-	destdbName string
-	destdsn    string
 )
 
 // importCmd represents the import command
@@ -36,9 +31,8 @@ var importCmd = &cobra.Command{
 
 func init() {
 	rootCmd.AddCommand(importCmd)
-	importCmd.PersistentFlags().StringVar(&destdbName, "db", "", "database name")
-	importCmd.PersistentFlags().StringVar(&destdsn, "dsn", "", "dsn name")
-	importCmd.PersistentFlags().StringP("Schema", "n", "", "schema Name")
+	importCmd.PersistentFlags().StringP("dburl", "d", "", "database url")
+	importCmd.PersistentFlags().StringP("schema", "n", "", "schema Name")
 	importCmd.PersistentFlags().StringP("mode", "m", "ifnot", `create mode
  no		- Insert without creating a table.
  create	- Normal create.
@@ -67,20 +61,24 @@ func dbImport(cmd *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
-	if destdbName == "" {
-		cmd.SilenceUsage = false
-		return fmt.Errorf("requires database driver name")
+	var url string
+	if url, err = cmd.PersistentFlags().GetString("dburl"); err != nil {
+		return err
 	}
-	conn, err := db.Open(destdbName, destdsn)
+	u, err := dburl.Parse(url)
 	if err != nil {
-		return fmt.Errorf("%s: %s", destdbName, err)
+		return fmt.Errorf("%s: %s", url, err)
+	}
+	conn, err := db.Open(u.Driver, u.DSN)
+	if err != nil {
+		return fmt.Errorf("%s: %s", u.Driver, err)
 	}
 	err = conn.Begin()
 	if err != nil {
-		return fmt.Errorf("%s: %s", destdbName, err)
+		return fmt.Errorf("%s: %s", u.Driver, err)
 	}
 	var schema string
-	if schema, err = cmd.PersistentFlags().GetString("Schema"); err != nil {
+	if schema, err = cmd.PersistentFlags().GetString("schema"); err != nil {
 		return err
 	}
 	var tableName string
@@ -150,6 +148,7 @@ func writeImport(conn *db.TDB, tb *tbln.Tbln, schema string, cmode db.CreateMode
 		if err == nil {
 			return nil
 		}
+		log.Printf("ERR:%s", err)
 		log.Printf("Table Not found. Create Table [%s]\n", tb.TableName())
 	}
 	return db.WriteTable(conn, tb, schema, cmode, imode)

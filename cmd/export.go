@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/spf13/cobra"
+	"github.com/xo/dburl"
 
 	"github.com/noborus/tbln"
 	"github.com/noborus/tbln/db"
@@ -14,12 +15,6 @@ import (
 	_ "github.com/noborus/tbln/db/postgres"
 	// SQLlite3 driver
 	_ "github.com/noborus/tbln/db/sqlite3"
-)
-
-// database variable
-var (
-	srcdbName string
-	srcdsn    string
 )
 
 // exportCmd represents the export command
@@ -35,8 +30,7 @@ the column name and column type.`,
 
 func init() {
 	rootCmd.AddCommand(exportCmd)
-	exportCmd.PersistentFlags().StringVar(&srcdbName, "db", "", "database name")
-	exportCmd.PersistentFlags().StringVar(&srcdsn, "dsn", "", "dsn name")
+	exportCmd.PersistentFlags().StringP("dburl", "d", "", "database url")
 	exportCmd.PersistentFlags().StringP("schema", "n", "", "schema name")
 	exportCmd.PersistentFlags().StringP("table", "t", "", "table name")
 	exportCmd.PersistentFlags().StringP("query", "", "", "SQL query")
@@ -79,10 +73,6 @@ func dbExport(cmd *cobra.Command, args []string) error {
 		cmd.SilenceUsage = false
 		return fmt.Errorf("requires table name or SQL query")
 	}
-	if srcdbName == "" {
-		cmd.SilenceUsage = false
-		return fmt.Errorf("requires database driver name")
-	}
 	var signF bool
 	if signF, err = cmd.PersistentFlags().GetBool("sign"); err != nil {
 		return err
@@ -91,9 +81,17 @@ func dbExport(cmd *cobra.Command, args []string) error {
 		cmd.SilenceUsage = false
 		return fmt.Errorf("requires secret key file")
 	}
-	conn, err := db.Open(srcdbName, srcdsn)
+	var url string
+	if url, err = cmd.PersistentFlags().GetString("dburl"); err != nil {
+		return err
+	}
+	u, err := dburl.Parse(url)
 	if err != nil {
-		return fmt.Errorf("%s: %s", srcdbName, err)
+		return fmt.Errorf("%s: %s", url, err)
+	}
+	conn, err := db.Open(u.Driver, u.DSN)
+	if err != nil {
+		return fmt.Errorf("%s: %s", u.Driver, err)
 	}
 	defer conn.Close()
 

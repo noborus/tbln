@@ -21,19 +21,17 @@ var diffCmd = &cobra.Command{
 
 func init() {
 	rootCmd.AddCommand(diffCmd)
-	diffCmd.PersistentFlags().StringP("self-file", "", "", "TBLN self file")
-	diffCmd.PersistentFlags().StringP("self-db", "", "", "Self database driver name")
-	diffCmd.PersistentFlags().StringP("self-dsn", "", "", "Self dsn name")
-	diffCmd.PersistentFlags().StringP("self-schema", "", "", "Self schema Name")
-	diffCmd.PersistentFlags().StringP("self-table", "", "", "Self table name")
+	diffCmd.PersistentFlags().StringP("file", "f", "", "TBLN self file")
+	diffCmd.PersistentFlags().StringP("dburl", "d", "", "self database url")
+	diffCmd.PersistentFlags().StringP("schema", "", "", "self schema Name")
+	diffCmd.PersistentFlags().StringP("table", "", "", "self table name")
 	diffCmd.PersistentFlags().StringP("other-file", "", "", "TBLN other file")
-	diffCmd.PersistentFlags().StringP("other-db", "", "", "other database driver name")
-	diffCmd.PersistentFlags().StringP("other-dsn", "", "", "other dsn name")
+	diffCmd.PersistentFlags().StringP("other-dburl", "", "", "other database url")
 	diffCmd.PersistentFlags().StringP("other-schema", "", "", "other schema Name")
 	diffCmd.PersistentFlags().StringP("other-table", "", "", "other table name")
-	diffCmd.PersistentFlags().BoolP("all", "", true, "Show all, including unchanged rows")
-	diffCmd.PersistentFlags().BoolP("change", "", false, "Show only changed rows")
-	diffCmd.PersistentFlags().BoolP("update", "", false, "Show only rows to add and update")
+	diffCmd.PersistentFlags().BoolP("all", "", true, "show all, including unchanged rows")
+	diffCmd.PersistentFlags().BoolP("change", "", false, "show only changed rows")
+	diffCmd.PersistentFlags().BoolP("update", "", false, "show only rows to add and update")
 	diffCmd.PersistentFlags().SortFlags = false
 	diffCmd.Flags().SortFlags = false
 }

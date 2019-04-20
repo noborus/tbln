@@ -146,7 +146,7 @@ This is an example of synchronizing MySQL tables with PostgreSQL.
 With the --delete option, extra rows are deleted.
 
 ```
-tbln merge --self-db "postgres" --self-dsn "database=test_db" --self-table simple \
+tbln merge --db "postgres" --dsn "database=test_db" --table simple \
            --other-db "mysql" --other-dsn "root@/test_db" --other-table simple \
            --delete
 ```
