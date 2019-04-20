@@ -64,7 +64,6 @@ func (tdb *TDB) ReadTable(schema string, tableName string, rps []RangePrimaryKey
 	if len(pkey) > 0 {
 		tr.Extras["primarykey"] = tbln.NewExtra(tbln.JoinRow(pkey), false)
 	}
-
 	table := tr.fullTableName(schema, tableName)
 	conds, args := tr.conditions(pkey, rps)
 	order := tr.orderby(pkey)
@@ -82,6 +81,10 @@ func (tdb *TDB) ReadTable(schema string, tableName string, rps []RangePrimaryKey
 func (tr *Reader) conditions(pkey []string, rps []RangePrimaryKey) (string, []interface{}) {
 	var args []interface{}
 	if len(rps) > 0 {
+		if len(pkey) != len(rps) {
+			debug.Printf("primary key miss match!")
+			return "", nil
+		}
 		var cs []string
 		for i, rp := range rps {
 			if pkey[i] != rp.name {
@@ -307,6 +310,8 @@ func mySQLtoString(dbtype string, v interface{}) string {
 			return str
 		}
 		str = string(b)
+	} else {
+		str = fmt.Sprint(v)
 	}
 	switch dbtype {
 	case "tinyint(1)":
