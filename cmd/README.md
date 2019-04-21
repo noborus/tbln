@@ -49,18 +49,18 @@ Flags:
 
 Export the database table and output the TBLN file.
 
-The database driver name(--db) and DSN(--dsn) are required
+The [dburl](https://github.com/xo/dburl) are required
 to import/export database tables.
 
 ```bash
-$ tbln export --db postgres --dsn "host=localhost dbname=sampletest" \
+$ tbln export --dburl "postgres://localhost/sampletest" \
    -t simple -o simple.tbln
 ```
 
 Import the TBLN file into the database.
 
 ```bash
-$ tbln import --db postgres --dsn "host=localhost dbname=sampletest" \
+$ tbln import --dburl "postgres://localhost/sampletest" \
   -t simple2 -f simple.tbln
 ```
 
@@ -76,6 +76,65 @@ $ psql sampletest
  name   | text    |           |          |
 Indexes:
     "simple2_pkey" PRIMARY KEY, btree (id)
+```
+
+## Merge
+
+Merge other table or file to a self table or file.
+Merging other files into its (self) table is the same as import.
+
+Merge tables from another database.
+
+This is an example of synchronizing MySQL tables with PostgreSQL.
+With the --delete option, extra rows are deleted.
+
+```bash
+$ tbln merge --dburl "postgres://localhost/test_db"  --table simple \
+           --other-dburl "mysql:root@localhost/test_db" --other-table simple \
+           --delete
+```
+
+## Diff
+
+Display differences from tables in two databases.
+There is no patch command, as it only needs to be merged.
+
+```bash
+$ tbln diff --dburl "postgres://localhost/test_db"  --table simple \
+            --other-dburl "mysql:root@localhost/test_db" --other-table simple
+ | 1 | Bob |
+ | 2 | Alice |
++| 3 | Carol |
++| 4 | Dave |
+```
+
+## Except
+
+Except extracts differences as SQL except and outputs it as a TBLN file.
+Remove the other rows from self rows and output the remaining rows.
+
+```bash
+$ tbln except --dburl "postgres://localhost/test_db"  --table simple \
+              --other-dburl "mysql:root@localhost/test_db" --other-table simple
+```
+
+```tbln
+; TableName: simple
+; character_maximum_length: |  | 65535 |
+; character_octet_length: |  | 65535 |
+; created_at: 2019-04-21T11:45:25+09:00
+; is_nullable: | NO | YES |
+; is_unique: | YES |  |
+; mysql_columntype: | int(11) | text |
+; mysql_type: | int | text |
+; numeric_precision: | 10 |  |
+; numeric_scale: | 0 |  |
+; primarykey: | id |
+; Hash: | sha256 | 71e49a67614d016e04e201ea5bfa555ba0c7ae6d0a7514db27761b055fe9809b |
+; name: | id | name |
+; type: | int | text |
+| 3 | Carol |
+| 4 | Dave |
 ```
 
 ## Signature example
@@ -134,24 +193,3 @@ The signature verification included in this repository should be successful.
 $ tbln verify --keystore testdata/test.pub testdata/simple.tbln
 2019/03/24 00:33:50 Signature verification successful
 ```
-
-## Merge
-
-Merge other table or file to a self table or file.
-Merging other files into its self table is the same as import.
-
-Merge tables from another database.
-
-This is an example of synchronizing MySQL tables with PostgreSQL.
-With the --delete option, extra rows are deleted.
-
-```
-tbln merge --db "postgres" --dsn "database=test_db" --table simple \
-           --other-db "mysql" --other-dsn "root@/test_db" --other-table simple \
-           --delete
-```
-
-## Except
-
-Except extracts differences as SQL except and outputs it as a TBLN file.
-Remove the other rows from self rows and output the remaining rows.

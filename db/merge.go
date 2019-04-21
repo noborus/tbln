@@ -112,13 +112,13 @@ func (tdb *TDB) mergeWrite(definition *tbln.Definition, schema string, cmp *tbln
 		}
 	}
 	if len(dml.update) > 0 {
-		err = w.update(dml.update, cmp)
+		err = w.update(dml.update, cmp.PK)
 		if err != nil {
 			return err
 		}
 	}
 	if delete && (len(dml.delete) > 0) {
-		err = w.delete(dml.delete, cmp)
+		err = w.delete(dml.delete, cmp.PK)
 		if err != nil {
 			return err
 		}
@@ -140,13 +140,13 @@ func (w *Writer) insert(insRow [][]string) error {
 	return w.stmt.Close()
 }
 
-func (w *Writer) update(updRow [][]string, cmp *tbln.Compare) error {
-	err := w.prepareUpdate(cmp.PK)
+func (w *Writer) update(updRow [][]string, pkeys []tbln.Pkey) error {
+	err := w.prepareUpdate(pkeys)
 	if err != nil {
 		return err
 	}
 	for _, upd := range updRow {
-		err = w.WriteRow(append(upd, tbln.ColumnPrimaryKey(cmp.PK, upd)...))
+		err = w.WriteRow(append(upd, tbln.ColumnPrimaryKey(pkeys, upd)...))
 		if err != nil {
 			return err
 		}
@@ -154,13 +154,13 @@ func (w *Writer) update(updRow [][]string, cmp *tbln.Compare) error {
 	return w.stmt.Close()
 }
 
-func (w *Writer) delete(delRow [][]string, cmp *tbln.Compare) error {
-	err := w.prepareDelete(cmp.PK)
+func (w *Writer) delete(delRow [][]string, pkeys []tbln.Pkey) error {
+	err := w.prepareDelete(pkeys)
 	if err != nil {
 		return err
 	}
 	for _, del := range delRow {
-		err = w.WriteRow(tbln.ColumnPrimaryKey(cmp.PK, del))
+		err = w.WriteRow(tbln.ColumnPrimaryKey(pkeys, del))
 		if err != nil {
 			return err
 		}
