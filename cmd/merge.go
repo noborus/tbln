@@ -70,6 +70,9 @@ func getOtherReader(cmd *cobra.Command, args []string) (tbln.Reader, error) {
 	if url, err = cmd.PersistentFlags().GetString("other-dburl"); err != nil {
 		return nil, err
 	}
+	if url == "" {
+		return nil, nil
+	}
 	u, err := dburl.Parse(url)
 	if err != nil {
 		return nil, fmt.Errorf("other:%s: %s", url, err)
@@ -121,6 +124,9 @@ func getSelfReader(cmd *cobra.Command, args []string) (tbln.Reader, error) {
 	if url, err = cmd.PersistentFlags().GetString("dburl"); err != nil {
 		return nil, err
 	}
+	if url == "" {
+		return nil, nil
+	}
 	u, err := dburl.Parse(url)
 	if err != nil {
 		return nil, fmt.Errorf("self:%s: %s", url, err)
@@ -153,6 +159,9 @@ func mergeWriteTable(otherReader tbln.Reader, cmd *cobra.Command) error {
 	var url string
 	if url, err = cmd.PersistentFlags().GetString("dburl"); err != nil {
 		return err
+	}
+	if url == "" {
+		return fmt.Errorf("database url not found")
 	}
 	u, err := dburl.Parse(url)
 	if err != nil {
