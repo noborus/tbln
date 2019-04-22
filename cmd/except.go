@@ -20,15 +20,15 @@ var exceptCmd = &cobra.Command{
 
 func init() {
 	rootCmd.AddCommand(exceptCmd)
-	exceptCmd.PersistentFlags().StringP("file", "f", "", "TBLN self File")
+	exceptCmd.PersistentFlags().StringP("file", "f", "", "self TBLN File")
 	exceptCmd.PersistentFlags().StringP("dburl", "d", "", "self database url")
-	exceptCmd.PersistentFlags().StringP("schema", "", "", "self schema Name")
-	exceptCmd.PersistentFlags().StringP("table", "", "", "self table name")
-	exceptCmd.PersistentFlags().StringP("other-file", "", "", "TBLN other File")
+	exceptCmd.PersistentFlags().StringP("schema", "n", "", "self schema Name")
+	exceptCmd.PersistentFlags().StringP("table", "t", "", "self table name")
+	exceptCmd.PersistentFlags().StringP("other-file", "", "", "other TBLN File")
 	exceptCmd.PersistentFlags().StringP("other-dburl", "", "", "other database url")
 	exceptCmd.PersistentFlags().StringP("other-schema", "", "", "other schema Name")
 	exceptCmd.PersistentFlags().StringP("other-table", "", "", "other table name")
-	exceptCmd.PersistentFlags().StringP("output", "o", "", "Write to file instead of stdout")
+	exceptCmd.PersistentFlags().StringP("output", "o", "", "write to file instead of stdout")
 	exceptCmd.PersistentFlags().StringSliceP("hash", "a", []string{"sha256"}, "hash algorithm(sha256 or sha512)")
 	exceptCmd.PersistentFlags().StringSliceP("enable-target", "", []string{"name", "type"}, "hash target extra item (all or each name)")
 	exceptCmd.PersistentFlags().StringSliceP("disable-target", "", nil, "hash extra items not to be targeted (all or each name)")
@@ -58,6 +58,7 @@ func except(cmd *cobra.Command, args []string) error {
 		return err
 	}
 	if otherReader == nil || selfReader == nil {
+		cmd.SilenceUsage = false
 		return fmt.Errorf("requires from and self")
 	}
 	var tb *tbln.Tbln

@@ -65,6 +65,10 @@ func dbImport(cmd *cobra.Command, args []string) error {
 	if url, err = cmd.PersistentFlags().GetString("dburl"); err != nil {
 		return err
 	}
+	if url == "" {
+		cmd.SilenceUsage = false
+		return fmt.Errorf("database url not found")
+	}
 	u, err := dburl.Parse(url)
 	if err != nil {
 		return fmt.Errorf("%s: %s", url, err)

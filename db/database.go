@@ -1,4 +1,4 @@
-// Package db translates tbln and database tables.
+// Package db reads and writes the database table in tbln format.
 //
 // Read and write the table using *sql.DB.
 // PostgreSQL, MySQL and SQLlite3 interprets SQL dialects
@@ -12,7 +12,7 @@ import (
 	"regexp"
 )
 
-// TDB struct is sql.DB wrapper.
+// TDB struct is information about the database containing *sql.DB.
 type TDB struct {
 	Name string
 	*sql.DB
@@ -22,7 +22,7 @@ type TDB struct {
 	Constraint
 }
 
-// Open is tbln/db Open.
+// Open returns the TDB struct to wrap the sql.Open.
 func Open(name string, dsn string) (*TDB, error) {
 	d := GetDriver(name)
 	if d.PlaceHolder == "" {

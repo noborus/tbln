@@ -140,24 +140,28 @@ func (cmp *Compare) getPK() ([]Pkey, error) {
 	t2d := cmp.t2.GetDefinition()
 	var pos []int
 	t2Pos, err := t2d.GetPKeyPos()
-	if err == nil {
+	if err == nil && len(t2Pos) > 0 {
 		pos = t2Pos
 	}
 	t1Pos, err := t1d.GetPKeyPos()
-	if err == nil {
+	if err == nil && len(t1Pos) > 0 {
 		pos = t1Pos
 	}
 	if len(pos) == 0 {
 		return nil, fmt.Errorf("no primary key")
 	}
-	if len(t1Pos) != len(t2Pos) {
-		return nil, fmt.Errorf("primary key position")
+	if len(t1Pos) > 0 && len(t2Pos) > 0 {
+		if len(t1Pos) != len(t2Pos) {
+			return nil, fmt.Errorf("primary key position")
+		}
+		for i := range pos {
+			if t1Pos[i] != t2Pos[i] {
+				return nil, fmt.Errorf("primary key position")
+			}
+		}
 	}
 	pk := make([]Pkey, len(pos))
 	for i, v := range pos {
-		if t1Pos[i] != t2Pos[i] {
-			return nil, fmt.Errorf("primary key position")
-		}
 		t1t := t1d.Types()
 		t2t := t2d.Types()
 		if t1t[i] != t2t[i] {

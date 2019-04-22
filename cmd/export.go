@@ -33,7 +33,7 @@ func init() {
 	exportCmd.PersistentFlags().StringP("dburl", "d", "", "database url")
 	exportCmd.PersistentFlags().StringP("schema", "n", "", "schema name")
 	exportCmd.PersistentFlags().StringP("table", "t", "", "table name")
-	exportCmd.PersistentFlags().StringP("query", "", "", "SQL query")
+	exportCmd.PersistentFlags().StringP("query", "x", "", "SQL query")
 	exportCmd.PersistentFlags().BoolP("schema-only", "", false, "table schema only. no data")
 	exportCmd.PersistentFlags().StringP("output", "o", "", "write to file instead of stdout")
 	exportCmd.PersistentFlags().StringSliceP("hash", "a", []string{"sha256"}, "hash algorithm(sha256 or sha512)")
@@ -84,6 +84,10 @@ func dbExport(cmd *cobra.Command, args []string) error {
 	var url string
 	if url, err = cmd.PersistentFlags().GetString("dburl"); err != nil {
 		return err
+	}
+	if url == "" {
+		cmd.SilenceUsage = false
+		return fmt.Errorf("database url not found")
 	}
 	u, err := dburl.Parse(url)
 	if err != nil {
