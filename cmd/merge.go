@@ -24,11 +24,11 @@ var mergeCmd = &cobra.Command{
 
 func init() {
 	rootCmd.AddCommand(mergeCmd)
-	mergeCmd.PersistentFlags().StringP("file", "f", "", "TBLN self file")
+	mergeCmd.PersistentFlags().StringP("file", "f", "", "self TBLN file")
 	mergeCmd.PersistentFlags().StringP("dburl", "d", "", "self database url")
-	mergeCmd.PersistentFlags().StringP("schema", "", "", "self schema Name")
-	mergeCmd.PersistentFlags().StringP("table", "", "", "self table name")
-	mergeCmd.PersistentFlags().StringP("other-file", "", "", "TBLN other file")
+	mergeCmd.PersistentFlags().StringP("schema", "n", "", "self schema Name")
+	mergeCmd.PersistentFlags().StringP("table", "t", "", "self table name")
+	mergeCmd.PersistentFlags().StringP("other-file", "", "", "other TBLN file")
 	mergeCmd.PersistentFlags().StringP("other-dburl", "", "", "other database url")
 	mergeCmd.PersistentFlags().StringP("other-schema", "", "", "other schema Name")
 	mergeCmd.PersistentFlags().StringP("other-table", "", "", "other table name")
@@ -161,6 +161,7 @@ func mergeWriteTable(otherReader tbln.Reader, cmd *cobra.Command) error {
 		return err
 	}
 	if url == "" {
+		cmd.SilenceUsage = false
 		return fmt.Errorf("database url not found")
 	}
 	u, err := dburl.Parse(url)
@@ -259,6 +260,7 @@ func merge(cmd *cobra.Command, args []string) error {
 		return err
 	}
 	if otherReader == nil || selfReader == nil {
+		cmd.SilenceUsage = false
 		return fmt.Errorf("requires other and self")
 	}
 	var tb *tbln.Tbln

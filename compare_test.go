@@ -80,7 +80,6 @@ func TestNewCompare(t *testing.T) {
 	tests := []struct {
 		name    string
 		args    args
-		want    []string
 		wantErr bool
 	}{
 		{
@@ -101,8 +100,7 @@ func TestNewCompare(t *testing.T) {
 		{
 			name:    "testNo",
 			args:    args{t1: NewReader(bytes.NewBufferString(TestNoPrim)), t2: NewReader(bytes.NewBufferString(TestData))},
-			want:    nil,
-			wantErr: true,
+			wantErr: false,
 		},
 		{
 			name:    "test1",

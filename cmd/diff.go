@@ -21,11 +21,11 @@ var diffCmd = &cobra.Command{
 
 func init() {
 	rootCmd.AddCommand(diffCmd)
-	diffCmd.PersistentFlags().StringP("file", "f", "", "TBLN self file")
+	diffCmd.PersistentFlags().StringP("file", "f", "", "self TBLN file")
 	diffCmd.PersistentFlags().StringP("dburl", "d", "", "self database url")
-	diffCmd.PersistentFlags().StringP("schema", "", "", "self schema Name")
-	diffCmd.PersistentFlags().StringP("table", "", "", "self table name")
-	diffCmd.PersistentFlags().StringP("other-file", "", "", "TBLN other file")
+	diffCmd.PersistentFlags().StringP("schema", "n", "", "self schema Name")
+	diffCmd.PersistentFlags().StringP("table", "t", "", "self table name")
+	diffCmd.PersistentFlags().StringP("other-file", "", "", "other TBLN file")
 	diffCmd.PersistentFlags().StringP("other-dburl", "", "", "other database url")
 	diffCmd.PersistentFlags().StringP("other-schema", "", "", "other schema Name")
 	diffCmd.PersistentFlags().StringP("other-table", "", "", "other table name")
@@ -46,6 +46,7 @@ func diff(cmd *cobra.Command, args []string) error {
 		return err
 	}
 	if otherReader == nil || selfReader == nil {
+		cmd.SilenceUsage = false
 		return fmt.Errorf("requires other and self")
 	}
 	var change, update bool

@@ -79,43 +79,45 @@ func (tdb *TDB) ReadTable(schema string, tableName string, rps []RangePrimaryKey
 }
 
 func (tr *Reader) conditions(pkey []string, rps []RangePrimaryKey) (string, []interface{}) {
+	if len(rps) == 0 {
+		return "", nil
+	}
+	if len(pkey) != len(rps) {
+		debug.Printf("primary key miss match!")
+		return "", nil
+	}
+
 	var args []interface{}
-	if len(rps) > 0 {
-		if len(pkey) != len(rps) {
-			debug.Printf("primary key miss match!")
+	var cs []string
+	for i, rp := range rps {
+		if pkey[i] != rp.name {
+			debug.Printf("primary key miss match! %s:%s", pkey[i], rp.name)
 			return "", nil
 		}
-		var cs []string
-		for i, rp := range rps {
-			if pkey[i] != rp.name {
-				debug.Printf("primary key miss match! %s:%s", pkey[i], rp.name)
-				return "", nil
-			}
-			if tr.Style.PlaceHolder == "$" {
-				cd := fmt.Sprintf("(%s >= $%d AND %s <= $%d)", tr.quoting(rp.name), i*2+1, tr.quoting(rp.name), i*2+2)
-				cs = append(cs, cd)
-			} else {
-				cd := fmt.Sprintf("(%s >= ? AND %s <= ?)", tr.quoting(rp.name), tr.quoting(rp.name))
-				cs = append(cs, cd)
-			}
-			args = append(args, rp.min)
-			args = append(args, rp.max)
+		if tr.Style.PlaceHolder == "$" {
+			cd := fmt.Sprintf("(%s >= $%d AND %s <= $%d)", tr.quoting(rp.name), i*2+1, tr.quoting(rp.name), i*2+2)
+			cs = append(cs, cd)
+		} else {
+			cd := fmt.Sprintf("(%s >= ? AND %s <= ?)", tr.quoting(rp.name), tr.quoting(rp.name))
+			cs = append(cs, cd)
 		}
-		// #nosec G202
-		return " WHERE " + strings.Join(cs, " AND "), args
+		args = append(args, rp.min)
+		args = append(args, rp.max)
 	}
-	return "", nil
+	// #nosec G202
+	conds := " WHERE " + strings.Join(cs, " AND ")
+	return conds, args
 }
 
 func (tr *Reader) orderby(pkey []string) string {
-	if len(pkey) > 0 {
-		pk := make([]string, len(pkey))
-		for i, p := range pkey {
-			pk[i] = tr.quoting(p)
-		}
-		return "ORDER BY " + strings.Join(pk, ", ")
+	if len(pkey) == 0 {
+		return "ORDER BY 1"
 	}
-	return "ORDER BY 1"
+	pk := make([]string, len(pkey))
+	for i, p := range pkey {
+		pk[i] = tr.quoting(p)
+	}
+	return "ORDER BY " + strings.Join(pk, ", ")
 }
 
 // ReadQuery returns a new Reader from SQL query.
