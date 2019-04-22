@@ -93,6 +93,11 @@ func getOtherReader(cmd *cobra.Command, args []string) (tbln.Reader, error) {
 	if tableName, err = cmd.PersistentFlags().GetString("other-table"); err != nil {
 		return nil, err
 	}
+	if tableName == "" {
+		if tableName, err = cmd.PersistentFlags().GetString("table"); err != nil {
+			return nil, err
+		}
+	}
 	otherReader, err = otherConn.ReadTable(schema, tableName, nil)
 	if err != nil {
 		return nil, err
