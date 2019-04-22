@@ -1,3 +1,5 @@
+export GO111MODULE=on
+
 debult: test
 
 test:
