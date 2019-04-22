@@ -164,6 +164,9 @@ func (cmp *Compare) getPK() ([]Pkey, error) {
 	for i, v := range pos {
 		t1t := t1d.Types()
 		t2t := t2d.Types()
+		if len(t1t) != len(t2t) {
+			return nil, fmt.Errorf("unmatch data type")
+		}
 		if t1t[i] != t2t[i] {
 			return nil, fmt.Errorf("unmatch data type")
 		}

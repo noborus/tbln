@@ -1,4 +1,4 @@
-debult: build
+debult: test
 
 test:
 	go test -v ./...
