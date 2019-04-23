@@ -85,7 +85,7 @@ func TestNewCompare(t *testing.T) {
 		{
 			name:    "Err1",
 			args:    args{t1: NewReader(bytes.NewBufferString("")), t2: NewReader(bytes.NewBufferString(""))},
-			wantErr: true,
+			wantErr: false,
 		},
 		{
 			name:    "Err2",
