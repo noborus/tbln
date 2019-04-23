@@ -147,9 +147,20 @@ func (cmp *Compare) getPK() ([]Pkey, error) {
 	if err == nil && len(t1Pos) > 0 {
 		pos = t1Pos
 	}
+	// If both do not have a primary key,
+	// use all columns as primary keys.
 	if len(pos) == 0 {
-		return nil, fmt.Errorf("no primary key")
+		t1Pos = make([]int, t1d.ColumnNum())
+		for i := 0; i < t1d.ColumnNum(); i++ {
+			t1Pos[i] = i
+		}
+		t2Pos = make([]int, t2d.ColumnNum())
+		for i := 0; i < t2d.ColumnNum(); i++ {
+			t2Pos[i] = i
+		}
+		pos = t1Pos
 	}
+
 	if len(t1Pos) > 0 && len(t2Pos) > 0 {
 		if len(t1Pos) != len(t2Pos) {
 			return nil, fmt.Errorf("primary key position")
@@ -165,10 +176,10 @@ func (cmp *Compare) getPK() ([]Pkey, error) {
 		t1t := t1d.Types()
 		t2t := t2d.Types()
 		if len(t1t) != len(t2t) {
-			return nil, fmt.Errorf("unmatch data type")
+			return nil, fmt.Errorf("unmatch data type: %d:%d", len(t1t), len(t2t))
 		}
 		if t1t[i] != t2t[i] {
-			return nil, fmt.Errorf("unmatch data type")
+			return nil, fmt.Errorf("unmatch data type: %s:%s", t1t[i], t2t[i])
 		}
 		n := t1d.Names()
 		pk[i] = Pkey{v, n[i], t1t[i]}
