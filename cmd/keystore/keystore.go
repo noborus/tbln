@@ -133,29 +133,19 @@ func AddKey(keyStore string, fileName string) error {
 		return createFile(keyStore, fileName)
 	}
 	defer file.Close()
+	storeR := tbln.NewReader(file)
 
 	pubkey, err := os.Open(fileName)
 	if err != nil {
 		return fmt.Errorf("public key open: %s:%s", fileName, err)
 	}
 	defer pubkey.Close()
+	keyR := tbln.NewReader(pubkey)
 
-	pt, err := tbln.ReadAll(pubkey)
+	pkeys, err := tbln.MergeAll(storeR, keyR, tbln.MergeUpdate)
 	if err != nil {
-		return fmt.Errorf("public key read: %s:%s", fileName, err)
+		return fmt.Errorf("KeyStore AddKey: %s", err)
 	}
-
-	pkeys, err := tbln.ReadAll(file)
-	if err != nil {
-		return fmt.Errorf("KeyStore read: %s", err)
-	}
-	for _, row := range pt.Rows {
-		err = pkeys.AddRows(row)
-		if err != nil {
-			return fmt.Errorf("KeyStore AddKey: %s", err)
-		}
-	}
-
 	return rewriteStore(file, pkeys)
 }
 
