@@ -51,7 +51,7 @@ var TestType = `; name: | a | b | c | d | e | f |
 `
 
 func createTestTable(t *testing.T, tdb *db.TDB, data string) string {
-	at := wantTbln(t, data)
+	at := dataTbln(t, data)
 	err := tdb.Begin()
 	if err != nil {
 		t.Fatal(err)
@@ -67,7 +67,7 @@ func createTestTable(t *testing.T, tdb *db.TDB, data string) string {
 	return at.TableName()
 }
 
-func wantTbln(t *testing.T, data string) *tbln.Tbln {
+func dataTbln(t *testing.T, data string) *tbln.Tbln {
 	r := bytes.NewBufferString(data)
 	at, err := tbln.ReadAll(r)
 	if err != nil {
