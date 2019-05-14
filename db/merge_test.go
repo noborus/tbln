@@ -72,4 +72,3 @@ func Test_mergeTableRow(t *testing.T) {
 		})
 	}
 }
-
