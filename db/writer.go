@@ -420,23 +420,21 @@ func (w *Writer) prepareDelete(pkeys []tbln.Pkey) error {
 }
 
 func (w *Writer) convertDBType(dbtype string, value string) interface{} {
+	if w.TDB.Name != "mysql" {
+		return value
+	}
 	switch strings.ToLower(dbtype) {
 	case "bool":
-		if w.TDB.Name == "mysql" {
-			if value == "false" || value == "f" || value == "0" {
-				return 0
-			}
-			return 1
+		if value == "false" || value == "f" || value == "0" {
+			return 0
 		}
+		return 1
 	case "datetime", "timestamp":
-		if w.TDB.Name == "mysql" {
-			t, err := time.Parse(time.RFC3339, value)
-			if err != nil {
-				return nil
-			}
-			return t
+		t, err := time.Parse(time.RFC3339, value)
+		if err != nil {
+			return nil
 		}
-		return value
+		return t
 	}
 	return value
 }

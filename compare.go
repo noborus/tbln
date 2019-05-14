@@ -172,12 +172,12 @@ func (cmp *Compare) getPK() ([]Pkey, error) {
 		}
 	}
 	pk := make([]Pkey, len(pos))
+	t1t := t1d.Types()
+	t2t := t2d.Types()
+	if (len(t1t) < len(pos)) || (len(t1t) != len(t2t)) {
+		return nil, fmt.Errorf("unmatch data type: %d:%d", len(t1t), len(t2t))
+	}
 	for i, v := range pos {
-		t1t := t1d.Types()
-		t2t := t2d.Types()
-		if len(t1t) != len(t2t) {
-			return nil, fmt.Errorf("unmatch data type: %d:%d", len(t1t), len(t2t))
-		}
 		if t1t[i] != t2t[i] {
 			return nil, fmt.Errorf("unmatch data type: %s:%s", t1t[i], t2t[i])
 		}

@@ -59,6 +59,7 @@ func dbImport(cmd *cobra.Command, args []string) error {
 	}
 	tb, err := verifiedTbln(cmd, args)
 	if err != nil {
+		log.Printf("invalid tbln file [%s]", fileName)
 		return err
 	}
 	var url string
@@ -136,10 +137,12 @@ func dbImport(cmd *cobra.Command, args []string) error {
 	}
 	err = writeImport(conn, tb, schema, cmode, imode)
 	if err != nil {
+		log.Printf("[%s] import failure\n", tb.TableName())
 		return err
 	}
 	err = conn.Tx.Commit()
 	if err != nil {
+		log.Printf("[%s] import failure\n", tb.TableName())
 		return err
 	}
 	log.Printf("[%s] import success\n", tb.TableName())
