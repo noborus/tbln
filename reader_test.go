@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"bytes"
 	"io"
+	"path/filepath"
 	"reflect"
 	"testing"
 )
@@ -265,7 +266,7 @@ func TestReadFile(t *testing.T) {
 	}{
 		{
 			name:    "testSimple",
-			args:    args{reader: openFile(t, "testdata/simple.tbln")},
+			args:    args{reader: openFile(t, filepath.Join("testdata", "simple.tbln"))},
 			want:    "simple",
 			wantErr: false,
 		},

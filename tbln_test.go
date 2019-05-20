@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"path/filepath"
 	"reflect"
 	"testing"
 )
@@ -268,7 +269,7 @@ func TestTbln_Sign(t *testing.T) {
 		},
 		{
 			name:     "testErr2",
-			fileName: "testdata/abc.tbln",
+			fileName: filepath.Join("testdata", "abc.tbln"),
 			args: args{
 				name: "test",
 				pkey: []byte(""),
@@ -278,7 +279,7 @@ func TestTbln_Sign(t *testing.T) {
 		},
 		{
 			name:     "test1",
-			fileName: "testdata/abc.tbln",
+			fileName: filepath.Join("testdata", "abc.tbln"),
 			args: args{
 				name: "test",
 				pkey: decodeHashHelper("a490a355aca9be30a72710e81a05ef0d8fea0877e7031bc7cd66970f7f9e3537ee40c42c0529991cbf64ca3b71335902749b1b33a54b0c564b7d6995b97d6ced"),
@@ -330,7 +331,7 @@ func TestTbln_VerifySignature(t *testing.T) {
 	}{
 		{
 			name:     "testABCfalse",
-			fileName: "testdata/abc-s.tbln",
+			fileName: filepath.Join("testdata", "abc-s.tbln"),
 			args: args{
 				name:   "test",
 				pubkey: []byte(""),
@@ -339,7 +340,7 @@ func TestTbln_VerifySignature(t *testing.T) {
 		},
 		{
 			name:     "testABCtrue",
-			fileName: "testdata/abc-s.tbln",
+			fileName: filepath.Join("testdata", "abc-s.tbln"),
 			args: args{
 				name:   "test",
 				pubkey: decode64Helper("7kDELAUpmRy/ZMo7cTNZAnSbGzOlSwxWS31plbl9bO0="),
@@ -348,7 +349,7 @@ func TestTbln_VerifySignature(t *testing.T) {
 		},
 		{
 			name:     "testABnoSign",
-			fileName: "testdata/abc.tbln",
+			fileName: filepath.Join("testdata", "abc.tbln"),
 			args: args{
 				name:   "test",
 				pubkey: decode64Helper("7kDELAUpmRy/ZMo7cTNZAnSbGzOlSwxWS31plbl9bO0="),
