@@ -315,7 +315,7 @@ func (w *Writer) prepareInsert(imode InsertMode) error {
 	// for each database when insert mode is OrIgnore.
 	// MySQL
 	// INSERT IGNORE INTO...
-	// SQLlite3
+	// SQLite3
 	// INSERT OR IGNORE INTO...
 	ignore := ""
 	// PostgreSQL

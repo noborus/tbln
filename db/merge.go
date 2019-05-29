@@ -12,7 +12,7 @@ type dml struct {
 	delete [][]string
 }
 
-func mergeTableRow(dml *dml, d *tbln.DiffRow, delete bool) *dml {
+func mergeTableRow(dml *dml, d *tbln.DiffRow, shouldDelete bool) *dml {
 	switch d.Les {
 	case 0:
 		return dml
@@ -20,7 +20,7 @@ func mergeTableRow(dml *dml, d *tbln.DiffRow, delete bool) *dml {
 		dml.insert = append(dml.insert, d.Other)
 		return dml
 	case -1:
-		if delete {
+		if shouldDelete {
 			dml.delete = append(dml.delete, d.Self)
 		}
 		return dml
@@ -33,17 +33,15 @@ func mergeTableRow(dml *dml, d *tbln.DiffRow, delete bool) *dml {
 }
 
 // MergeTableTbln writes all rows to the table from Tbln.
-func (tdb *TDB) MergeTableTbln(schema string, tableName string, otherTbln *tbln.Tbln, delete bool) error {
+func (tdb *TDB) MergeTableTbln(schema string, tableName string, otherTbln *tbln.Tbln, shouldDelete bool) error {
 	orows := otherTbln.Rows
 	var rps []RangePrimaryKey
-	if !delete {
+	if !shouldDelete {
 		pkpos, err := otherTbln.GetPKeyPos()
-		if err == nil {
-			if len(pkpos) > 0 {
-				for _, p := range pkpos {
-					rp := NewRangePrimaryKey(otherTbln.Names()[p], orows[0][p], orows[len(orows)-1][p])
-					rps = append(rps, rp)
-				}
+		if err == nil && (len(pkpos) > 0) {
+			for _, p := range pkpos {
+				rp := NewRangePrimaryKey(otherTbln.Names()[p], orows[0][p], orows[len(orows)-1][p])
+				rps = append(rps, rp)
 			}
 		}
 	}
@@ -66,13 +64,13 @@ func (tdb *TDB) MergeTableTbln(schema string, tableName string, otherTbln *tbln.
 			}
 			return err
 		}
-		dml = mergeTableRow(dml, dd, delete)
+		dml = mergeTableRow(dml, dd, shouldDelete)
 	}
-	return tdb.mergeWrite(self.Definition, schema, cmp, dml, delete)
+	return tdb.mergeWrite(self.Definition, schema, cmp, dml, shouldDelete)
 }
 
 // MergeTable writes all rows to the table.
-func (tdb *TDB) MergeTable(schema string, tableName string, other tbln.Reader, delete bool) error {
+func (tdb *TDB) MergeTable(schema string, tableName string, other tbln.Reader, shouldDelete bool) error {
 	self, err := tdb.ReadTable(schema, tableName, nil)
 	if err != nil {
 		return err
@@ -90,12 +88,12 @@ func (tdb *TDB) MergeTable(schema string, tableName string, other tbln.Reader, d
 			}
 			return err
 		}
-		dml = mergeTableRow(dml, dd, delete)
+		dml = mergeTableRow(dml, dd, shouldDelete)
 	}
-	return tdb.mergeWrite(self.Definition, schema, cmp, dml, delete)
+	return tdb.mergeWrite(self.Definition, schema, cmp, dml, shouldDelete)
 }
 
-func (tdb *TDB) mergeWrite(definition *tbln.Definition, schema string, cmp *tbln.Compare, dml *dml, delete bool) error {
+func (tdb *TDB) mergeWrite(definition *tbln.Definition, schema string, cmp *tbln.Compare, dml *dml, shouldDelete bool) error {
 	w, err := NewWriter(tdb, definition)
 	if err != nil {
 		return err
@@ -117,7 +115,7 @@ func (tdb *TDB) mergeWrite(definition *tbln.Definition, schema string, cmp *tbln
 			return err
 		}
 	}
-	if delete && (len(dml.delete) > 0) {
+	if shouldDelete && (len(dml.delete) > 0) {
 		err = w.delete(dml.delete, cmp.PK)
 		if err != nil {
 			return err

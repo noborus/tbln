@@ -13,7 +13,7 @@ import (
 	_ "github.com/noborus/tbln/db/mysql"
 	// PostgreSQL driver
 	_ "github.com/noborus/tbln/db/postgres"
-	// SQLlite3 driver
+	// SQLite3 driver
 	_ "github.com/noborus/tbln/db/sqlite3"
 )
 
