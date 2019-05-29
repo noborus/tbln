@@ -27,9 +27,9 @@ var TestMerge2 = `; name: | id | name | age |
 
 func TestTDB_MergeTableTbln(t *testing.T) {
 	type args struct {
-		schema    string
-		tableName string
-		delete    bool
+		schema       string
+		tableName    string
+		shouldDelete bool
 	}
 	tests := []struct {
 		name     string
@@ -41,27 +41,27 @@ func TestTDB_MergeTableTbln(t *testing.T) {
 			name:     "test1",
 			dataTbln: TestMerge1,
 			args: args{
-				schema:    "",
-				tableName: TestData1,
-				delete:    false,
+				schema:       "",
+				tableName:    TestData1,
+				shouldDelete: false,
 			},
 		},
 		{
 			name:     "test2",
 			dataTbln: TestMerge2,
 			args: args{
-				schema:    "",
-				tableName: TestData1,
-				delete:    false,
+				schema:       "",
+				tableName:    TestData1,
+				shouldDelete: false,
 			},
 		},
 		{
 			name:     "testDelete",
 			dataTbln: TestMerge2,
 			args: args{
-				schema:    "",
-				tableName: TestData1,
-				delete:    true,
+				schema:       "",
+				tableName:    TestData1,
+				shouldDelete: true,
 			},
 		},
 	}
@@ -80,7 +80,7 @@ func TestTDB_MergeTableTbln(t *testing.T) {
 			}
 			t.Run(tt.name, func(t *testing.T) {
 				mergeTbln := dataTbln(t, tt.dataTbln)
-				if err := tdb.MergeTableTbln(tt.args.schema, tableName, mergeTbln, tt.args.delete); (err != nil) != tt.wantErr {
+				if err := tdb.MergeTableTbln(tt.args.schema, tableName, mergeTbln, tt.args.shouldDelete); (err != nil) != tt.wantErr {
 					t.Errorf("TDB.MergeTableTbln() %s error = %v, wantErr %v", tdb.Name, err, tt.wantErr)
 				}
 			})
@@ -93,9 +93,9 @@ func TestTDB_MergeTableTbln(t *testing.T) {
 
 func TestTDB_MergeTable(t *testing.T) {
 	type args struct {
-		schema    string
-		tableName string
-		delete    bool
+		schema       string
+		tableName    string
+		shouldDelete bool
 	}
 	tests := []struct {
 		name     string
@@ -107,27 +107,27 @@ func TestTDB_MergeTable(t *testing.T) {
 			name:     "test1",
 			dataTbln: TestMerge1,
 			args: args{
-				schema:    "",
-				tableName: TestData1,
-				delete:    false,
+				schema:       "",
+				tableName:    TestData1,
+				shouldDelete: false,
 			},
 		},
 		{
 			name:     "test2",
 			dataTbln: TestMerge2,
 			args: args{
-				schema:    "",
-				tableName: TestData1,
-				delete:    false,
+				schema:       "",
+				tableName:    TestData1,
+				shouldDelete: false,
 			},
 		},
 		{
 			name:     "testDelete",
 			dataTbln: TestMerge2,
 			args: args{
-				schema:    "",
-				tableName: TestData1,
-				delete:    true,
+				schema:       "",
+				tableName:    TestData1,
+				shouldDelete: true,
 			},
 		},
 	}
@@ -147,7 +147,7 @@ func TestTDB_MergeTable(t *testing.T) {
 			t.Run(tt.name, func(t *testing.T) {
 				r := bytes.NewBufferString(tt.dataTbln)
 				other := tbln.NewReader(r)
-				if err := tdb.MergeTable(tt.args.schema, tableName, other, tt.args.delete); (err != nil) != tt.wantErr {
+				if err := tdb.MergeTable(tt.args.schema, tableName, other, tt.args.shouldDelete); (err != nil) != tt.wantErr {
 					t.Errorf("TDB.MergeTable() error = %v, wantErr %v", err, tt.wantErr)
 				}
 			})
