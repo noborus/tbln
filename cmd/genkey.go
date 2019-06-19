@@ -78,10 +78,10 @@ func generateKey(keyName string, overwrite bool) error {
 	}
 	log.Printf("write %s file\n", PubFile)
 
-	err = keystore.Regist(KeyStore, keyName, public)
+	err = keystore.Register(KeyStore, keyName, public)
 	if err != nil {
 		return err
 	}
-	log.Printf("regist %s file\n", KeyStore)
+	log.Printf("register %s file\n", KeyStore)
 	return nil
 }

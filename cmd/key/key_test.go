@@ -5,6 +5,8 @@ import (
 	"os"
 	"reflect"
 	"testing"
+
+	"github.com/noborus/tbln"
 )
 
 type MockPasswordReader struct {
@@ -218,6 +220,44 @@ func TestGetPrivateKey(t *testing.T) {
 			if (err != nil) != tt.wantErr {
 				t.Errorf("GetPrivateKey() error = %v, wantErr %v", err, tt.wantErr)
 				return
+			}
+		})
+	}
+}
+
+func TestGenTBLNPublic(t *testing.T) {
+	type args struct {
+		keyName string
+		pubkey  []byte
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    *tbln.Tbln
+		wantErr bool
+	}{
+		{
+			name:    "testErr1",
+			args:    args{"", []byte("a")},
+			want:    nil,
+			wantErr: true,
+		},
+		{
+			name:    "testErr2",
+			args:    args{"t", []byte("")},
+			want:    nil,
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := GenTBLNPublic(tt.args.keyName, tt.args.pubkey)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("GenTBLNPublic() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("GenTBLNPublic() = %v, want %v", got, tt.want)
 			}
 		})
 	}

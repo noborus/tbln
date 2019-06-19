@@ -15,7 +15,7 @@ type CreateMode int
 const (
 	// NotCreate does not execute CREATE TABLE
 	NotCreate CreateMode = iota
-	// Create is mormal creation.
+	// Create is normal creation.
 	Create
 	// IfNotExists does nothing if already exists.
 	IfNotExists
@@ -78,7 +78,7 @@ type Writer struct {
 	tableFullName string // schema.table
 	stmt          *sql.Stmt
 	ReplaceLN     bool
-	phtypes       []string
+	phTypes       []string
 }
 
 // NewWriter returns a new Writer that writes to database table.
@@ -109,10 +109,10 @@ func (w *Writer) WriteRow(row []string) error {
 		if w.ReplaceLN {
 			v = strings.ReplaceAll(v, "\\n", "\n")
 		}
-		if i > len(w.phtypes) {
+		if i > len(w.phTypes) {
 			return fmt.Errorf("can not convert type")
 		}
-		r[i] = w.convertDBType(w.phtypes[i], v)
+		r[i] = w.convertDBType(w.phTypes[i], v)
 	}
 	_, err := w.stmt.Exec(r...)
 	return err
@@ -301,7 +301,7 @@ func (w *Writer) prepareInsert(imode InsertMode) error {
 	names := make([]string, len(wn))
 	ph := make([]string, len(wn))
 	wt := w.Types()
-	w.phtypes = make([]string, len(wt))
+	w.phTypes = make([]string, len(wt))
 	for i := 0; i < len(wn); i++ {
 		names[i] = w.quoting(wn[i])
 		if w.Style.PlaceHolder == "$" {
@@ -309,7 +309,7 @@ func (w *Writer) prepareInsert(imode InsertMode) error {
 		} else {
 			ph[i] = "?"
 		}
-		w.phtypes[i] = wt[i]
+		w.phTypes[i] = wt[i]
 	}
 	// Construct SQL that does not generate an error
 	// for each database when insert mode is OrIgnore.
@@ -320,7 +320,7 @@ func (w *Writer) prepareInsert(imode InsertMode) error {
 	ignore := ""
 	// PostgreSQL
 	// INSERT INTO ... ON CONFLICT DO NOTHING
-	onconf := ""
+	onConf := ""
 	if imode == OrIgnore {
 		switch w.TDB.Name {
 		case "mysql":
@@ -328,7 +328,7 @@ func (w *Writer) prepareInsert(imode InsertMode) error {
 		case "sqlite3":
 			ignore = "OR IGNORE "
 		case "postgres":
-			onconf = "ON CONFLICT DO NOTHING"
+			onConf = "ON CONFLICT DO NOTHING"
 		}
 	}
 	// #nosec G201
@@ -336,7 +336,7 @@ func (w *Writer) prepareInsert(imode InsertMode) error {
 		"INSERT %sINTO %s ( %s ) VALUES ( %s ) %s;",
 		ignore,
 		w.tableFullName, strings.Join(names, ", "), strings.Join(ph, ", "),
-		onconf)
+		onConf)
 	debug.Printf("SQL:%s", insert)
 	w.stmt, err = w.Tx.Prepare(insert)
 	if err != nil {
@@ -352,7 +352,7 @@ func (w *Writer) prepareUpdate(pkeys []tbln.Pkey) error {
 	names := make([]string, len(wn))
 	ph := make([]string, len(wn))
 	wt := w.Types()
-	w.phtypes = make([]string, len(wt)+len(pkeys))
+	w.phTypes = make([]string, len(wt)+len(pkeys))
 	for i := 0; i < len(wn); i++ {
 		names[i] = w.quoting(wn[i])
 		if w.Style.PlaceHolder == "$" {
@@ -361,20 +361,20 @@ func (w *Writer) prepareUpdate(pkeys []tbln.Pkey) error {
 			ph[i] = "?"
 		}
 		setcolumns[i] = fmt.Sprintf("%s = %s", names[i], ph[i])
-		w.phtypes[i] = wt[i]
+		w.phTypes[i] = wt[i]
 	}
 	conditions := make([]string, len(pkeys))
 	pk := make([]string, len(pkeys))
-	phpk := make([]string, len(pkeys))
+	phPK := make([]string, len(pkeys))
 	for i := 0; i < len(pk); i++ {
 		pk[i] = w.quoting(pkeys[i].Name)
 		if w.Style.PlaceHolder == "$" {
-			phpk[i] = fmt.Sprintf("$%d", len(setcolumns)+i+1)
+			phPK[i] = fmt.Sprintf("$%d", len(setcolumns)+i+1)
 		} else {
-			phpk[i] = "?"
+			phPK[i] = "?"
 		}
-		conditions[i] = fmt.Sprintf("%s = %s", pk[i], phpk[i])
-		w.phtypes[len(setcolumns)+i] = pkeys[i].Typ
+		conditions[i] = fmt.Sprintf("%s = %s", pk[i], phPK[i])
+		w.phTypes[len(setcolumns)+i] = pkeys[i].Typ
 	}
 	// #nosec G201
 	update := fmt.Sprintf(
@@ -391,20 +391,20 @@ func (w *Writer) prepareUpdate(pkeys []tbln.Pkey) error {
 
 func (w *Writer) prepareDelete(pkeys []tbln.Pkey) error {
 	var err error
-	w.phtypes = nil
+	w.phTypes = nil
 	conditions := make([]string, len(pkeys))
 	pk := make([]string, len(pkeys))
-	phpk := make([]string, len(pkeys))
-	w.phtypes = make([]string, len(pkeys))
+	phPK := make([]string, len(pkeys))
+	w.phTypes = make([]string, len(pkeys))
 	for i := 0; i < len(pkeys); i++ {
 		pk[i] = w.quoting(pkeys[i].Name)
 		if w.Style.PlaceHolder == "$" {
-			phpk[i] = fmt.Sprintf("$%d", i+1)
+			phPK[i] = fmt.Sprintf("$%d", i+1)
 		} else {
-			phpk[i] = "?"
+			phPK[i] = "?"
 		}
-		conditions[i] = fmt.Sprintf("%s = %s", pk[i], phpk[i])
-		w.phtypes[i] = pkeys[i].Typ
+		conditions[i] = fmt.Sprintf("%s = %s", pk[i], phPK[i])
+		w.phTypes[i] = pkeys[i].Typ
 	}
 	// #nosec G201
 	update := fmt.Sprintf(
@@ -419,11 +419,11 @@ func (w *Writer) prepareDelete(pkeys []tbln.Pkey) error {
 	return nil
 }
 
-func (w *Writer) convertDBType(dbtype string, value string) interface{} {
+func (w *Writer) convertDBType(dbType string, value string) interface{} {
 	if w.TDB.Name != "mysql" {
 		return value
 	}
-	switch strings.ToLower(dbtype) {
+	switch strings.ToLower(dbType) {
 	case "bool":
 		if value == "false" || value == "f" || value == "0" {
 			return 0

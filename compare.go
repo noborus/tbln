@@ -124,12 +124,12 @@ func (cmp *Compare) diffPrimaryKey() int {
 }
 
 // ColumnPrimaryKey return  columns primary key
-func ColumnPrimaryKey(pkeys []Pkey, row []string) []string {
+func ColumnPrimaryKey(pKeys []Pkey, row []string) []string {
 	if row == nil {
 		return nil
 	}
-	colPK := make([]string, 0, len(pkeys))
-	for _, pk := range pkeys {
+	colPK := make([]string, 0, len(pKeys))
+	for _, pk := range pKeys {
 		colPK = append(colPK, row[pk.Pos])
 	}
 	return colPK
@@ -175,11 +175,11 @@ func (cmp *Compare) getPK() ([]Pkey, error) {
 	t1t := t1d.Types()
 	t2t := t2d.Types()
 	if (len(t1t) < len(pos)) || (len(t1t) != len(t2t)) {
-		return nil, fmt.Errorf("unmatch data type: %d:%d", len(t1t), len(t2t))
+		return nil, fmt.Errorf("mismatch data type: %d:%d", len(t1t), len(t2t))
 	}
 	for i, v := range pos {
 		if t1t[i] != t2t[i] {
-			return nil, fmt.Errorf("unmatch data type: %s:%s", t1t[i], t2t[i])
+			return nil, fmt.Errorf("mismatch data type: %s:%s", t1t[i], t2t[i])
 		}
 		n := t1d.Names()
 		pk[i] = Pkey{v, n[i], t1t[i]}
@@ -187,8 +187,8 @@ func (cmp *Compare) getPK() ([]Pkey, error) {
 	return pk, nil
 }
 
-func compareType(dtype string, t1 string, t2 string) int {
-	switch dtype {
+func compareType(dType string, t1 string, t2 string) int {
+	switch dType {
 	case "int":
 		return compareInt(t1, t2)
 	case "bigint", "double precision", "numeric":

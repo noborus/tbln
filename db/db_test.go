@@ -168,7 +168,7 @@ func TestWriteRead(t *testing.T) {
 			t.Run(tdb.Name+"_"+tt.name, func(t *testing.T) {
 				wt := fileRead(t, filepath.Join(testDataPath, tt.name))
 				tableName := wt.TableName()
-				wgot := wt.Hashes["sha256"]
+				wGot := wt.Hashes["sha256"]
 				// reset
 				_ = tdb.Commit()
 				err := tdb.Begin()
@@ -192,9 +192,9 @@ func TestWriteRead(t *testing.T) {
 				if err != nil {
 					t.Fatal(err)
 				}
-				rgot := rt.Hashes["sha256"]
-				if (string(rgot) != string(wgot)) != tt.wantErr {
-					t.Errorf("Hash name = %v, hash = %x, wantHash %x", tt.name, rgot, wgot)
+				rGot := rt.Hashes["sha256"]
+				if (string(rGot) != string(wGot)) != tt.wantErr {
+					t.Errorf("Hash name = %v, hash = %x, wantHash %x", tt.name, rGot, wGot)
 					/*
 						tbln.WriteAll(os.Stdout, wt)
 						tbln.WriteAll(os.Stdout, rt)

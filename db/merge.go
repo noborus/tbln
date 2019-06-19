@@ -34,13 +34,13 @@ func mergeTableRow(dml *dml, d *tbln.DiffRow, shouldDelete bool) *dml {
 
 // MergeTableTbln writes all rows to the table from Tbln.
 func (tdb *TDB) MergeTableTbln(schema string, tableName string, otherTbln *tbln.Tbln, shouldDelete bool) error {
-	orows := otherTbln.Rows
+	oRows := otherTbln.Rows
 	var rps []RangePrimaryKey
 	if !shouldDelete {
-		pkpos, err := otherTbln.GetPKeyPos()
-		if err == nil && (len(pkpos) > 0) {
-			for _, p := range pkpos {
-				rp := NewRangePrimaryKey(otherTbln.Names()[p], orows[0][p], orows[len(orows)-1][p])
+		pkPos, err := otherTbln.GetPKeyPos()
+		if err == nil && (len(pkPos) > 0) {
+			for _, p := range pkPos {
+				rp := NewRangePrimaryKey(otherTbln.Names()[p], oRows[0][p], oRows[len(oRows)-1][p])
 				rps = append(rps, rp)
 			}
 		}
