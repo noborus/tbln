@@ -98,11 +98,11 @@ func TestDefinition_SetExtra(t *testing.T) {
 		value   string
 	}
 	tests := []struct {
-		name   string
-		fields fields
-		args   args
-		want   map[string]Extra
-		wantv  string
+		name      string
+		fields    fields
+		args      args
+		want      map[string]Extra
+		wantValue string
 	}{
 		{
 			name:   "test1",
@@ -111,14 +111,14 @@ func TestDefinition_SetExtra(t *testing.T) {
 			want: map[string]Extra{
 				"test": {"testValue", false},
 			},
-			wantv: "testvalue",
+			wantValue: "testvalue",
 		},
 		{
-			name:   "test2",
-			fields: fields{Extras: map[string]Extra{"test": {"testValue", false}}},
-			args:   args{keyName: "test"},
-			want:   map[string]Extra{},
-			wantv:  "",
+			name:      "test2",
+			fields:    fields{Extras: map[string]Extra{"test": {"testValue", false}}},
+			args:      args{keyName: "test"},
+			want:      map[string]Extra{},
+			wantValue: "",
 		},
 	}
 	for _, tt := range tests {
@@ -140,8 +140,8 @@ func TestDefinition_SetExtra(t *testing.T) {
 				t.Errorf("Tbln.SetExtra = %v, want %v", got, tt.want)
 			}
 			gv := d.ExtraValue(tt.args.keyName)
-			if gv == tt.wantv {
-				t.Errorf("Tbln.SetExtra = %v, wantv %v", gv, tt.wantv)
+			if gv == tt.wantValue {
+				t.Errorf("Tbln.SetExtra = %v, wantValue %v", gv, tt.wantValue)
 			}
 		})
 	}

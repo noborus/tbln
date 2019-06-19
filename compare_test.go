@@ -270,7 +270,7 @@ func Test_getPK(t *testing.T) {
 
 func TestColumnPrimaryKey(t *testing.T) {
 	type args struct {
-		pkeys []Pkey
+		pKeys []Pkey
 		row   []string
 	}
 	tests := []struct {
@@ -280,13 +280,13 @@ func TestColumnPrimaryKey(t *testing.T) {
 	}{
 		{
 			name: "test1",
-			args: args{pkeys: []Pkey{{Pos: 0, Name: "id", Typ: "int"}}, row: []string{"1", "Bob"}},
+			args: args{pKeys: []Pkey{{Pos: 0, Name: "id", Typ: "int"}}, row: []string{"1", "Bob"}},
 			want: []string{"1"},
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := ColumnPrimaryKey(tt.args.pkeys, tt.args.row); !reflect.DeepEqual(got, tt.want) {
+			if got := ColumnPrimaryKey(tt.args.pKeys, tt.args.row); !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("ColumnPrimaryKey() = %v, want %v", got, tt.want)
 			}
 		})

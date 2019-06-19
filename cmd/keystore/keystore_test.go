@@ -43,7 +43,7 @@ func CreateTmpKeyStore(t *testing.T) string {
 	return tmpKeyStore
 }
 
-func TestRegist(t *testing.T) {
+func TestRegister(t *testing.T) {
 	tmpKeyStore := CreateTmpKeyStore(t)
 	defer func() {
 		os.Remove(tmpKeyStore)
@@ -69,15 +69,15 @@ func TestRegist(t *testing.T) {
 			wantErr: true,
 		},
 		{
-			name:    "testRegist",
+			name:    "testRegister",
 			args:    args{keyStore: tmpKeyStore, keyName: "test1", pubkey: []byte("test1")},
 			wantErr: false,
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if err := Regist(tt.args.keyStore, tt.args.keyName, tt.args.pubkey); (err != nil) != tt.wantErr {
-				t.Errorf("Regist() error = %v, wantErr %v", err, tt.wantErr)
+			if err := Register(tt.args.keyStore, tt.args.keyName, tt.args.pubkey); (err != nil) != tt.wantErr {
+				t.Errorf("Register() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
 	}

@@ -64,7 +64,7 @@ func genTBLNPrivate(keyName string, privkey []byte) (*tbln.Tbln, error) {
 		return nil, err
 	}
 	t := tbln.NewTbln()
-	t.Comments = []string{"TBLN Pvivate key"}
+	t.Comments = []string{"TBLN Private key"}
 	psEnc := base64.StdEncoding.EncodeToString(cipherText)
 	err = t.SetNames([]string{"keyname", "algorithm", "privatekey"})
 	if err != nil {

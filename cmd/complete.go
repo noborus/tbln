@@ -10,8 +10,8 @@ import (
 var completeCmd = &cobra.Command{
 	Use:   "completion",
 	Short: "A brief description of your command",
-	Run: func(cmd *cobra.Command, args []string) {
-		cmd.Help()
+	RunE: func(cmd *cobra.Command, args []string) error {
+		return cmd.Help()
 	},
 }
 
@@ -19,8 +19,8 @@ func completionBashCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "bash",
 		Short: "Generates bash completion scripts",
-		Run: func(cmd *cobra.Command, args []string) {
-			rootCmd.GenBashCompletion(os.Stdout)
+		RunE: func(cmd *cobra.Command, args []string) error {
+			return rootCmd.GenBashCompletion(os.Stdout)
 		},
 	}
 	return cmd
@@ -30,8 +30,8 @@ func completionZshCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "zsh",
 		Short: "Generates zsh completion scripts",
-		Run: func(cmd *cobra.Command, args []string) {
-			rootCmd.GenZshCompletion(os.Stdout)
+		RunE: func(cmd *cobra.Command, args []string) error {
+			return rootCmd.GenZshCompletion(os.Stdout)
 		},
 	}
 	return cmd

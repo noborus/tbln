@@ -15,10 +15,10 @@ import (
 type Reader struct {
 	*tbln.Definition
 	*TDB
-	rows         *sql.Rows
-	scanArgs     []interface{}
-	values       []interface{}
-	mySQLcolType []string
+	rows      *sql.Rows
+	scanArgs  []interface{}
+	values    []interface{}
+	mySQLType []string
 }
 
 // RangePrimaryKey is range of primary key.
@@ -55,7 +55,7 @@ func (tdb *TDB) ReadTable(schema string, tableName string, rps []RangePrimaryKey
 		}
 	}
 	tr.setTableInfo(info)
-	tr.mySQLcolType = tbln.SplitRow(toString(tr.ExtraValue("mysql_columntype")))
+	tr.mySQLType = tbln.SplitRow(toString(tr.ExtraValue("mysql_columntype")))
 	// Primary key
 	pkey, err := tr.GetPrimaryKey(tr.TDB.DB, schema, tableName)
 	if err != nil && err != ErrorNotSupport {
@@ -148,14 +148,14 @@ func (tr *Reader) ReadRow() ([]string, error) {
 	// MySQL converts to string by columnType,
 	// because MySQL drivers are returned in all []byte.
 	if tr.TDB.Name == "mysql" {
-		var mtypes []string
-		if len(tr.mySQLcolType) == len(tr.values) {
-			mtypes = tr.mySQLcolType
+		var mTypes []string
+		if len(tr.mySQLType) == len(tr.values) {
+			mTypes = tr.mySQLType
 		} else {
-			mtypes = tr.Types()
+			mTypes = tr.Types()
 		}
 		for i, col := range tr.values {
-			rec[i] = mySQLtoString(mtypes[i], col)
+			rec[i] = mySQLtoString(mTypes[i], col)
 		}
 		return rec, nil
 	}
@@ -202,9 +202,9 @@ func ReadQueryAll(tdb *TDB, query string, args ...interface{}) (*tbln.Tbln, erro
 func (tr *Reader) readRowsAll() (*tbln.Tbln, error) {
 	var err error
 	defer func() {
-		cerr := tr.Close()
+		closeErr := tr.Close()
 		if err == nil {
-			err = cerr
+			err = closeErr
 		}
 	}()
 
@@ -275,17 +275,17 @@ func (tr *Reader) setRowInfo(rows *sql.Rows) error {
 	if err != nil {
 		return err
 	}
-	dbtypes := make([]string, len(columns))
+	dbTypes := make([]string, len(columns))
 	types := make([]string, len(columns))
 	for i, ct := range columntype {
-		dbtypes[i] = ct.DatabaseTypeName()
+		dbTypes[i] = ct.DatabaseTypeName()
 		types[i] = convertType(ct.DatabaseTypeName())
 	}
 
 	// Convert MySQL tinyint(1) to bool type
 	if tr.TDB.Name == "mysql" {
-		tr.mySQLcolType = tbln.SplitRow(toString(tr.ExtraValue("mysql_columntype")))
-		for i, t := range tr.mySQLcolType {
+		tr.mySQLType = tbln.SplitRow(toString(tr.ExtraValue("mysql_columntype")))
+		for i, t := range tr.mySQLType {
 			if t == "tinyint(1)" {
 				types[i] = "bool"
 			}
@@ -297,12 +297,12 @@ func (tr *Reader) setRowInfo(rows *sql.Rows) error {
 		return err
 	}
 	if _, ok := tr.Extras[tr.Name+"_type"]; !ok {
-		tr.Extras[tr.Name+"_type"] = tbln.NewExtra(tbln.JoinRow(dbtypes), false)
+		tr.Extras[tr.Name+"_type"] = tbln.NewExtra(tbln.JoinRow(dbTypes), false)
 	}
 	return nil
 }
 
-func mySQLtoString(dbtype string, v interface{}) string {
+func mySQLtoString(dbType string, v interface{}) string {
 	const layout = "2006-01-02 15:04:05"
 	var str string
 
@@ -315,7 +315,7 @@ func mySQLtoString(dbtype string, v interface{}) string {
 	} else {
 		str = fmt.Sprint(v)
 	}
-	switch dbtype {
+	switch dbType {
 	case "tinyint(1)":
 		if str == "1" {
 			str = "true"
@@ -352,8 +352,8 @@ func toString(v interface{}) string {
 	return str
 }
 
-func convertType(dbtype string) string {
-	switch strings.ToLower(dbtype) {
+func convertType(dbType string) string {
+	switch strings.ToLower(dbType) {
 	case "tinyint", "smallint", "integer", "int", "int2", "int4", "smallserial", "serial":
 		return "int"
 	case "bigint", "int8", "bigserial":
@@ -371,7 +371,7 @@ func convertType(dbtype string) string {
 	case "string", "text", "char", "varchar", "character", "bpchar":
 		return "text"
 	default:
-		debug.Printf("unsupported type:%s", dbtype)
+		debug.Printf("unsupported type:%s", dbType)
 		return "text"
 	}
 }

@@ -8,7 +8,7 @@
 //    ; updated_at: 2019-03-28T10:56:21+09:00
 //    | test | ED25519 | 7kDELAUpmRy/ZMo7cTNZAnSbGzOlSwxWS31plbl9bO0=
 //
-// Use Regist to register byte public key.
+// Use Register to register byte public key.
 // Use AddKey to register a file format public key.
 package keystore
 
@@ -23,10 +23,10 @@ import (
 	"github.com/noborus/tbln/cmd/key"
 )
 
-// Regist registers public key in keystore
-// Regist creates a new file if the file not exist.
+// Register registers public key in keystore
+// Register creates a new file if the file not exist.
 // Add the public key, if the file already exists.
-func Regist(keyStore string, keyName string, pubkey []byte) error {
+func Register(keyStore string, keyName string, pubkey []byte) error {
 	if _, err := os.Stat(keyStore); os.IsNotExist(err) {
 		return create(keyStore, keyName, pubkey)
 	}
@@ -81,16 +81,16 @@ func add(keyStore string, keyName string, pubkey []byte) error {
 	}
 	defer file.Close()
 
-	pkeys, err := tbln.ReadAll(file)
+	pKeys, err := tbln.ReadAll(file)
 	if err != nil {
 		return fmt.Errorf("KeyStore read: %s", err)
 	}
 	pEnc := base64.StdEncoding.EncodeToString(pubkey)
-	err = pkeys.AddRows([]string{keyName, tbln.ED25519, pEnc})
+	err = pKeys.AddRows([]string{keyName, tbln.ED25519, pEnc})
 	if err != nil {
 		return fmt.Errorf("KeyStore add: %s", err)
 	}
-	return rewriteStore(file, pkeys)
+	return rewriteStore(file, pKeys)
 }
 
 // Search searches public key from keystore
@@ -142,11 +142,11 @@ func AddKey(keyStore string, fileName string) error {
 	defer pubkey.Close()
 	keyR := tbln.NewReader(pubkey)
 
-	pkeys, err := tbln.MergeAll(storeR, keyR, tbln.MergeUpdate)
+	pKeys, err := tbln.MergeAll(storeR, keyR, tbln.MergeUpdate)
 	if err != nil {
 		return fmt.Errorf("KeyStore AddKey: %s", err)
 	}
-	return rewriteStore(file, pkeys)
+	return rewriteStore(file, pKeys)
 }
 
 // DelKey deletes the corresponding public key from KeyStore.
@@ -159,13 +159,13 @@ func DelKey(keyStore string, name string, num int) error {
 	}
 	defer file.Close()
 
-	pkeys, err := tbln.ReadAll(file)
+	pKeys, err := tbln.ReadAll(file)
 	if err != nil {
 		return fmt.Errorf("KeyStore read: %s", err)
 	}
 	var result [][]string
 	n := 0
-	for _, row := range pkeys.Rows {
+	for _, row := range pKeys.Rows {
 		if row[0] == name {
 			if num >= 0 && n != num {
 				result = append(result, row)
@@ -175,8 +175,8 @@ func DelKey(keyStore string, name string, num int) error {
 			result = append(result, row)
 		}
 	}
-	pkeys.Rows = result
-	return rewriteStore(file, pkeys)
+	pKeys.Rows = result
+	return rewriteStore(file, pKeys)
 }
 
 func rewriteStore(file *os.File, t *tbln.Tbln) error {
