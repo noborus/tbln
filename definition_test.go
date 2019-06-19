@@ -114,7 +114,7 @@ func TestDefinition_SetExtra(t *testing.T) {
 			wantv: "testvalue",
 		},
 		{
-			name:   "test1",
+			name:   "test2",
 			fields: fields{Extras: map[string]Extra{"test": {"testValue", false}}},
 			args:   args{keyName: "test"},
 			want:   map[string]Extra{},
@@ -142,6 +142,97 @@ func TestDefinition_SetExtra(t *testing.T) {
 			gv := d.ExtraValue(tt.args.keyName)
 			if gv == tt.wantv {
 				t.Errorf("Tbln.SetExtra = %v, wantv %v", gv, tt.wantv)
+			}
+		})
+	}
+}
+
+func TestDefinition_ExtraValue(t *testing.T) {
+	type fields struct {
+		Extras map[string]Extra
+		Hashes map[string][]byte
+		Signs  Signatures
+	}
+	type args struct {
+		key string
+	}
+	tests := []struct {
+		name   string
+		fields fields
+		args   args
+		want   interface{}
+	}{
+		{
+			name: "test1",
+			fields: fields{
+				Extras: map[string]Extra{
+					"test": {"test", false},
+				},
+			},
+			args: args{key: "test"},
+			want: "test",
+		},
+		{
+			name: "testNoValue",
+			fields: fields{
+				Extras: map[string]Extra{
+					"test": {"test", false},
+				},
+			},
+			args: args{key: "testNo"},
+			want: nil,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			d := &Definition{
+				Extras: tt.fields.Extras,
+				Hashes: tt.fields.Hashes,
+				Signs:  tt.fields.Signs,
+			}
+			if got := d.ExtraValue(tt.args.key); !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("Definition.ExtraValue() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestDefinition_SetTimeStamp(t *testing.T) {
+	type fields struct {
+		Extras map[string]Extra
+	}
+	tests := []struct {
+		name       string
+		fields     fields
+		wantErr    bool
+		wantUpdate bool
+	}{
+		{
+			name:       "test_careted",
+			fields:     fields{Extras: make(map[string]Extra)},
+			wantErr:    false,
+			wantUpdate: false,
+		},
+		{
+			name: "test_updated",
+			fields: fields{Extras: map[string]Extra{
+				"created_at": {"2019-03-14T17:22:29+09:00", false},
+			}},
+			wantErr:    false,
+			wantUpdate: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			d := &Definition{
+				Extras: tt.fields.Extras,
+			}
+			if err := d.SetTimeStamp(); (err != nil) != tt.wantErr {
+				t.Errorf("Definition.SetTimeStamp() error = %v, wantErr %v", err, tt.wantErr)
+			}
+			got := d.ExtraValue("updated_at") != nil
+			if got != tt.wantUpdate {
+				t.Errorf("Definition.ExtraValue() = %v, want %v", got, tt.wantUpdate)
 			}
 		})
 	}

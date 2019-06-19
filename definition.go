@@ -22,7 +22,6 @@ type Definition struct {
 // NewDefinition is create Definition struct.
 func NewDefinition() *Definition {
 	extras := make(map[string]Extra)
-	extras["created_at"] = NewExtra(time.Now().Format(time.RFC3339), false)
 	hashes := make(map[string][]byte)
 	signs := make(Signatures)
 	return &Definition{
@@ -53,8 +52,8 @@ func (e *Extra) Value() interface{} {
 }
 
 // ExtraValue is return extra value.
-func (d *Definition) ExtraValue(ekey string) interface{} {
-	ext := d.Extras[ekey]
+func (d *Definition) ExtraValue(key string) interface{} {
+	ext := d.Extras[key]
 	return ext.Value()
 }
 
@@ -184,7 +183,7 @@ func (d *Definition) SetSignatures(sign []string) error {
 		return err
 	}
 	if sign[1] != ED25519 {
-		return fmt.Errorf("not support algotithm: %s", sign[1])
+		return fmt.Errorf("not support algorithm: %s", sign[1])
 	}
 	d.Signs[sign[0]] = Signature{sign: b, algorithm: sign[1]}
 	return nil
@@ -215,19 +214,31 @@ func (d *Definition) GetPKeyPos() ([]int, error) {
 	if len(pk) == 0 {
 		return nil, fmt.Errorf("no primary key")
 	}
-	pkpos := make([]int, 0)
+	pos := make([]int, 0)
 	for _, p := range pk {
 		for n, v := range d.Names() {
 			if p == v {
-				pkpos = append(pkpos, n)
+				pos = append(pos, n)
 				break
 			}
 		}
 	}
-	return pkpos, nil
+	return pos, nil
 }
 
 // GetDefinition return Definition
 func (d *Definition) GetDefinition() *Definition {
 	return d
+}
+
+// SetTimeStamp is set time stamp.
+// If there is no created_at, create it.
+// Otherwise updated updated_at.
+func (d *Definition) SetTimeStamp() error {
+	if d.ExtraValue("created_at") == nil {
+		d.Extras["created_at"] = NewExtra(time.Now().Format(time.RFC3339), false)
+		return nil
+	}
+	d.Extras["updated_at"] = NewExtra(time.Now().Format(time.RFC3339), false)
+	return nil
 }
