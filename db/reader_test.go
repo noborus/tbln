@@ -21,7 +21,7 @@ func TestTDB_ReadTableAll(t *testing.T) {
 		name    string
 		args    args
 		table   string
-		want    *tbln.Tbln
+		want    *tbln.TBLN
 		wantErr bool
 	}{
 		{
@@ -35,21 +35,21 @@ func TestTDB_ReadTableAll(t *testing.T) {
 			name:    "test1",
 			args:    args{schema: "", tableName: "test1", pkey: nil},
 			table:   TestData1,
-			want:    dataTbln(t, TestData1),
+			want:    dataTBLN(t, TestData1),
 			wantErr: false,
 		},
 		{
 			name:    "testOne",
 			args:    args{schema: "", tableName: "testone", pkey: nil},
 			table:   TestOne,
-			want:    dataTbln(t, TestOne),
+			want:    dataTBLN(t, TestOne),
 			wantErr: false,
 		},
 		{
 			name:    "testType",
 			args:    args{schema: "", tableName: "testtype", pkey: nil},
 			table:   TestType,
-			want:    dataTbln(t, TestType),
+			want:    dataTBLN(t, TestType),
 			wantErr: false,
 		},
 	}
@@ -144,7 +144,7 @@ func TestGetTableInfo(t *testing.T) {
 		name    string
 		args    args
 		table   string
-		want    *tbln.Tbln
+		want    *tbln.TBLN
 		wantErr bool
 	}{
 		{
@@ -158,7 +158,7 @@ func TestGetTableInfo(t *testing.T) {
 			name:    "test1",
 			args:    args{tdb: SetupSQLite3Test(t), schema: "", tableName: "test1"},
 			table:   TestData1,
-			want:    dataTbln(t, TestData1),
+			want:    dataTBLN(t, TestData1),
 			wantErr: false,
 		},
 	}

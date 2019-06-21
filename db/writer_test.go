@@ -19,7 +19,7 @@ var WriteTestData = `; name: | id | name | age |
 | 2 | Alice | 14 |
 `
 
-func SetupTbln(t *testing.T) *tbln.Tbln {
+func SetupTBLN(t *testing.T) *tbln.TBLN {
 	r := bytes.NewBufferString(WriteTestData)
 	at, err := tbln.ReadAll(r)
 	if err != nil {
@@ -35,7 +35,7 @@ var WriteTestData2 = `; name: | id | name | age |
 | 2 | Alice | 14 |
 `
 
-func SetupTbln2(t *testing.T) *tbln.Tbln {
+func SetupTBLN2(t *testing.T) *tbln.TBLN {
 	r := bytes.NewBufferString(WriteTestData2)
 	at, err := tbln.ReadAll(r)
 	if err != nil {
@@ -127,7 +127,7 @@ func TestWriteTableFile(t *testing.T) {
 func TestWriteTable(t *testing.T) {
 	type args struct {
 		tdb    *db.TDB
-		tbln   *tbln.Tbln
+		tbln   *tbln.TBLN
 		schema string
 		cmode  db.CreateMode
 		imode  db.InsertMode
@@ -139,22 +139,22 @@ func TestWriteTable(t *testing.T) {
 	}{
 		{
 			name:    "testErr",
-			args:    args{tdb: SetupPostgresTest(t), tbln: SetupTbln2(t), schema: "", cmode: db.ReCreate, imode: db.Normal},
+			args:    args{tdb: SetupPostgresTest(t), tbln: SetupTBLN2(t), schema: "", cmode: db.ReCreate, imode: db.Normal},
 			wantErr: true,
 		},
 		{
 			name:    "testPostgreSQL",
-			args:    args{tdb: SetupPostgresTest(t), tbln: SetupTbln(t), schema: "", cmode: db.ReCreate, imode: db.Normal},
+			args:    args{tdb: SetupPostgresTest(t), tbln: SetupTBLN(t), schema: "", cmode: db.ReCreate, imode: db.Normal},
 			wantErr: false,
 		},
 		{
 			name:    "testSQLite3",
-			args:    args{tdb: SetupSQLite3Test(t), tbln: SetupTbln(t), schema: "", cmode: db.ReCreate, imode: db.Normal},
+			args:    args{tdb: SetupSQLite3Test(t), tbln: SetupTBLN(t), schema: "", cmode: db.ReCreate, imode: db.Normal},
 			wantErr: false,
 		},
 		{
 			name:    "testMySQL",
-			args:    args{tdb: SetupMySQLTest(t), tbln: SetupTbln(t), schema: "", cmode: db.ReCreate, imode: db.Normal},
+			args:    args{tdb: SetupMySQLTest(t), tbln: SetupTBLN(t), schema: "", cmode: db.ReCreate, imode: db.Normal},
 			wantErr: false,
 		},
 	}

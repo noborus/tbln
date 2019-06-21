@@ -51,7 +51,7 @@ var TestType = `; name: | a | b | c | d | e | f |
 `
 
 func createTestTable(t *testing.T, tdb *db.TDB, data string) string {
-	at := dataTbln(t, data)
+	at := dataTBLN(t, data)
 	err := tdb.Begin()
 	if err != nil {
 		t.Fatal(err)
@@ -67,7 +67,7 @@ func createTestTable(t *testing.T, tdb *db.TDB, data string) string {
 	return at.TableName()
 }
 
-func dataTbln(t *testing.T, data string) *tbln.Tbln {
+func dataTBLN(t *testing.T, data string) *tbln.TBLN {
 	r := bytes.NewBufferString(data)
 	at, err := tbln.ReadAll(r)
 	if err != nil {
@@ -94,7 +94,7 @@ func dropTestTable(t *testing.T, tdb *db.TDB, tableName string) {
 	}
 }
 
-func fileRead(t *testing.T, fileName string) *tbln.Tbln {
+func fileRead(t *testing.T, fileName string) *tbln.TBLN {
 	f, err := os.Open(fileName)
 	if err != nil {
 		t.Fatal(err)
@@ -105,7 +105,7 @@ func fileRead(t *testing.T, fileName string) *tbln.Tbln {
 	}
 	return tb
 }
-func setHash(tb *tbln.Tbln) *tbln.Tbln {
+func setHash(tb *tbln.TBLN) *tbln.TBLN {
 	tb.AllTargetHash(false)
 	tb.ToTargetHash("name", true)
 	tb.ToTargetHash("type", true)
