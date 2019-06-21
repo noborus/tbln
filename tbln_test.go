@@ -35,7 +35,7 @@ func decode64Helper(d string) []byte {
 	return b
 }
 
-func TestTbln_AddRows(t *testing.T) {
+func TestTBLN_AddRows(t *testing.T) {
 	type fields struct {
 		Definition *Definition
 		Hash       map[string]string
@@ -66,14 +66,14 @@ func TestTbln_AddRows(t *testing.T) {
 	}
 	for _, tt := range tests {
 		tt := tt
-		tb := &Tbln{
+		tb := &TBLN{
 			Definition: tt.fields.Definition,
 			RowNum:     tt.fields.RowNum,
 			Rows:       tt.fields.Rows,
 		}
 		t.Run(tt.name, func(t *testing.T) {
 			if err := tb.AddRows(tt.args.row); (err != nil) != tt.wantErr {
-				t.Errorf("Tbln.AddRows() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("TBLN.AddRows() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
 	}
@@ -124,7 +124,7 @@ func Test_checkRow(t *testing.T) {
 	}
 }
 
-func TestTbln_SumHash(t *testing.T) {
+func TestTBLN_SumHash(t *testing.T) {
 	type fields struct {
 		Definition *Definition
 		Hash       map[string]string
@@ -165,35 +165,35 @@ func TestTbln_SumHash(t *testing.T) {
 	for _, tt := range tests {
 		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
-			tb := &Tbln{
+			tb := &TBLN{
 				Definition: tt.fields.Definition,
 				RowNum:     tt.fields.RowNum,
 				Rows:       tt.fields.Rows,
 			}
 			if err := tb.SetNames(tb.names); err != nil {
-				t.Errorf("Tbln.SetNames error = %v", err)
+				t.Errorf("TBLN.SetNames error = %v", err)
 				return
 
 			}
 			if err := tb.SetTypes(tb.types); err != nil {
-				t.Errorf("Tbln.SetTypes error = %v", err)
+				t.Errorf("TBLN.SetTypes error = %v", err)
 				return
 			}
 			tb.ToTargetHash("name", true)
 			tb.ToTargetHash("type", true)
 			if err := tb.SumHash(SHA256); (err != nil) != tt.wantErr {
-				t.Errorf("Tbln.SumHash(SHA256) error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("TBLN.SumHash(SHA256) error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 			got := fmt.Sprintf("%x", tb.Hashes["sha256"])
 			if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("Tbln.SumHash(SHA256) = %v, want %v", got, tt.want)
+				t.Errorf("TBLN.SumHash(SHA256) = %v, want %v", got, tt.want)
 			}
 		})
 	}
 }
 
-func TestTbln_calculateHash(t *testing.T) {
+func TestTBLN_calculateHash(t *testing.T) {
 	type args struct {
 		hashType string
 	}
@@ -232,20 +232,20 @@ func TestTbln_calculateHash(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			tb := NewTbln()
+			tb := NewTBLN()
 			got, err := tb.calculateHash(tt.args.hashType)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("Tbln.calculateHash() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("TBLN.calculateHash() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 			if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("Tbln.calculateHash() = %x, want %x", got, tt.want)
+				t.Errorf("TBLN.calculateHash() = %x, want %x", got, tt.want)
 			}
 		})
 	}
 }
 
-func TestTbln_Sign(t *testing.T) {
+func TestTBLN_Sign(t *testing.T) {
 	type args struct {
 		name string
 		pkey []byte
@@ -295,30 +295,30 @@ func TestTbln_Sign(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			var tb *Tbln
+			var tb *TBLN
 			if tt.fileName == "" {
-				tb = &Tbln{}
+				tb = &TBLN{}
 			} else {
 				var err error
 				f := openFile(t, tt.fileName)
 				tb, err = ReadAll(f)
 				if err != nil {
-					t.Errorf("Tbln file open %s", err)
+					t.Errorf("TBLN file open %s", err)
 				}
 			}
 			got, err := tb.Sign(tt.args.name, tt.args.pkey)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("Tbln.Sign() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("TBLN.Sign() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 			if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("Tbln.Sign() = %v, want %v", got, tt.want)
+				t.Errorf("TBLN.Sign() = %v, want %v", got, tt.want)
 			}
 		})
 	}
 }
 
-func TestTbln_VerifySignature(t *testing.T) {
+func TestTBLN_VerifySignature(t *testing.T) {
 	type args struct {
 		name   string
 		pubkey []byte
@@ -361,17 +361,17 @@ func TestTbln_VerifySignature(t *testing.T) {
 		f := openFile(t, tt.fileName)
 		tb, err := ReadAll(f)
 		if err != nil {
-			t.Errorf("Tbln file open %s", err)
+			t.Errorf("TBLN file open %s", err)
 		}
 		t.Run(tt.name, func(t *testing.T) {
 			if got := tb.VerifySignature(tt.args.name, tt.args.pubkey); got != tt.want {
-				t.Errorf("Tbln.VerifySignature() = %v, want %v", got, tt.want)
+				t.Errorf("TBLN.VerifySignature() = %v, want %v", got, tt.want)
 			}
 		})
 	}
 }
 
-func TestTbln_Verify(t *testing.T) {
+func TestTBLN_Verify(t *testing.T) {
 	tests := []struct {
 		name       string
 		Definition *Definition
@@ -400,11 +400,11 @@ func TestTbln_Verify(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			tb := &Tbln{
+			tb := &TBLN{
 				Definition: tt.Definition,
 			}
 			if got := tb.Verify(); got != tt.want {
-				t.Errorf("Tbln.Verify() = %v, want %v", got, tt.want)
+				t.Errorf("TBLN.Verify() = %v, want %v", got, tt.want)
 			}
 		})
 	}

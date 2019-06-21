@@ -50,7 +50,7 @@ import (
 )
 
 func main() {
-	tb := tbln.NewTbln()
+	tb := tbln.NewTBLN()
 	tb.SetTableName("sample")
 	tb.SetNames([]string{"id", "name"})
 	tb.SetTypes([]string{"int", "text"})

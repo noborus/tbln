@@ -231,13 +231,13 @@ func TestReadAll(t *testing.T) {
 	tests := []struct {
 		name    string
 		args    args
-		want    *Tbln
+		want    *TBLN
 		wantErr bool
 	}{
 		{
 			name:    "test1",
 			args:    args{reader: bufio.NewReader(bytes.NewBufferString("| a | b |"))},
-			want:    &Tbln{Definition: NewDefinition(), Rows: [][]string{{"a", "b"}}},
+			want:    &TBLN{Definition: NewDefinition(), Rows: [][]string{{"a", "b"}}},
 			wantErr: false,
 		},
 	}
