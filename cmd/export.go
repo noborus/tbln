@@ -25,7 +25,7 @@ var exportCmd = &cobra.Command{
 	Long: `Export from the database by table or SQL Query.
 Add as much of the table information as possible including 
 the column name and column type.`,
-	RunE: dbExport,
+	RunE: cmdExport,
 }
 
 func init() {
@@ -43,9 +43,8 @@ func init() {
 	exportCmd.PersistentFlags().BoolP("quiet", "q", false, "do not prompt for password.")
 }
 
-func dbExport(cmd *cobra.Command, args []string) error {
+func cmdExport(cmd *cobra.Command, args []string) error {
 	var err error
-
 	var schema string
 	if schema, err = cmd.PersistentFlags().GetString("schema"); err != nil {
 		return err
@@ -73,6 +72,7 @@ func dbExport(cmd *cobra.Command, args []string) error {
 		cmd.SilenceUsage = false
 		return fmt.Errorf("requires table name or SQL query")
 	}
+
 	var signF bool
 	if signF, err = cmd.PersistentFlags().GetBool("sign"); err != nil {
 		return err
@@ -81,6 +81,7 @@ func dbExport(cmd *cobra.Command, args []string) error {
 		cmd.SilenceUsage = false
 		return fmt.Errorf("requires secret key file")
 	}
+
 	var url string
 	if url, err = cmd.PersistentFlags().GetString("dburl"); err != nil {
 		return err
@@ -93,21 +94,8 @@ func dbExport(cmd *cobra.Command, args []string) error {
 	if err != nil {
 		return fmt.Errorf("%s: %s", url, err)
 	}
-	conn, err := db.Open(u.Driver, u.DSN)
-	if err != nil {
-		return fmt.Errorf("%s: %s", u.Driver, err)
-	}
-	defer conn.Close()
 
-	var tb *tbln.TBLN
-	switch {
-	case query != "":
-		tb, err = db.ReadQueryAll(conn, query)
-	case schemaOnly:
-		tb, err = db.GetTableInfo(conn, schema, tableName)
-	default:
-		tb, err = db.ReadTableAll(conn, schema, tableName)
-	}
+	tb, err := dbExport(u, query, schema, tableName, schemaOnly)
 	if err != nil {
 		return err
 	}
@@ -124,4 +112,20 @@ func dbExport(cmd *cobra.Command, args []string) error {
 	}
 
 	return outputFile(tb, cmd)
+}
+
+func dbExport(u *dburl.URL, query string, schema string, tableName string, schemaOnly bool) (*tbln.TBLN, error) {
+	conn, err := db.Open(u.Driver, u.DSN)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %s", u.Driver, err)
+	}
+	defer conn.Close()
+	switch {
+	case query != "":
+		return db.ReadQueryAll(conn, query)
+	case schemaOnly:
+		return db.GetTableInfo(conn, schema, tableName)
+	default:
+		return db.ReadTableAll(conn, schema, tableName)
+	}
 }

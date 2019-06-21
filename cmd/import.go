@@ -26,7 +26,7 @@ var importCmd = &cobra.Command{
 	SilenceUsage: true,
 	Short:        "Import database table",
 	Long:         `Import the TBL file into the database.`,
-	RunE:         dbImport,
+	RunE:         cmdImport,
 }
 
 func init() {
@@ -52,7 +52,37 @@ func init() {
 	importCmd.Flags().SortFlags = false
 }
 
-func dbImport(cmd *cobra.Command, args []string) error {
+func createMode(mode string) db.CreateMode {
+	switch strings.ToLower(mode) {
+	case "no":
+		return db.NotCreate
+	case "create":
+		return db.Create
+	case "ifnot":
+		return db.IfNotExists
+	case "recreate":
+		return db.ReCreate
+	case "only":
+		return db.CreateOnly
+	default:
+		return db.Create
+	}
+}
+
+func insertMode(ignore bool, update bool, delete bool) db.InsertMode {
+	switch {
+	case ignore:
+		return db.OrIgnore
+	case update:
+		return db.Update
+	case delete:
+		return db.Sync
+	default:
+		return db.Normal
+	}
+}
+
+func cmdImport(cmd *cobra.Command, args []string) error {
 	fileName, err := getFileName(cmd, args)
 	if err != nil {
 		return err
@@ -74,14 +104,25 @@ func dbImport(cmd *cobra.Command, args []string) error {
 	if err != nil {
 		return fmt.Errorf("%s: %s", url, err)
 	}
-	conn, err := db.Open(u.Driver, u.DSN)
-	if err != nil {
-		return fmt.Errorf("%s: %s", u.Driver, err)
+
+	var modeStr string
+	if modeStr, err = cmd.PersistentFlags().GetString("mode"); err != nil {
+		return err
 	}
-	err = conn.Begin()
-	if err != nil {
-		return fmt.Errorf("%s: %s", u.Driver, err)
+	cmode := createMode(modeStr)
+
+	var ignore, update, delete bool
+	if ignore, err = cmd.PersistentFlags().GetBool("ignore"); err != nil {
+		return err
 	}
+	if update, err = cmd.PersistentFlags().GetBool("update"); err != nil {
+		return err
+	}
+	if delete, err = cmd.PersistentFlags().GetBool("delete"); err != nil {
+		return err
+	}
+	imode := insertMode(ignore, update, delete)
+
 	var schema string
 	if schema, err = cmd.PersistentFlags().GetString("schema"); err != nil {
 		return err
@@ -97,43 +138,17 @@ func dbImport(cmd *cobra.Command, args []string) error {
 		base := filepath.Base(fileName[:len(fileName)-len(filepath.Ext(fileName))])
 		tb.SetTableName(base)
 	}
-	var cmode db.CreateMode
-	if modeStr, err := cmd.PersistentFlags().GetString("mode"); err == nil {
-		switch strings.ToLower(modeStr) {
-		case "no":
-			cmode = db.NotCreate
-		case "create":
-			cmode = db.Create
-		case "ifnot":
-			cmode = db.IfNotExists
-		case "recreate":
-			cmode = db.ReCreate
-		case "only":
-			cmode = db.CreateOnly
-		default:
-			cmode = db.Create
-		}
+	return dbImport(u, tb, schema, cmode, imode)
+}
+
+func dbImport(u *dburl.URL, tb *tbln.TBLN, schema string, cmode db.CreateMode, imode db.InsertMode) error {
+	conn, err := db.Open(u.Driver, u.DSN)
+	if err != nil {
+		return fmt.Errorf("%s: %s", u.Driver, err)
 	}
-	var ignore, update, delete bool
-	if ignore, err = cmd.PersistentFlags().GetBool("ignore"); err != nil {
-		return err
-	}
-	if update, err = cmd.PersistentFlags().GetBool("update"); err != nil {
-		return err
-	}
-	if delete, err = cmd.PersistentFlags().GetBool("delete"); err != nil {
-		return err
-	}
-	var imode db.InsertMode
-	switch {
-	case ignore:
-		imode = db.OrIgnore
-	case update:
-		imode = db.Update
-	case delete:
-		imode = db.Sync
-	default:
-		imode = db.Normal
+	err = conn.Begin()
+	if err != nil {
+		return fmt.Errorf("%s: %s", u.Driver, err)
 	}
 	err = writeImport(conn, tb, schema, cmode, imode)
 	if err != nil {
