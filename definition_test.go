@@ -137,11 +137,11 @@ func TestDefinition_SetExtra(t *testing.T) {
 			d.SetExtra(tt.args.keyName, tt.args.value)
 			got := d.Extras
 			if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("Tbln.SetExtra = %v, want %v", got, tt.want)
+				t.Errorf("TBLN.SetExtra = %v, want %v", got, tt.want)
 			}
 			gv := d.ExtraValue(tt.args.keyName)
 			if gv == tt.wantValue {
-				t.Errorf("Tbln.SetExtra = %v, wantValue %v", gv, tt.wantValue)
+				t.Errorf("TBLN.SetExtra = %v, wantValue %v", gv, tt.wantValue)
 			}
 		})
 	}

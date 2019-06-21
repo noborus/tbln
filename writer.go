@@ -6,7 +6,7 @@ import (
 	"sort"
 )
 
-// Writer writes records to a tbln encoded file.
+// Writer writes records to a TBLN encoded file.
 type Writer struct {
 	Writer io.Writer
 }
@@ -26,7 +26,7 @@ func (w *Writer) WriteRow(row []string) error {
 }
 
 // WriteAll writes multiple tbln records to w using Write.
-func WriteAll(writer io.Writer, tbln *Tbln) error {
+func WriteAll(writer io.Writer, tbln *TBLN) error {
 	w := NewWriter(writer)
 	err := w.WriteDefinition(tbln.Definition)
 	if err != nil {

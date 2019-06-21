@@ -2,7 +2,7 @@
 //
 // tbln can contain multiple fields like csv.
 // Also, it can include checksum and signature inside.
-// Tbln contains three types of lines: data, comments, and extras.
+// TBLN contains three types of lines: data, comments, and extras.
 // All rows end with a new line(LF).
 // The number of fields in all rows must be the same.
 //
@@ -34,16 +34,16 @@ import (
 	"golang.org/x/crypto/ed25519"
 )
 
-// Tbln struct is Tbln Definition + Tbln rows.
-type Tbln struct {
+// TBLN struct is TBLN Definition + TBLN rows.
+type TBLN struct {
 	*Definition
 	RowNum int
 	Rows   [][]string
 }
 
-// NewTbln is create tbln struct.
-func NewTbln() *Tbln {
-	return &Tbln{
+// NewTBLN is create tbln struct.
+func NewTBLN() *TBLN {
+	return &TBLN{
 		Definition: NewDefinition(),
 	}
 }
@@ -107,7 +107,7 @@ func unescape(str string) string {
 }
 
 // AddRows is Add row to Table.
-func (t *Tbln) AddRows(row []string) error {
+func (t *TBLN) AddRows(row []string) error {
 	var err error
 	t.columnNum, err = checkRow(t.columnNum, row)
 	if err != nil {
@@ -135,7 +135,7 @@ const (
 )
 
 // SumHash calculated checksum.
-func (t *Tbln) SumHash(hashType string) error {
+func (t *TBLN) SumHash(hashType string) error {
 	h, err := t.calculateHash(hashType)
 	if err != nil {
 		return err
@@ -149,7 +149,7 @@ func (t *Tbln) SumHash(hashType string) error {
 }
 
 // calculateHash is returns the calculated checksum.
-func (t *Tbln) calculateHash(hashType string) ([]byte, error) {
+func (t *TBLN) calculateHash(hashType string) ([]byte, error) {
 	var hash hash.Hash
 	switch hashType {
 	case SHA256:
@@ -174,7 +174,7 @@ func (t *Tbln) calculateHash(hashType string) ([]byte, error) {
 }
 
 // Sign is returns signature for hash.
-func (t *Tbln) Sign(name string, pkey []byte) (map[string]Signature, error) {
+func (t *TBLN) Sign(name string, pkey []byte) (map[string]Signature, error) {
 	if t == nil || t.Definition == nil {
 		return nil, fmt.Errorf("no algorithm")
 	}
@@ -189,7 +189,7 @@ func (t *Tbln) Sign(name string, pkey []byte) (map[string]Signature, error) {
 }
 
 // VerifySignature returns the boolean value of the signature verification and Verify().
-func (t *Tbln) VerifySignature(name string, pubkey []byte) bool {
+func (t *TBLN) VerifySignature(name string, pubkey []byte) bool {
 	if t == nil || t.Definition == nil || len(t.Signs) == 0 {
 		return false
 	}
@@ -207,7 +207,7 @@ func (t *Tbln) VerifySignature(name string, pubkey []byte) bool {
 }
 
 // Verify returns the boolean value of the hash verification.
-func (t *Tbln) Verify() bool {
+func (t *TBLN) Verify() bool {
 	if len(t.Hashes) == 0 {
 		return false
 	}

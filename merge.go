@@ -38,8 +38,8 @@ func (d *DiffRow) MergeRow(mode MergeMode) []string {
 }
 
 // MergeAll merges two tbln and returns one tbln.
-func MergeAll(t1, t2 Reader, mode MergeMode) (*Tbln, error) {
-	tb := &Tbln{}
+func MergeAll(t1, t2 Reader, mode MergeMode) (*TBLN, error) {
+	tb := &TBLN{}
 	diff, err := NewCompare(t1, t2)
 	if err != nil {
 		return nil, err

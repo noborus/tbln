@@ -17,8 +17,8 @@ func (d *DiffRow) ExceptRow() []string {
 }
 
 // ExceptAll merges two tbln and returns one tbln.
-func ExceptAll(t1, t2 Reader) (*Tbln, error) {
-	tb := NewTbln()
+func ExceptAll(t1, t2 Reader) (*TBLN, error) {
+	tb := NewTBLN()
 	diff, err := NewCompare(t1, t2)
 	if err != nil {
 		return nil, err

@@ -21,7 +21,7 @@ var TestMerge2 = `; name: | id | name | age |
 | 2 | Alice | 14 |
 `
 
-var TestMergeTbln = `; name: | id | name |
+var TestMergeTBLN = `; name: | id | name |
 ; type: | int | text |
 ; primarykey: | id |
 ; TableName: test1
@@ -43,7 +43,7 @@ func TestMergeAll(t *testing.T) {
 		{
 			name:    "test1",
 			args:    args{t1: NewReader(bytes.NewBufferString(TestMerge1)), t2: NewReader(bytes.NewBufferString(TestMerge2))},
-			want:    TestMergeTbln,
+			want:    TestMergeTBLN,
 			wantErr: false,
 		},
 	}
@@ -54,10 +54,10 @@ func TestMergeAll(t *testing.T) {
 				t.Errorf("MergeAll() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
-			f := bytes.NewBufferString(TestMergeTbln)
+			f := bytes.NewBufferString(TestMergeTBLN)
 			tb, err := ReadAll(bufio.NewReader(f))
 			if err != nil {
-				t.Fatalf("NewTbln error %s", err)
+				t.Fatalf("NewTBLN error %s", err)
 			}
 			if !reflect.DeepEqual(got.RowNum, tb.RowNum) {
 				t.Errorf("MergeAll() = %v, want %v", got.RowNum, tb.RowNum)

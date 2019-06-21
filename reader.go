@@ -19,7 +19,7 @@ type FileReader struct {
 	r *bufio.Reader
 }
 
-// NewReader returns a new Reader that reads from tr.
+// NewReader returns a new Reader that reads from r.
 func NewReader(r io.Reader) *FileReader {
 	return &FileReader{
 		Definition: NewDefinition(),
@@ -40,10 +40,11 @@ func (tr *FileReader) ReadRow() ([]string, error) {
 	return rec, nil
 }
 
-// ReadAll reads all the remaining records from r.
-func ReadAll(r io.Reader) (*Tbln, error) {
+// ReadAll reads all r and returns a tbln struct.
+// ReadAll returns when the blank line is reached.
+func ReadAll(r io.Reader) (*TBLN, error) {
 	tr := NewReader(r)
-	at := &Tbln{}
+	at := &TBLN{}
 	at.Rows = make([][]string, 0)
 	for {
 		rec, err := tr.ReadRow()

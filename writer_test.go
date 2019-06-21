@@ -59,7 +59,7 @@ func TestWriter_WriteRow(t *testing.T) {
 
 func TestWriteAll(t *testing.T) {
 	type args struct {
-		tbln *Tbln
+		tbln *TBLN
 	}
 	tests := []struct {
 		name       string
@@ -69,19 +69,19 @@ func TestWriteAll(t *testing.T) {
 	}{
 		{
 			name:       "test1",
-			args:       args{tbln: NewTbln()},
+			args:       args{tbln: NewTBLN()},
 			wantWriter: "",
 			wantErr:    false,
 		},
 		{
 			name:       "test2",
-			args:       args{tbln: &Tbln{Definition: NewDefinition(), Rows: [][]string{{"a", "b"}}}},
+			args:       args{tbln: &TBLN{Definition: NewDefinition(), Rows: [][]string{{"a", "b"}}}},
 			wantWriter: "| a | b |\n",
 			wantErr:    false,
 		},
 		{
 			name:       "test3",
-			args:       args{tbln: &Tbln{Definition: NewDefinition(), Rows: [][]string{{"a", "b"}, {"c", "d"}}}},
+			args:       args{tbln: &TBLN{Definition: NewDefinition(), Rows: [][]string{{"a", "b"}, {"c", "d"}}}},
 			wantWriter: "| a | b |\n| c | d |\n",
 			wantErr:    false,
 		},
