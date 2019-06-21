@@ -233,7 +233,7 @@ func TestGenTBLNPublic(t *testing.T) {
 	tests := []struct {
 		name    string
 		args    args
-		want    *tbln.Tbln
+		want    *tbln.TBLN
 		wantErr bool
 	}{
 		{

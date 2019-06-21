@@ -179,7 +179,7 @@ func DelKey(keyStore string, name string, num int) error {
 	return rewriteStore(file, pKeys)
 }
 
-func rewriteStore(file *os.File, t *tbln.Tbln) error {
+func rewriteStore(file *os.File, t *tbln.TBLN) error {
 	var err error
 	t.Comments = []string{fmt.Sprintf("TBLN KeyStore")}
 	t.Extras["updated_at"] = tbln.NewExtra(time.Now().Format(time.RFC3339), false)

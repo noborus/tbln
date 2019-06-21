@@ -32,20 +32,20 @@ func mergeTableRow(dml *dml, d *tbln.DiffRow, shouldDelete bool) *dml {
 	}
 }
 
-// MergeTableTbln writes all rows to the table from Tbln.
-func (tdb *TDB) MergeTableTbln(schema string, tableName string, otherTbln *tbln.Tbln, shouldDelete bool) error {
-	oRows := otherTbln.Rows
+// MergeTableTBLN writes all rows to the table from TBLN.
+func (tdb *TDB) MergeTableTBLN(schema string, tableName string, otherTBLN *tbln.TBLN, shouldDelete bool) error {
+	oRows := otherTBLN.Rows
 	var rps []RangePrimaryKey
 	if !shouldDelete {
-		pkPos, err := otherTbln.GetPKeyPos()
+		pkPos, err := otherTBLN.GetPKeyPos()
 		if err == nil && (len(pkPos) > 0) {
 			for _, p := range pkPos {
-				rp := NewRangePrimaryKey(otherTbln.Names()[p], oRows[0][p], oRows[len(oRows)-1][p])
+				rp := NewRangePrimaryKey(otherTBLN.Names()[p], oRows[0][p], oRows[len(oRows)-1][p])
 				rps = append(rps, rp)
 			}
 		}
 	}
-	other := tbln.NewOwnReader(otherTbln)
+	other := tbln.NewOwnReader(otherTBLN)
 
 	self, err := tdb.ReadTable(schema, tableName, rps)
 	if err != nil {

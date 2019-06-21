@@ -57,7 +57,7 @@ func dbImport(cmd *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
-	tb, err := verifiedTbln(cmd, args)
+	tb, err := verifiedTBLN(cmd, args)
 	if err != nil {
 		log.Printf("invalid tbln file [%s]", fileName)
 		return err
@@ -149,7 +149,7 @@ func dbImport(cmd *cobra.Command, args []string) error {
 	return conn.Close()
 }
 
-func writeImport(conn *db.TDB, tb *tbln.Tbln, schema string, cmode db.CreateMode, imode db.InsertMode) error {
+func writeImport(conn *db.TDB, tb *tbln.TBLN, schema string, cmode db.CreateMode, imode db.InsertMode) error {
 	if imode >= db.Update {
 		err := mergeImport(conn, tb, schema, imode)
 		if err == nil {
@@ -161,10 +161,10 @@ func writeImport(conn *db.TDB, tb *tbln.Tbln, schema string, cmode db.CreateMode
 	return db.WriteTable(conn, tb, schema, cmode, imode)
 }
 
-func mergeImport(conn *db.TDB, tb *tbln.Tbln, schema string, imode db.InsertMode) error {
+func mergeImport(conn *db.TDB, tb *tbln.TBLN, schema string, imode db.InsertMode) error {
 	delete := false
 	if imode == db.Sync {
 		delete = true
 	}
-	return conn.MergeTableTbln(schema, tb.TableName(), tb, delete)
+	return conn.MergeTableTBLN(schema, tb.TableName(), tb, delete)
 }

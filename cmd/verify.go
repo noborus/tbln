@@ -28,11 +28,11 @@ func init() {
 
 func verify(cmd *cobra.Command, args []string) error {
 	cmd.PersistentFlags().StringP("output", "o", "", "")
-	_, err := verifiedTbln(cmd, args)
+	_, err := verifiedTBLN(cmd, args)
 	return err
 }
 
-func verifiedTbln(cmd *cobra.Command, args []string) (*tbln.Tbln, error) {
+func verifiedTBLN(cmd *cobra.Command, args []string) (*tbln.TBLN, error) {
 	var err error
 	var forcesign, nosign, noverify bool
 	if nosign, err = cmd.PersistentFlags().GetBool("no-verify-sign"); err != nil {
@@ -50,7 +50,7 @@ func verifiedTbln(cmd *cobra.Command, args []string) (*tbln.Tbln, error) {
 	if err != nil {
 		return nil, err
 	}
-	at, err := readTbln(fileName)
+	at, err := readTBLN(fileName)
 	if err != nil {
 		return nil, err
 	}

@@ -171,18 +171,18 @@ func (tr *Reader) Close() error {
 }
 
 // GetTableInfo returns only the information of table.
-func GetTableInfo(tdb *TDB, schema string, tableName string) (*tbln.Tbln, error) {
+func GetTableInfo(tdb *TDB, schema string, tableName string) (*tbln.TBLN, error) {
 	tr, err := tdb.ReadTable(schema, tableName, nil)
 	if err != nil {
 		return nil, err
 	}
-	at := &tbln.Tbln{}
+	at := &tbln.TBLN{}
 	at.Definition = tr.Definition
 	return at, nil
 }
 
 // ReadTableAll reads all the remaining records from tableName.
-func ReadTableAll(tdb *TDB, schema string, tableName string) (*tbln.Tbln, error) {
+func ReadTableAll(tdb *TDB, schema string, tableName string) (*tbln.TBLN, error) {
 	tr, err := tdb.ReadTable(schema, tableName, nil)
 	if err != nil {
 		return nil, err
@@ -191,7 +191,7 @@ func ReadTableAll(tdb *TDB, schema string, tableName string) (*tbln.Tbln, error)
 }
 
 // ReadQueryAll reads all the remaining records from SQL query.
-func ReadQueryAll(tdb *TDB, query string, args ...interface{}) (*tbln.Tbln, error) {
+func ReadQueryAll(tdb *TDB, query string, args ...interface{}) (*tbln.TBLN, error) {
 	tr, err := tdb.ReadQuery(query, args...)
 	if err != nil {
 		return nil, err
@@ -199,7 +199,7 @@ func ReadQueryAll(tdb *TDB, query string, args ...interface{}) (*tbln.Tbln, erro
 	return tr.readRowsAll()
 }
 
-func (tr *Reader) readRowsAll() (*tbln.Tbln, error) {
+func (tr *Reader) readRowsAll() (*tbln.TBLN, error) {
 	var err error
 	defer func() {
 		closeErr := tr.Close()
@@ -208,7 +208,7 @@ func (tr *Reader) readRowsAll() (*tbln.Tbln, error) {
 		}
 	}()
 
-	at := &tbln.Tbln{}
+	at := &tbln.TBLN{}
 	at.Definition = tr.Definition
 	at.Rows = make([][]string, 0)
 	for {

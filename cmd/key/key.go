@@ -47,7 +47,7 @@ func WritePrivateFile(fileName string, keyName string, privateKey []byte) error 
 }
 
 // genTBLNPrivate write private key in TBLN file format.
-func genTBLNPrivate(keyName string, privkey []byte) (*tbln.Tbln, error) {
+func genTBLNPrivate(keyName string, privkey []byte) (*tbln.TBLN, error) {
 	password, err := readPasswordPrompt("password: ")
 	if err != nil {
 		return nil, err
@@ -63,7 +63,7 @@ func genTBLNPrivate(keyName string, privkey []byte) (*tbln.Tbln, error) {
 	if err != nil {
 		return nil, err
 	}
-	t := tbln.NewTbln()
+	t := tbln.NewTBLN()
 	t.Comments = []string{"TBLN Private key"}
 	psEnc := base64.StdEncoding.EncodeToString(cipherText)
 	err = t.SetNames([]string{"keyname", "algorithm", "privatekey"})
@@ -104,7 +104,7 @@ func WritePublicFile(fileName string, keyName string, public []byte) error {
 }
 
 // GenTBLNPublic write public key in TBLN file format.
-func GenTBLNPublic(keyName string, pubkey []byte) (*tbln.Tbln, error) {
+func GenTBLNPublic(keyName string, pubkey []byte) (*tbln.TBLN, error) {
 	var err error
 	if keyName == "" {
 		return nil, fmt.Errorf("keyname is required")
@@ -112,7 +112,7 @@ func GenTBLNPublic(keyName string, pubkey []byte) (*tbln.Tbln, error) {
 	if len(pubkey) == 0 {
 		return nil, fmt.Errorf("pubkey is required")
 	}
-	t := tbln.NewTbln()
+	t := tbln.NewTBLN()
 	err = t.SetNames([]string{"keyname", "algorithm", "publickey"})
 	if err != nil {
 		return nil, err

@@ -119,7 +119,7 @@ func (w *Writer) WriteRow(row []string) error {
 }
 
 // WriteTable writes all rows to the table from tbln.
-func WriteTable(tdb *TDB, tb *tbln.Tbln, schema string, cmode CreateMode, imode InsertMode) error {
+func WriteTable(tdb *TDB, tb *tbln.TBLN, schema string, cmode CreateMode, imode InsertMode) error {
 	w, err := NewWriter(tdb, tb.Definition)
 	if err != nil {
 		return err
