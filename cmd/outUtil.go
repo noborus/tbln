@@ -7,7 +7,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func outputFile(at *tbln.Tbln, cmd *cobra.Command) error {
+func outputFile(at *tbln.TBLN, cmd *cobra.Command) error {
 	var err error
 	var output string
 	if output, err = cmd.PersistentFlags().GetString("output"); err != nil {

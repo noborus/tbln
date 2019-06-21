@@ -61,7 +61,7 @@ func TestReadTableAll(t *testing.T) {
 	tests := []struct {
 		name    string
 		args    args
-		want    *tbln.Tbln
+		want    *tbln.TBLN
 		wantErr bool
 	}{
 		{
@@ -73,7 +73,7 @@ func TestReadTableAll(t *testing.T) {
 		{
 			name:    "test1",
 			args:    args{tdb: tdb, schema: "", tableName: "test1"},
-			want:    &tbln.Tbln{Rows: [][]string{{"1", "Bob", "19"}, {"2", "Alice", "14"}}},
+			want:    &tbln.TBLN{Rows: [][]string{{"1", "Bob", "19"}, {"2", "Alice", "14"}}},
 			wantErr: false,
 		},
 	}

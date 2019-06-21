@@ -268,7 +268,7 @@ func merge(cmd *cobra.Command, args []string) error {
 		cmd.SilenceUsage = false
 		return fmt.Errorf("requires other and self")
 	}
-	var tb *tbln.Tbln
+	var tb *tbln.TBLN
 	tb, err = tbln.MergeAll(selfReader, otherReader, mode)
 	if err != nil {
 		return err

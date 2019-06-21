@@ -99,7 +99,7 @@ func dbExport(cmd *cobra.Command, args []string) error {
 	}
 	defer conn.Close()
 
-	var tb *tbln.Tbln
+	var tb *tbln.TBLN
 	switch {
 	case query != "":
 		tb, err = db.ReadQueryAll(conn, query)

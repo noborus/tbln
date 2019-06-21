@@ -312,7 +312,7 @@ func TestDelKey(t *testing.T) {
 
 func Test_rewriteStore(t *testing.T) {
 	type args struct {
-		tb *tbln.Tbln
+		tb *tbln.TBLN
 	}
 	tests := []struct {
 		name    string
@@ -323,19 +323,19 @@ func Test_rewriteStore(t *testing.T) {
 		{
 			name:    "test1Err1",
 			mode:    os.O_RDONLY,
-			args:    args{tb: tbln.NewTbln()},
+			args:    args{tb: tbln.NewTBLN()},
 			wantErr: true,
 		},
 		{
 			name:    "test1Err2",
 			mode:    os.O_APPEND,
-			args:    args{tb: tbln.NewTbln()},
+			args:    args{tb: tbln.NewTBLN()},
 			wantErr: true,
 		},
 		{
 			name:    "test1",
 			mode:    os.O_RDWR,
-			args:    args{tb: tbln.NewTbln()},
+			args:    args{tb: tbln.NewTBLN()},
 			wantErr: false,
 		},
 	}

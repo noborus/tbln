@@ -61,7 +61,7 @@ func except(cmd *cobra.Command, args []string) error {
 		cmd.SilenceUsage = false
 		return fmt.Errorf("requires from and self")
 	}
-	var tb *tbln.Tbln
+	var tb *tbln.TBLN
 	tb, err = tbln.ExceptAll(selfReader, otherReader)
 	if err != nil {
 		return err

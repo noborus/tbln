@@ -34,7 +34,7 @@ func sign(cmd *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
-	at, err := readTbln(fileName)
+	at, err := readTBLN(fileName)
 	if err != nil {
 		return err
 	}
@@ -49,7 +49,7 @@ func sign(cmd *cobra.Command, args []string) error {
 	return outputFile(at, cmd)
 }
 
-func signFile(at *tbln.Tbln, cmd *cobra.Command) (*tbln.Tbln, error) {
+func signFile(at *tbln.TBLN, cmd *cobra.Command) (*tbln.TBLN, error) {
 	var err error
 	var quiet bool
 	if quiet, err = cmd.PersistentFlags().GetBool("quiet"); err != nil {

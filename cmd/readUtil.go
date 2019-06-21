@@ -25,7 +25,7 @@ func getFileName(cmd *cobra.Command, args []string) (string, error) {
 	return fileName, nil
 }
 
-func readTbln(fileName string) (*tbln.Tbln, error) {
+func readTBLN(fileName string) (*tbln.TBLN, error) {
 	file, err := os.Open(fileName)
 	if err != nil {
 		return nil, err
