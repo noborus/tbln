@@ -32,17 +32,30 @@ func verify(cmd *cobra.Command, args []string) error {
 	return err
 }
 
+func verifyAllSignature(tb *tbln.TBLN) error {
+	for keyName := range tb.Signs {
+		pub, err := keystore.Search(KeyStore, keyName)
+		if err != nil {
+			return err
+		}
+		if !tb.VerifySignature(keyName, pub) {
+			return fmt.Errorf("signature verification failure")
+		}
+	}
+	return nil
+}
+
 func verifiedTBLN(cmd *cobra.Command, args []string) (*tbln.TBLN, error) {
 	var err error
-	var forcesign, nosign, noverify bool
-	if nosign, err = cmd.PersistentFlags().GetBool("no-verify-sign"); err != nil {
+	var forceSign, noSign, noVerify bool
+	if noSign, err = cmd.PersistentFlags().GetBool("no-verify-sign"); err != nil {
 		return nil, err
 	}
-	if forcesign, err = cmd.PersistentFlags().GetBool("force-verify-sign"); err != nil {
+	if forceSign, err = cmd.PersistentFlags().GetBool("force-verify-sign"); err != nil {
 		return nil, err
 	}
-	if noverify, err = cmd.PersistentFlags().GetBool("no-verify"); err != nil {
-		noverify = false
+	if noVerify, err = cmd.PersistentFlags().GetBool("no-verify"); err != nil {
+		noVerify = false
 	}
 
 	var fileName string
@@ -50,32 +63,27 @@ func verifiedTBLN(cmd *cobra.Command, args []string) (*tbln.TBLN, error) {
 	if err != nil {
 		return nil, err
 	}
-	at, err := readTBLN(fileName)
+	tb, err := readTBLN(fileName)
 	if err != nil {
 		return nil, err
 	}
-	if forcesign && len(at.Signs) == 0 {
+	if forceSign && len(tb.Signs) == 0 {
 		return nil, fmt.Errorf("signature verification failure")
 	}
-	if !nosign && (len(at.Signs) != 0) {
-		for kname := range at.Signs {
-			pub, err := keystore.Search(KeyStore, kname)
-			if err != nil {
-				return nil, err
-			}
-			if !at.VerifySignature(kname, pub) {
-				return nil, fmt.Errorf("signature verification failure")
-			}
+	if !noSign && (len(tb.Signs) != 0) {
+		err = verifyAllSignature(tb)
+		if err != nil {
+			return nil, err
 		}
 		log.Println("Signature verification successful")
 	} else {
-		if !noverify && !at.Verify() {
-			if len(at.Hashes) == 0 {
+		if !noVerify && !tb.Verify() {
+			if len(tb.Hashes) == 0 {
 				return nil, fmt.Errorf("no hash")
 			}
 			return nil, fmt.Errorf("verification failure")
 		}
 		log.Println("Verification successful")
 	}
-	return at, nil
+	return tb, nil
 }
