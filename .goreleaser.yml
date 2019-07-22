@@ -1,0 +1,33 @@
+before:
+  hooks:
+    # you may remove this if you don't use vgo
+    - go mod download
+builds:
+- env:
+  - GO111MODULE=on
+  goos:
+    - linux
+    - darwin
+    - windows
+  goarch:
+    - amd64
+  ldflags:
+     - -X main.Revision={{.ShortCommit}}
+  main: ./cmd/tbln/main.go
+archive:
+  format: zip
+  replacements:
+    darwin: Darwin
+    linux: Linux
+    windows: Windows
+    amd64: x86_64
+checksum:
+  name_template: 'checksums.txt'
+snapshot:
+  name_template: "{{ .Tag }}-next"
+changelog:
+  sort: asc
+  filters:
+    exclude:
+    - '^docs:'
+    - '^test:'

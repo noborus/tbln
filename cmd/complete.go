@@ -9,7 +9,7 @@ import (
 // completeCmd represents the complete command
 var completeCmd = &cobra.Command{
 	Use:   "completion",
-	Short: "A brief description of your command",
+	Short: "Generates bash/zsh completion scripts",
 	RunE: func(cmd *cobra.Command, args []string) error {
 		return cmd.Help()
 	},
