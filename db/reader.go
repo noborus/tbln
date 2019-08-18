@@ -35,6 +35,9 @@ func NewRangePrimaryKey(name string, min interface{}, max interface{}) RangePrim
 
 // ReadTable returns a new Reader from table name.
 func (tdb *TDB) ReadTable(schema string, tableName string, rps []RangePrimaryKey) (*Reader, error) {
+	if tableName == "" {
+		return nil, fmt.Errorf("require table name")
+	}
 	tr := &Reader{
 		Definition: tbln.NewDefinition(),
 		TDB:        tdb,
