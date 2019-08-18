@@ -12,6 +12,7 @@ builds:
   goarch:
     - amd64
   ldflags:
+     - -X main.Version={{.Version}}
      - -X main.Revision={{.ShortCommit}}
   main: ./cmd/tbln/main.go
 archive:
