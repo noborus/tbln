@@ -17,7 +17,7 @@ Also, it can be merged into a table.
 
 Import requires tbln/db/(database) instead of go SQL database drivers.
 
-```
+```go
 import (
         "github.com/noborus/tbln"
         "github.com/noborus/tbln/db"
@@ -34,7 +34,7 @@ import (
 
 ### table export
 
-``` go
+```go
 package main
 
 import (

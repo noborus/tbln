@@ -6,7 +6,7 @@ Supports digital signatures and verification for TBLN files.
 
 ## Install
 
-```bash
+```console
 $ go get -u github.com/noborus/tbln/cmd/tbln
 ```
 
@@ -52,21 +52,21 @@ Export the database table and output the TBLN file.
 The [dburl](https://github.com/xo/dburl) are required
 to import/export database tables.
 
-```bash
+```console
 $ tbln export --dburl "postgres://localhost/sampletest" \
    -t simple -o simple.tbln
 ```
 
 Import the TBLN file into the database.
 
-```bash
+```console
 $ tbln import --dburl "postgres://localhost/sampletest" \
   -t simple2 -f simple.tbln
 ```
 
 Data type and primary key are restored in this example.
 
-```bash
+```console
 $ psql sampletest
 # \d simple2
               Table "public.simple2"
@@ -88,7 +88,7 @@ Merge tables from another database.
 This is an example of synchronizing MySQL tables with PostgreSQL.
 With the --delete option, extra rows are deleted.
 
-```bash
+```console
 $ tbln merge --dburl "postgres://localhost/test_db"  --table simple \
            --other-dburl "mysql:root@localhost/test_db" --other-table simple \
            --delete
@@ -99,7 +99,7 @@ $ tbln merge --dburl "postgres://localhost/test_db"  --table simple \
 Display differences from tables in two databases.
 There is no patch command, as it only needs to be merged.
 
-```bash
+```console
 $ tbln diff --dburl "postgres://localhost/test_db"  --table simple \
             --other-dburl "mysql:root@localhost/test_db" --other-table simple
  | 1 | Bob |
@@ -113,7 +113,7 @@ $ tbln diff --dburl "postgres://localhost/test_db"  --table simple \
 Except extracts differences as SQL except and outputs it as a TBLN file.
 Remove the other rows from self rows and output the remaining rows.
 
-```bash
+```console
 $ tbln except --dburl "postgres://localhost/test_db"  --table simple \
               --other-dburl "mysql:root@localhost/test_db" --other-table simple
 ```
@@ -141,7 +141,7 @@ $ tbln except --dburl "postgres://localhost/test_db"  --table simple \
 
 First generate the private key and the public key.
 
-```bash
+```console
 $ tbln genkey
 ```
 
@@ -170,7 +170,7 @@ he keystore file can be changed optionally.
 
 Signing with a private key is possible, if you have generated a key.
 
-```bash
+```console
 $ tbln sign testdata/simple.tbln
 ```
 
@@ -180,7 +180,7 @@ You can sign the specified file by entering the previously entered password.
 
 Signature verification verifies signatures with the public key contained in the keystore.
 
-```bash
+```console
 $ tbln verify simple.tbln
 2019/03/24 00:33:50 Signature verification successful
 ```
@@ -189,7 +189,7 @@ You can also treat a public key as a keystore instead of a keystore.
 
 The signature verification included in this repository should be successful.
 
-```bash
+```console
 $ tbln verify --keystore testdata/test.pub testdata/simple.tbln
 2019/03/24 00:33:50 Signature verification successful
 ```

@@ -11,7 +11,7 @@ This repository contains Go library for reading and writing files,
 and Go library for reading and writing [RDBMS](db/README.md) tables.
 
 Here is a document about the library.
-See [CLI](cmd/README.md) for CLI Tool.
+See [cmd/README.md](cmd/README.md) for CLI Tool.
 
 ## Features
 
@@ -27,7 +27,7 @@ Please refer to [TBLN](https://tbln.dev/) for the specification of TBLN.
 
 ## Install
 
-```bash
+```consle
 $ go get github.com/noborus/tbln
 ```
 
@@ -123,7 +123,7 @@ Example of importing into PostgreSQL.
 
 Example of exporting it to a TBLN file.
 
-```
+```tbln
 ; TableName: sample
 ; character_octet_length: |  | 1073741824 |
 ; created_at: 2019-04-06T02:03:43+09:00
