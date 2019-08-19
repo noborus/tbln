@@ -12,12 +12,12 @@ test:
 ## Build
 .PHONY: build
 build:
-	go build -ldflags="-X main.Version=$(VERSION) -X main.Revision=$(REVISON)" -o ./cmd/tbln/tbln ./cmd/tbln
+	go build -ldflags="-X main.Version=$(VERSION) -X main.Revision=$(REVISION)" -o ./cmd/tbln/tbln ./cmd/tbln
 
 ## Install
 .PHONY: install
 install:
-	go install -ldflags="-X main.Version=$(VERSION) -X main.Revision=$(REVISON)" ./cmd/tbln
+	go install -ldflags="-X main.Version=$(VERSION) -X main.Revision=$(REVISION)" ./cmd/tbln
 
 ## Clean
 .PHONY: clean
