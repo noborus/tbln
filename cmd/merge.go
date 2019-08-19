@@ -18,7 +18,7 @@ var mergeCmd = &cobra.Command{
 	Short:        "Merge two TBLNs",
 	Long: `Merge two TBLNs.
 
-	The two TBLNs should basically have the same structure.`,
+The two TBLNs should basically have the same structure.`,
 	RunE: merge,
 }
 

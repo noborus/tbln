@@ -15,7 +15,7 @@ var diffCmd = &cobra.Command{
 	Short:        "Diff two TBLNs",
 	Long: `Diff two TBLNs
 
-	The two TBLNs should basically have the same structure.`,
+The two TBLNs should basically have the same structure.`,
 	RunE: diff,
 }
 

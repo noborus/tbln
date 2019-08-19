@@ -17,7 +17,7 @@ var genkeyCmd = &cobra.Command{
 	SilenceUsage: true,
 	Short:        "Generate a new key pair",
 	Long: `Generate a new Ed25519 keypair.
-Write privake key(Key Name+".key") and public key(Key Name+".pub") files
+Write private key(Key Name+".key") and public key(Key Name+".pub") files
 based on the Key Name.`,
 	RunE: genkey,
 }

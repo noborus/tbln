@@ -15,7 +15,6 @@ var verifyCmd = &cobra.Command{
 	Use:          "verify [flags] [TBLN file]",
 	SilenceUsage: true,
 	Short:        "Verify signature and checksum of TBLN file",
-	Long:         `Verify signature and checksum of TBLN file`,
 	RunE:         verify,
 }
 

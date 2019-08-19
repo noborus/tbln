@@ -14,7 +14,7 @@ var exceptCmd = &cobra.Command{
 	Short:        "Except for other TBLN rows from self TBLN",
 	Long: `Except for other TBLN rows from self TBLN
 
-	The two TBLNs should basically have the same structure.`,
+The two TBLNs should basically have the same structure.`,
 	RunE: except,
 }
 

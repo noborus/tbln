@@ -27,7 +27,7 @@ Please refer to [TBLN](https://tbln.dev/) for the specification of TBLN.
 
 ## Install
 
-```consle
+```console
 $ go get github.com/noborus/tbln
 ```
 
