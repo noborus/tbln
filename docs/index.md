@@ -10,6 +10,11 @@ Allows conversion between TBLN and database tables.
 * [tbln/db](https://github.com/noborus/tbln/db) Go library for reading and writing RDBMS.
 * [tbln cli tool](https://github.com/noborus/tbln/cmd ) Import/Export TBLN file and RDBMS table.
 
+### Tools supporting TBLN
+
+* [trdsql](https://github.com/noborus/trdsql) A tool that can execute SQL queries on CSV, LTSV, JSON and TBLN.
+* [psutilsql](https://github.com/noborus/psutilsql) Use the gopsutil library to retrieve information and process it with SQL.
+
 ## Specification
 
 * TBLN contains three types of lines: data, comments, and extras.
