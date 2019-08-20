@@ -1,0 +1,14 @@
+---
+---
+@import "{{ site.theme }}";
+
+h1 {
+  font-size: 4em;
+};
+
+.inner {
+    position: relative;
+    max-width: 800px;
+    padding: 20px 10px;
+    margin: 0 auto;
+}
