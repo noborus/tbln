@@ -124,6 +124,7 @@ func TestWriteTableFile(t *testing.T) {
 		}
 	}
 }
+
 func TestWriteTable(t *testing.T) {
 	type args struct {
 		tdb    *db.TDB
@@ -197,6 +198,7 @@ func createDefinition2(t *testing.T) *tbln.Definition {
 	}
 	return at
 }
+
 func createDefinition3(t *testing.T) *tbln.Definition {
 	at := tbln.NewDefinition()
 	err := at.SetTypes([]string{"int", "int"})

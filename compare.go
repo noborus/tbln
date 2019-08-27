@@ -7,7 +7,7 @@ import (
 	"strings"
 )
 
-// Compare is a structure that compares two tbln reads
+// Compare represents a structure for comparing two TBLN.
 type Compare struct {
 	t1     Reader
 	t2     Reader
@@ -19,21 +19,21 @@ type Compare struct {
 	PK []Pkey
 }
 
-// Pkey PrimaryKey information
+// Pkey represents the primary key.
 type Pkey struct {
 	Pos  int
 	Name string
 	Typ  string
 }
 
-// DiffRow contains the difference between two row.
+// DiffRow represents the difference between two rows.
 type DiffRow struct {
 	Les   int
 	Self  []string
 	Other []string
 }
 
-// NewCompare returns a Reader interface
+// NewCompare returns a Reader interface.
 func NewCompare(t1, t2 Reader) (*Compare, error) {
 	cmp := &Compare{
 		t1:     t1,
@@ -123,7 +123,7 @@ func (cmp *Compare) diffPrimaryKey() int {
 	return 0
 }
 
-// ColumnPrimaryKey return  columns primary key
+// ColumnPrimaryKey return  columns primary key.
 func ColumnPrimaryKey(pKeys []Pkey, row []string) []string {
 	if row == nil {
 		return nil

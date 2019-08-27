@@ -254,6 +254,7 @@ func TestReadAll(t *testing.T) {
 		})
 	}
 }
+
 func TestReadFile(t *testing.T) {
 	type args struct {
 		reader io.Reader

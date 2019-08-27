@@ -274,8 +274,10 @@ func TestWriter_writeHashes(t *testing.T) {
 			name: "test2",
 			args: args{
 				d: &Definition{
-					Hashes: map[string][]byte{"sha256": []byte("test"),
-						"sha512": []byte("test2")},
+					Hashes: map[string][]byte{
+						"sha256": []byte("test"),
+						"sha512": []byte("test2"),
+					},
 				},
 			},
 			wantErr: false,
@@ -305,13 +307,15 @@ func TestWriter_writeSigns(t *testing.T) {
 	}{
 		{
 			name: "test1",
-			args: args{d: &Definition{
-				Signs: map[string]Signature{
-					"test1": {
-						sign:      []byte("test"),
-						algorithm: ED25519},
+			args: args{
+				d: &Definition{
+					Signs: map[string]Signature{
+						"test1": {
+							sign:      []byte("test"),
+							algorithm: ED25519,
+						},
+					},
 				},
-			},
 			},
 			wantErr: false,
 		},
