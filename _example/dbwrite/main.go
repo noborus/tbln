@@ -19,7 +19,6 @@ func main() {
 	// conn, err := db.Open("postgres", "")
 	// conn, err := db.Open("mysql", "root:@/noborus")
 	conn, err := db.Open("sqlite3", "sqlite_file")
-
 	if err != nil {
 		log.Fatal(err)
 	}

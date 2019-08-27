@@ -31,9 +31,11 @@ var TestDiff3 = `; name: | id | name | age |
 var TestAllDiff = ` | 1 | Bob | 19 |
 +| 2 | Alice | 14 |
 `
+
 var TestAllDiff2 = ` | 1 | Bob | 19 |
 -| 2 | Alice | 14 |
 `
+
 var TestAllDiff3 = `-| 1 | Bob | 19 |
 +| 1 | Henry | 19 |
  | 2 | Alice | 14 |

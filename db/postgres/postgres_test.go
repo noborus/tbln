@@ -93,6 +93,7 @@ func TestReadTableAll(t *testing.T) {
 		})
 	}
 }
+
 func TestConstr_GetSchema(t *testing.T) {
 	tdb := SetupPostgresTest(t)
 	type args struct {

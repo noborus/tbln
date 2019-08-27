@@ -71,14 +71,14 @@ func ExampleTBLN() {
 }
 
 func ExampleDiffAll() {
-	var TestDiff1 = `; name: | id | name | age |
+	TestDiff1 := `; name: | id | name | age |
 ; type: | int | text | int |
 ; primarykey: | id |
 ; TableName: test1
 | 1 | Bob | 19 |
 `
 
-	var TestDiff2 = `; name: | id | name | age |
+	TestDiff2 := `; name: | id | name | age |
 ; type: | int | text | int |
 ; primarykey: | id |
 ; TableName: test1

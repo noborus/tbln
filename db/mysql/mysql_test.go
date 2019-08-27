@@ -96,6 +96,7 @@ func TestReadTableAll(t *testing.T) {
 		})
 	}
 }
+
 func TestConstr_GetSchema(t *testing.T) {
 	tdb := SetupMySQLTest(t)
 	type args struct {

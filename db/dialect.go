@@ -6,10 +6,8 @@ import (
 	"sync"
 )
 
-var (
-	// ErrorNotSupport is database driver not supported
-	ErrorNotSupport = errors.New("not supported")
-)
+// ErrorNotSupport is database driver not supported
+var ErrorNotSupport = errors.New("not supported")
 
 // Driver is the interface every database driver.
 type Driver struct {

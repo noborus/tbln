@@ -205,7 +205,6 @@ func (d *Definition) SetHashes(hashes []string) error {
 // PrimaryKey return PrimaryKey
 func (d *Definition) PrimaryKey() []string {
 	return SplitRow(fmt.Sprintf("%s", d.ExtraValue("primarykey")))
-
 }
 
 // GetPKeyPos return PrimaryKey position

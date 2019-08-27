@@ -110,7 +110,6 @@ func GetPrimaryKey(conn *sql.DB, query string, schema string, tableName string) 
 		pkeys = append(pkeys, pkey)
 	}
 	return pkeys, rows.Close()
-
 }
 
 // GetColumnInfo returns information of a table column as an array.

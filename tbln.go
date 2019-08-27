@@ -34,7 +34,8 @@ import (
 	"golang.org/x/crypto/ed25519"
 )
 
-// TBLN struct is TBLN Definition + TBLN rows.
+// TBLN represents TBLN format data.
+// It includes TBLN definition and TBLN rows.
 type TBLN struct {
 	*Definition
 	RowNum int

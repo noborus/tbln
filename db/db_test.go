@@ -105,6 +105,7 @@ func fileRead(t *testing.T, fileName string) *tbln.TBLN {
 	}
 	return tb
 }
+
 func setHash(tb *tbln.TBLN) *tbln.TBLN {
 	tb.AllTargetHash(false)
 	tb.ToTargetHash("name", true)

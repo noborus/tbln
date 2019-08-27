@@ -27,12 +27,14 @@ var TestDataSt = `; name: | name |
 ; TableName: test1
 | Bob |
 `
+
 var TestDataSt2 = `; name: | name |
 ; type: | text |
 ; primarykey: | name |
 ; TableName: test1
 | Alice |
 `
+
 var TestDataSt3 = `; name: | name |
 ; type: | text |
 ; primarykey: | name |
@@ -40,6 +42,7 @@ var TestDataSt3 = `; name: | name |
 | Bob |
 | Alice |
 `
+
 var TestDataSt4 = `; name: | name |
 ; type: | text |
 ; primarykey: | name |
@@ -52,6 +55,7 @@ var TestDataFl = `; name: | fl |
 ; TableName: test1
 | 3.14 |
 `
+
 var TestDataFl2 = `; name: | fl |
 ; type: | numeric |
 ; primarykey: | fl |
@@ -186,6 +190,7 @@ func TestCompare_ReadDiffRow(t *testing.T) {
 		})
 	}
 }
+
 func TestCompare_ReadDiffRow2(t *testing.T) {
 	type fields struct {
 		t1 Reader

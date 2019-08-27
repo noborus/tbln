@@ -25,6 +25,7 @@ func init() {
 
 	rootCmd.AddCommand(hashCmd)
 }
+
 func hash(cmd *cobra.Command, args []string) error {
 	fileName, err := getFileName(cmd, args)
 	if err != nil {
