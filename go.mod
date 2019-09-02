@@ -7,7 +7,7 @@ require (
 	github.com/mitchellh/go-homedir v1.1.0
 	github.com/spf13/cobra v0.0.5
 	github.com/xo/dburl v0.0.0-20190814034758-0192e0fb89d1
-	golang.org/x/crypto v0.0.0-20190701094942-4def268fd1a4
-	golang.org/x/sys v0.0.0-20190813064441-fde4db37ae7a // indirect
-	google.golang.org/appengine v1.6.1 // indirect
+	golang.org/x/crypto v0.0.0-20190829043050-9756ffdc2472
+	golang.org/x/sys v0.0.0-20190830142957-1e83adbbebd0 // indirect
+	google.golang.org/appengine v1.6.2 // indirect
 )
