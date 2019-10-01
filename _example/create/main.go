@@ -9,7 +9,7 @@ import (
 
 func main() {
 	var err error
-	tb := tbln.NewTbln()
+	tb := tbln.NewTBLN()
 	tb.SetTableName("sample")
 	// SetNames sets column names
 	err = tb.SetNames([]string{"id", "name"})
