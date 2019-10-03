@@ -2,6 +2,7 @@ package tbln
 
 import (
 	"bufio"
+	"bytes"
 	"fmt"
 	"io"
 	"strings"
@@ -72,15 +73,20 @@ func ReadAll(r io.Reader) (*TBLN, error) {
 // scanLine reads from tr and returns either one row or a blank line.
 // Comments and Extra lines are read until reaching a row or blank line.
 func (tr *FileReader) scanLine() ([]string, error) {
+	var buf bytes.Buffer
 	for {
-		line, isPrefix, err := tr.r.ReadLine()
-		if err != nil {
-			return nil, err
+		buf.Reset()
+		for {
+			line, isPrefix, err := tr.r.ReadLine()
+			if err != nil {
+				return nil, err
+			}
+			buf.Write(line)
+			if isPrefix != true {
+				break
+			}
 		}
-		if isPrefix {
-			return nil, fmt.Errorf("line too long (%s)", line)
-		}
-		str := string(line)
+		str := buf.String()
 		switch {
 		case strings.HasPrefix(str, "| "):
 			return SplitRow(str), nil
@@ -94,7 +100,7 @@ func (tr *FileReader) scanLine() ([]string, error) {
 		case str == "":
 			return nil, nil
 		default:
-			return nil, fmt.Errorf("unsupported line (%s)", line)
+			return nil, fmt.Errorf("unsupported line (%s)", str)
 		}
 	}
 }
