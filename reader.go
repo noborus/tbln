@@ -82,7 +82,7 @@ func (tr *FileReader) scanLine() ([]string, error) {
 				return nil, err
 			}
 			buf.Write(line)
-			if isPrefix != true {
+			if !isPrefix {
 				break
 			}
 		}
