@@ -16,25 +16,23 @@ var completeCmd = &cobra.Command{
 }
 
 func completionBashCmd() *cobra.Command {
-	cmd := &cobra.Command{
+	return &cobra.Command{
 		Use:   "bash",
 		Short: "Generates bash completion scripts",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return rootCmd.GenBashCompletion(os.Stdout)
 		},
 	}
-	return cmd
 }
 
 func completionZshCmd() *cobra.Command {
-	cmd := &cobra.Command{
+	return &cobra.Command{
 		Use:   "zsh",
 		Short: "Generates zsh completion scripts",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return rootCmd.GenZshCompletion(os.Stdout)
 		},
 	}
-	return cmd
 }
 
 func init() {

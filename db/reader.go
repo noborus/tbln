@@ -90,7 +90,7 @@ func (tr *Reader) conditions(pkey []string, rps []RangePrimaryKey) (string, []in
 		return "", nil
 	}
 
-	var args []interface{}
+	args := make([]interface{}, 0, len(rps)*2)
 	var cs []string
 	for i, rp := range rps {
 		if pkey[i] != rp.name {

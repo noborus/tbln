@@ -173,7 +173,6 @@ func TestTBLN_SumHash(t *testing.T) {
 			if err := tb.SetNames(tb.names); err != nil {
 				t.Errorf("TBLN.SetNames error = %v", err)
 				return
-
 			}
 			if err := tb.SetTypes(tb.types); err != nil {
 				t.Errorf("TBLN.SetTypes error = %v", err)
