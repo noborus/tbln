@@ -20,6 +20,7 @@ var WriteTestData = `; name: | id | name | age |
 `
 
 func SetupTBLN(t *testing.T) *tbln.TBLN {
+	t.Helper()
 	r := bytes.NewBufferString(WriteTestData)
 	at, err := tbln.ReadAll(r)
 	if err != nil {
@@ -36,6 +37,7 @@ var WriteTestData2 = `; name: | id | name | age |
 `
 
 func SetupTBLN2(t *testing.T) *tbln.TBLN {
+	t.Helper()
 	r := bytes.NewBufferString(WriteTestData2)
 	at, err := tbln.ReadAll(r)
 	if err != nil {
@@ -178,6 +180,7 @@ func TestWriteTable(t *testing.T) {
 }
 
 func createDefinition1(t *testing.T) *tbln.Definition {
+	t.Helper()
 	at := tbln.NewDefinition()
 	err := at.SetNames([]string{"a", "b"})
 	if err != nil {
@@ -191,6 +194,7 @@ func createDefinition1(t *testing.T) *tbln.Definition {
 }
 
 func createDefinition2(t *testing.T) *tbln.Definition {
+	t.Helper()
 	at := tbln.NewDefinition()
 	err := at.SetNames([]string{"a", "b"})
 	if err != nil {
@@ -200,6 +204,7 @@ func createDefinition2(t *testing.T) *tbln.Definition {
 }
 
 func createDefinition3(t *testing.T) *tbln.Definition {
+	t.Helper()
 	at := tbln.NewDefinition()
 	err := at.SetTypes([]string{"int", "int"})
 	if err != nil {

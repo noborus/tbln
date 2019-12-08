@@ -12,6 +12,7 @@ import (
 )
 
 func openFile(t *testing.T, fileName string) *os.File {
+	t.Helper()
 	file, err := os.Open(fileName)
 	if err != nil {
 		t.Error(err)
