@@ -34,6 +34,7 @@ func fileCopy(src, dst string) error {
 }
 
 func CreateTmpKeyStore(t *testing.T) string {
+	t.Helper()
 	tmp, _ := ioutil.TempFile("", "_")
 	tmpKeyStore := tmp.Name()
 	err := fileCopy(TestKeyStore, tmpKeyStore)

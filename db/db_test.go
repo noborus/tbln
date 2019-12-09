@@ -51,6 +51,7 @@ var TestType = `; name: | a | b | c | d | e | f |
 `
 
 func createTestTable(t *testing.T, tdb *db.TDB, data string) string {
+	t.Helper()
 	at := dataTBLN(t, data)
 	err := tdb.Begin()
 	if err != nil {
@@ -68,6 +69,7 @@ func createTestTable(t *testing.T, tdb *db.TDB, data string) string {
 }
 
 func dataTBLN(t *testing.T, data string) *tbln.TBLN {
+	t.Helper()
 	r := bytes.NewBufferString(data)
 	at, err := tbln.ReadAll(r)
 	if err != nil {
@@ -77,6 +79,7 @@ func dataTBLN(t *testing.T, data string) *tbln.TBLN {
 }
 
 func dropTestTable(t *testing.T, tdb *db.TDB, tableName string) {
+	t.Helper()
 	sql := fmt.Sprintf("DROP TABLE IF EXISTS %s", tableName)
 	_ = tdb.Begin()
 	/*
@@ -95,6 +98,7 @@ func dropTestTable(t *testing.T, tdb *db.TDB, tableName string) {
 }
 
 func fileRead(t *testing.T, fileName string) *tbln.TBLN {
+	t.Helper()
 	f, err := os.Open(fileName)
 	if err != nil {
 		t.Fatal(err)
@@ -114,6 +118,7 @@ func setHash(tb *tbln.TBLN) *tbln.TBLN {
 }
 
 func SetupPostgresTest(t *testing.T) *db.TDB {
+	t.Helper()
 	// db.Debug(true)
 	if PostgreSQLDBname = os.Getenv("TEST_PG_DATABASE"); PostgreSQLDBname == "" {
 		PostgreSQLDBname = "test_db"
@@ -127,6 +132,7 @@ func SetupPostgresTest(t *testing.T) *db.TDB {
 }
 
 func SetupSQLite3Test(t *testing.T) *db.TDB {
+	t.Helper()
 	conn, err := db.Open("sqlite3", ":memory:")
 	if err != nil {
 		t.Fatal(err)
@@ -135,6 +141,7 @@ func SetupSQLite3Test(t *testing.T) *db.TDB {
 }
 
 func SetupMySQLTest(t *testing.T) *db.TDB {
+	t.Helper()
 	if MySQLDBname = os.Getenv("TEST_MYSQL_DATABASE"); MySQLDBname == "" {
 		MySQLDBname = "test_db"
 	}

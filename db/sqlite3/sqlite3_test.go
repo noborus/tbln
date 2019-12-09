@@ -22,6 +22,7 @@ var TestData = `; name: | id | name | age |
 `
 
 func SetupSQLiteTest(t *testing.T) *db.TDB {
+	t.Helper()
 	conn, err := db.Open("sqlite3", ":memory:")
 	if err != nil {
 		t.Fatal(err)

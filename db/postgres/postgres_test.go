@@ -21,6 +21,7 @@ var TestData = `; name: | id | name | age |
 `
 
 func SetupPostgresTest(t *testing.T) *db.TDB {
+	t.Helper()
 	conn, err := db.Open("postgres", "")
 	if err != nil {
 		t.Fatal(err)
@@ -29,6 +30,7 @@ func SetupPostgresTest(t *testing.T) *db.TDB {
 }
 
 func createTestData(t *testing.T, conn *db.TDB) {
+	t.Helper()
 	r := bytes.NewBufferString(TestData)
 	at, err := tbln.ReadAll(r)
 	if err != nil {
@@ -45,6 +47,7 @@ func createTestData(t *testing.T, conn *db.TDB) {
 }
 
 func dummyDBConn(t *testing.T) *sql.DB {
+	t.Helper()
 	conn := SetupPostgresTest(t).DB
 	conn.Close()
 	return conn

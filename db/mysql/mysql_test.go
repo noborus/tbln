@@ -25,6 +25,7 @@ var TestData = `; name: | id | name | age |
 `
 
 func SetupMySQLTest(t *testing.T) *db.TDB {
+	t.Helper()
 	if MySQLDBname = os.Getenv("TEST_MYSQL_DATABASE"); MySQLDBname == "" {
 		MySQLDBname = "test_db"
 	}
@@ -49,6 +50,7 @@ func SetupMySQLTest(t *testing.T) *db.TDB {
 }
 
 func dummyDBConn(t *testing.T) *sql.DB {
+	t.Helper()
 	conn := SetupMySQLTest(t).DB
 	conn.Close()
 	return conn
