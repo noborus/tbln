@@ -15,9 +15,6 @@ import (
 	_ "github.com/noborus/tbln/db/sqlite3"
 )
 
-var MySQLDBname string
-var PostgreSQLDBname string
-
 var TestData1 = `; name: | id | name | age |
 ; type: | int | text | int |
 ; primarykey: | id |

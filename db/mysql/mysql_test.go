@@ -14,8 +14,6 @@ import (
 	"github.com/noborus/tbln/db"
 )
 
-var MySQLDBname string
-
 var TestData = `; name: | id | name | age |
 ; type: | int | text | int |
 ; primarykey: | id |
@@ -114,7 +112,7 @@ func TestConstr_GetSchema(t *testing.T) {
 		{
 			name:    "default schema",
 			args:    args{conn: tdb.DB},
-			want:    MySQLDBname,
+			want:    "test_db",
 			wantErr: false,
 		},
 	}
