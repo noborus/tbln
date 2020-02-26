@@ -9,6 +9,7 @@ jobs:
         platform: [ubuntu-latest, macos-latest, windows-latest]
     runs-on: ${{ matrix.platform }}
 
+    steps:
     - name: Install Go
       if: success()
       uses: actions/setup-go@v1
