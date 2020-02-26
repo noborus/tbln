@@ -26,10 +26,11 @@ var TestData = `; name: | id | name | age |
 
 func SetupMySQLTest(t *testing.T) *db.TDB {
 	t.Helper()
-	if MySQLDBname = os.Getenv("TEST_MYSQL_DATABASE"); MySQLDBname == "" {
-		MySQLDBname = "test_db"
+	myDsn := os.Getenv("SESSION_MY_TEST_DSN")
+	if myDsn == "" {
+		myDsn = "root@/" + "test_db"
 	}
-	conn, err := db.Open("mysql", "root@/"+MySQLDBname)
+	conn, err := db.Open("mysql", myDsn)
 	if err != nil {
 		t.Fatal(err)
 	}

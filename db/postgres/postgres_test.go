@@ -4,6 +4,7 @@ package postgres
 import (
 	"bytes"
 	"database/sql"
+	"os"
 	"reflect"
 	"testing"
 
@@ -22,7 +23,7 @@ var TestData = `; name: | id | name | age |
 
 func SetupPostgresTest(t *testing.T) *db.TDB {
 	t.Helper()
-	conn, err := db.Open("postgres", "")
+	conn, err := db.Open("postgres", os.Getenv("SESSION_PG_TEST_DSN"))
 	if err != nil {
 		t.Fatal(err)
 	}

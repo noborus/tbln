@@ -39,3 +39,6 @@ jobs:
       uses: actions/checkout@v2
     - name: Run tests
       run: make test
+      env:
+        SESSION_PG_TEST_DSN: "host=localhost user=postgres password=postgres dbname=test_db sslmode=disable"
+        SESSION_MY_TEST_DSN: "root:root@tcp(localhost:3307)/test_db"
