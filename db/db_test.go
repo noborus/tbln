@@ -119,12 +119,7 @@ func setHash(tb *tbln.TBLN) *tbln.TBLN {
 
 func SetupPostgresTest(t *testing.T) *db.TDB {
 	t.Helper()
-	// db.Debug(true)
-	if PostgreSQLDBname = os.Getenv("TEST_PG_DATABASE"); PostgreSQLDBname == "" {
-		PostgreSQLDBname = "test_db"
-	}
-	dsn := fmt.Sprintf("dbname=%s", PostgreSQLDBname)
-	conn, err := db.Open("postgres", dsn)
+	conn, err := db.Open("postgres", os.Getenv("SESSION_PG_TEST_DSN"))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -142,10 +137,11 @@ func SetupSQLite3Test(t *testing.T) *db.TDB {
 
 func SetupMySQLTest(t *testing.T) *db.TDB {
 	t.Helper()
-	if MySQLDBname = os.Getenv("TEST_MYSQL_DATABASE"); MySQLDBname == "" {
-		MySQLDBname = "test_db"
+	myDsn := os.Getenv("SESSION_MY_TEST_DSN")
+	if myDsn == "" {
+		myDsn = "root@/" + "test_db"
 	}
-	conn, err := db.Open("mysql", "root@/"+MySQLDBname)
+	conn, err := db.Open("mysql", myDsn)
 	if err != nil {
 		t.Fatal(err)
 	}
