@@ -68,13 +68,13 @@ func generateKey(keyName string, overwrite bool) error {
 
 	err = key.WritePrivateFile(SecFile, keyName, private)
 	if err != nil {
-		return fmt.Errorf("%s: %s", SecFile, err)
+		return fmt.Errorf("%s: %w", SecFile, err)
 	}
 	log.Printf("write %s file\n", SecFile)
 
 	err = key.WritePublicFile(PubFile, keyName, public)
 	if err != nil {
-		return fmt.Errorf("generate key create: %s: %s", PubFile, err)
+		return fmt.Errorf("generate key create: %s: %w", PubFile, err)
 	}
 	log.Printf("write %s file\n", PubFile)
 

@@ -76,7 +76,7 @@ func (tdb *TDB) ReadTable(schema string, tableName string, rps []RangePrimaryKey
 	debug.Printf("SQL:%s:%s", sql, args)
 	err = tr.query(sql, args...)
 	if err != nil {
-		return nil, fmt.Errorf("%s: [%s]", err, sql)
+		return nil, fmt.Errorf("%w: [%s]", err, sql)
 	}
 	return tr, nil
 }
@@ -132,7 +132,7 @@ func (tdb *TDB) ReadQuery(sql string, args ...interface{}) (*Reader, error) {
 	debug.Printf("SQL:%s:%s", sql, args)
 	err := tr.query(sql, args...)
 	if err != nil {
-		return nil, fmt.Errorf("%s: (%s)", err, sql)
+		return nil, fmt.Errorf("%w: (%s)", err, sql)
 	}
 	return tr, nil
 }

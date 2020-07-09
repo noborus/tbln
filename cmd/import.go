@@ -102,7 +102,7 @@ func cmdImport(cmd *cobra.Command, args []string) error {
 	}
 	u, err := dburl.Parse(url)
 	if err != nil {
-		return fmt.Errorf("%s: %s", url, err)
+		return fmt.Errorf("%s: %w", url, err)
 	}
 
 	var modeStr string
@@ -144,11 +144,11 @@ func cmdImport(cmd *cobra.Command, args []string) error {
 func dbImport(u *dburl.URL, tb *tbln.TBLN, schema string, cmode db.CreateMode, imode db.InsertMode) error {
 	conn, err := db.Open(u.Driver, u.DSN)
 	if err != nil {
-		return fmt.Errorf("%s: %s", u.Driver, err)
+		return fmt.Errorf("%s: %w", u.Driver, err)
 	}
 	err = conn.Begin()
 	if err != nil {
-		return fmt.Errorf("%s: %s", u.Driver, err)
+		return fmt.Errorf("%s: %w", u.Driver, err)
 	}
 	err = writeImport(conn, tb, schema, cmode, imode)
 	if err != nil {

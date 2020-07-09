@@ -226,7 +226,7 @@ func (w *Writer) dropTable() error {
 	debug.Printf("SQL:%s", sql)
 	_, err := w.Tx.Exec(sql)
 	if err != nil {
-		return fmt.Errorf("%s: %s", err, sql)
+		return fmt.Errorf("%w: %s", err, sql)
 	}
 	return err
 }
@@ -275,7 +275,7 @@ func (w *Writer) createTable(cmode CreateMode) error {
 	debug.Printf("SQL:%s", sql)
 	_, err := w.Tx.Exec(sql)
 	if err != nil {
-		return fmt.Errorf("%s: %s", err, sql)
+		return fmt.Errorf("%w: %s", err, sql)
 	}
 	return nil
 }
@@ -340,7 +340,7 @@ func (w *Writer) prepareInsert(imode InsertMode) error {
 	debug.Printf("SQL:%s", insert)
 	w.stmt, err = w.Tx.Prepare(insert)
 	if err != nil {
-		return fmt.Errorf("%s: %s", err, insert)
+		return fmt.Errorf("%w: %s", err, insert)
 	}
 	return nil
 }
@@ -384,7 +384,7 @@ func (w *Writer) prepareUpdate(pkeys []tbln.Pkey) error {
 	debug.Printf("SQL:%s", update)
 	w.stmt, err = w.Tx.Prepare(update)
 	if err != nil {
-		return fmt.Errorf("%s: %s", err, update)
+		return fmt.Errorf("%w: %s", err, update)
 	}
 	return nil
 }
@@ -414,7 +414,7 @@ func (w *Writer) prepareDelete(pkeys []tbln.Pkey) error {
 	debug.Printf("SQL:%s", update)
 	w.stmt, err = w.Tx.Prepare(update)
 	if err != nil {
-		return fmt.Errorf("%s: %s", err, update)
+		return fmt.Errorf("%w: %s", err, update)
 	}
 	return nil
 }

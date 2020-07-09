@@ -60,7 +60,15 @@ func JoinRow(row []string) string {
 		return ""
 	}
 	for _, column := range row {
-		_, err = b.WriteString(" " + escape(column) + " |")
+		_, err = b.WriteString(" ")
+		if err != nil {
+			return ""
+		}
+		_, err = b.WriteString(escape(column))
+		if err != nil {
+			return ""
+		}
+		_, err = b.WriteString(" |")
 		if err != nil {
 			return ""
 		}

@@ -92,7 +92,7 @@ func cmdExport(cmd *cobra.Command, args []string) error {
 	}
 	u, err := dburl.Parse(url)
 	if err != nil {
-		return fmt.Errorf("%s: %s", url, err)
+		return fmt.Errorf("%s: %w", url, err)
 	}
 
 	tb, err := dbExport(u, query, schema, tableName, schemaOnly)
@@ -117,7 +117,7 @@ func cmdExport(cmd *cobra.Command, args []string) error {
 func dbExport(u *dburl.URL, query string, schema string, tableName string, schemaOnly bool) (*tbln.TBLN, error) {
 	conn, err := db.Open(u.Driver, u.DSN)
 	if err != nil {
-		return nil, fmt.Errorf("%s: %s", u.Driver, err)
+		return nil, fmt.Errorf("%s: %w", u.Driver, err)
 	}
 	defer conn.Close()
 	switch {
