@@ -54,11 +54,13 @@ func hashFile(at *tbln.TBLN, cmd *cobra.Command) (*tbln.TBLN, error) {
 		cmd.SilenceUsage = false
 		return nil, err
 	}
+
 	var disableTarget []string
 	if disableTarget, err = cmd.PersistentFlags().GetStringSlice("disable-target"); err != nil {
 		cmd.SilenceUsage = false
 		return nil, err
 	}
+
 	for _, v := range enableTarget {
 		if v == "all" {
 			at.AllTargetHash(true)
@@ -92,5 +94,6 @@ func hashFile(at *tbln.TBLN, cmd *cobra.Command) (*tbln.TBLN, error) {
 			return nil, err
 		}
 	}
+
 	return at, nil
 }

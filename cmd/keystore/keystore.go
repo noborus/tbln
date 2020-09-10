@@ -42,7 +42,7 @@ func create(keyStore string, keyName string, pubkey []byte) error {
 	if err != nil {
 		return fmt.Errorf("KeyStore generate: %s", err)
 	}
-	t.Comments = []string{fmt.Sprintf("TBLN KeyStore")}
+	t.Comments = []string{"TBLN KeyStore"}
 	err = tbln.WriteAll(file, t)
 	if err != nil {
 		return fmt.Errorf("KeyStore write: %s", err)
@@ -181,7 +181,7 @@ func DelKey(keyStore string, name string, num int) error {
 
 func rewriteStore(file *os.File, t *tbln.TBLN) error {
 	var err error
-	t.Comments = []string{fmt.Sprintf("TBLN KeyStore")}
+	t.Comments = []string{"TBLN KeyStore"}
 	t.Extras["updated_at"] = tbln.NewExtra(time.Now().Format(time.RFC3339), false)
 	err = file.Truncate(0)
 	if err != nil {

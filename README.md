@@ -1,7 +1,7 @@
 # TBLN
 
-[![GoDoc](https://godoc.org/github.com/noborus/tbln?status.svg)](https://godoc.org/github.com/noborus/tbln)
-[![Build Status](https://travis-ci.org/noborus/tbln.svg?branch=master)](https://travis-ci.org/noborus/tbln)
+[![PkgGoDev](https://pkg.go.dev/badge/noborus/tbln)](https://pkg.go.dev/noborus/tbln)
+[![Actions Status](https://github.com/noborus/tbln/workflows/Go/badge.svg)](https://github.com/noborus/tbln/actions)
 [![Go Report Card](https://goreportcard.com/badge/github.com/noborus/tbln)](https://goreportcard.com/report/github.com/noborus/tbln)
 [![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2Fnoborus%2Ftbln.svg?type=shield)](https://app.fossa.io/projects/git%2Bgithub.com%2Fnoborus%2Ftbln?ref=badge_shield)
 
@@ -31,7 +31,7 @@ Please refer to [TBLN](https://tbln.dev/) for the specification of TBLN.
 $ go get github.com/noborus/tbln
 ```
 
-Notes: Requires a version of Go that supports modules. e.g. Go 1.11+
+Notes: Requires a version of Go that supports modules. e.g. Go 1.13+
 
 ## Example
 
