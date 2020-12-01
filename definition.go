@@ -57,7 +57,7 @@ func (d *Definition) ExtraValue(key string) interface{} {
 	return ext.Value()
 }
 
-// Signature algorithm
+// Signature algorithm.
 const (
 	ED25519 = "ED25519"
 )
@@ -145,7 +145,7 @@ func (d *Definition) setColNum(colNum int) error {
 	return nil
 }
 
-// ToTargetHash is set as target of hash
+// ToTargetHash is set as target of hash.
 func (d *Definition) ToTargetHash(key string, target bool) {
 	if v, ok := d.Extras[key]; ok {
 		v.hashTarget = target
@@ -153,7 +153,7 @@ func (d *Definition) ToTargetHash(key string, target bool) {
 	}
 }
 
-// AllTargetHash is set all target of hash
+// AllTargetHash is set all target of hash.
 func (d *Definition) AllTargetHash(target bool) {
 	for k, v := range d.Extras {
 		v.hashTarget = target

@@ -17,7 +17,7 @@ import (
 
 	"github.com/noborus/tbln"
 	"golang.org/x/crypto/ed25519"
-	"golang.org/x/crypto/ssh/terminal"
+	"golang.org/x/term"
 )
 
 // GenerateKey generates private key and public key
@@ -241,7 +241,7 @@ type StdInPasswordReader struct {
 func (pr StdInPasswordReader) ReadPasswordPrompt(prompt string) ([]byte, error) {
 	fd := int(os.Stdin.Fd())
 	fmt.Fprint(os.Stderr, prompt)
-	password, err := terminal.ReadPassword(fd)
+	password, err := term.ReadPassword(fd)
 	if err != nil {
 		return nil, err
 	}
