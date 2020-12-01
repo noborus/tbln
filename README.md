@@ -3,7 +3,6 @@
 [![PkgGoDev](https://pkg.go.dev/badge/noborus/tbln)](https://pkg.go.dev/noborus/tbln)
 [![Actions Status](https://github.com/noborus/tbln/workflows/Go/badge.svg)](https://github.com/noborus/tbln/actions)
 [![Go Report Card](https://goreportcard.com/badge/github.com/noborus/tbln)](https://goreportcard.com/report/github.com/noborus/tbln)
-[![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2Fnoborus%2Ftbln.svg?type=shield)](https://app.fossa.io/projects/git%2Bgithub.com%2Fnoborus%2Ftbln?ref=badge_shield)
 
 [TBLN](https://tbln.dev) is a text format that represents the table.
 
@@ -145,6 +144,3 @@ See [db/README.md](db/README.md) for details.
 You can also use tbln cli tool to quickly import and export to a database.
 
 See [cmd/README.md](cmd/README.md) for details.
-
-## License
-[![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2Fnoborus%2Ftbln.svg?type=large)](https://app.fossa.io/projects/git%2Bgithub.com%2Fnoborus%2Ftbln?ref=badge_large)
