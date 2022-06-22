@@ -171,7 +171,7 @@ func TestConstr_GetColumnInfo(t *testing.T) {
 		{
 			name:    "test1",
 			args:    args{conn: tdb.DB, schema: "", tableName: "test1"},
-			want:    []interface{}{"int", "text", "int"},
+			want:    []interface{}{"INT", "TEXT", "INT"},
 			wantErr: false,
 		},
 	}

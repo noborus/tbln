@@ -98,40 +98,6 @@ func TestReadTableAll(t *testing.T) {
 	}
 }
 
-func TestConstr_GetSchema(t *testing.T) {
-	tdb := SetupMySQLTest(t)
-	type args struct {
-		conn *sql.DB
-	}
-	tests := []struct {
-		name    string
-		args    args
-		want    string
-		wantErr bool
-	}{
-		{
-			name:    "default schema",
-			args:    args{conn: tdb.DB},
-			want:    "test_db",
-			wantErr: false,
-		},
-	}
-	for _, tt := range tests {
-		tt := tt
-		c := &Constr{}
-		t.Run(tt.name, func(t *testing.T) {
-			got, err := c.GetSchema(tt.args.conn)
-			if (err != nil) != tt.wantErr {
-				t.Errorf("Constr.GetSchema() error = %v, wantErr %v", err, tt.wantErr)
-				return
-			}
-			if got != tt.want {
-				t.Errorf("Constr.GetSchema() = %v, want %v", got, tt.want)
-			}
-		})
-	}
-}
-
 func TestConstr_GetPrimaryKey(t *testing.T) {
 	tdb := SetupMySQLTest(t)
 	type args struct {
