@@ -93,8 +93,7 @@ func (tr *FileReader) scanLine() ([]string, error) {
 		case strings.HasPrefix(str, "#"):
 			tr.Comments = append(tr.Comments, strings.TrimSpace(str[1:]))
 		case strings.HasPrefix(str, "; "):
-			err := tr.analyzeExtra(str)
-			if err != nil {
+			if err := tr.analyzeExtra(str); err != nil {
 				return nil, err
 			}
 		case str == "":
@@ -124,13 +123,11 @@ func (tr *FileReader) analyzeExtra(extstr string) error {
 	case "TableName":
 		tr.SetTableName(value)
 	case "Hash":
-		err := tr.SetHashes(SplitRow(value))
-		if err != nil {
+		if err := tr.SetHashes(SplitRow(value)); err != nil {
 			return err
 		}
 	case "Signature":
-		err := tr.SetSignatures(SplitRow(value))
-		if err != nil {
+		if err := tr.SetSignatures(SplitRow(value)); err != nil {
 			return err
 		}
 	default:

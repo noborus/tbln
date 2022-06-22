@@ -28,13 +28,11 @@ func (w *Writer) WriteRow(row []string) error {
 // WriteAll writes multiple tbln records to w using Write.
 func WriteAll(writer io.Writer, tbln *TBLN) error {
 	w := NewWriter(writer)
-	err := w.WriteDefinition(tbln.Definition)
-	if err != nil {
+	if err := w.WriteDefinition(tbln.Definition); err != nil {
 		return err
 	}
 	for _, row := range tbln.Rows {
-		err = w.WriteRow(row)
-		if err != nil {
+		if err := w.WriteRow(row); err != nil {
 			return err
 		}
 	}
@@ -53,8 +51,7 @@ func (w *Writer) WriteDefinition(d *Definition) error {
 // writeComment writes comment to w.
 func (w *Writer) writeComment(d *Definition) error {
 	for _, comment := range d.Comments {
-		_, err := io.WriteString(w.Writer, fmt.Sprintf("# %s\n", comment))
-		if err != nil {
+		if _, err := io.WriteString(w.Writer, fmt.Sprintf("# %s\n", comment)); err != nil {
 			return err
 		}
 	}
@@ -63,19 +60,16 @@ func (w *Writer) writeComment(d *Definition) error {
 
 // writeExtra writes extra to w.
 func (w *Writer) writeExtra(d *Definition) error {
-	err := w.writeExtraTarget(d, false)
-	if err != nil {
+	if err := w.writeExtraTarget(d, false); err != nil {
 		return err
 	}
 	if len(d.Signs) > 0 {
-		err = w.writeSigns(d)
-		if err != nil {
+		if err := w.writeSigns(d); err != nil {
 			return err
 		}
 	}
 	if len(d.Hashes) > 0 {
-		err = w.writeHashes(d)
-		if err != nil {
+		if err := w.writeHashes(d); err != nil {
 			return err
 		}
 	}
@@ -92,8 +86,7 @@ func (w *Writer) writeExtraTarget(d *Definition, targetFlag bool) error {
 		if d.Extras[k].hashTarget != targetFlag {
 			continue
 		}
-		_, err := fmt.Fprintf(w.Writer, "; %s: %s\n", k, d.Extras[k].value)
-		if err != nil {
+		if _, err := fmt.Fprintf(w.Writer, "; %s: %s\n", k, d.Extras[k].value); err != nil {
 			return err
 		}
 	}
@@ -106,8 +99,7 @@ func (w *Writer) writeSigns(d *Definition) error {
 		signs = append(signs, k)
 		signs = append(signs, v.algorithm)
 		signs = append(signs, fmt.Sprintf("%x", v.sign))
-		_, err := fmt.Fprintf(w.Writer, "; Signature: %s\n", JoinRow(signs))
-		if err != nil {
+		if _, err := fmt.Fprintf(w.Writer, "; Signature: %s\n", JoinRow(signs)); err != nil {
 			return err
 		}
 	}
@@ -119,8 +111,7 @@ func (w *Writer) writeHashes(d *Definition) error {
 		hashes := make([]string, 0, 2)
 		hashes = append(hashes, k)
 		hashes = append(hashes, fmt.Sprintf("%x", v))
-		_, err := fmt.Fprintf(w.Writer, "; Hash: %s\n", JoinRow(hashes))
-		if err != nil {
+		if _, err := fmt.Fprintf(w.Writer, "; Hash: %s\n", JoinRow(hashes)); err != nil {
 			return err
 		}
 	}

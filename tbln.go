@@ -24,6 +24,7 @@
 package tbln
 
 import (
+	"bytes"
 	"crypto/sha256"
 	"crypto/sha512"
 	"fmt"
@@ -169,13 +170,11 @@ func (t *TBLN) calculateHash(hashType string) ([]byte, error) {
 		return nil, fmt.Errorf("not support")
 	}
 	w := NewWriter(hash)
-	err := w.writeExtraTarget(t.Definition, true)
-	if err != nil {
+	if err := w.writeExtraTarget(t.Definition, true); err != nil {
 		return nil, err
 	}
 	for _, row := range t.Rows {
-		err = w.WriteRow(row)
-		if err != nil {
+		if err := w.WriteRow(row); err != nil {
 			return nil, err
 		}
 	}
@@ -230,4 +229,12 @@ func (t *TBLN) Verify() bool {
 		}
 	}
 	return true
+}
+
+func (t *TBLN) String() string {
+	buf := new(bytes.Buffer)
+	if err := WriteAll(buf, t); err != nil {
+		return ""
+	}
+	return buf.String()
 }

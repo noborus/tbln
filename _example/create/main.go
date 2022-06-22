@@ -8,32 +8,26 @@ import (
 )
 
 func main() {
-	var err error
 	tb := tbln.NewTBLN()
 	tb.SetTableName("sample")
 	// SetNames sets column names
-	err = tb.SetNames([]string{"id", "name"})
-	if err != nil {
+	if err := tb.SetNames([]string{"id", "name"}); err != nil {
 		log.Fatal(err)
 	}
 	// SetTypes sets the column type
-	err = tb.SetTypes([]string{"int", "text"})
-	if err != nil {
+	if err := tb.SetTypes([]string{"int", "text"}); err != nil {
 		log.Fatal(err)
 	}
 	// Add a row.
 	// The number of columns should be the same
 	// number of columns in Names and Types.
-	err = tb.AddRows([]string{"1", "Bob"})
-	if err != nil {
+	if err := tb.AddRows([]string{"1", "Bob"}); err != nil {
 		log.Fatal(err)
 	}
-	err = tb.AddRows([]string{"2", "Alice"})
-	if err != nil {
+	if err := tb.AddRows([]string{"2", "Alice"}); err != nil {
 		log.Fatal(err)
 	}
-	err = tbln.WriteAll(os.Stdout, tb)
-	if err != nil {
+	if err := tbln.WriteAll(os.Stdout, tb); err != nil {
 		log.Fatal(err)
 	}
 }
