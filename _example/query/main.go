@@ -1,9 +1,8 @@
 package main
 
 import (
-	"os"
-
 	"log"
+	"os"
 
 	"github.com/noborus/tbln"
 	"github.com/noborus/tbln/db"

@@ -41,8 +41,7 @@ func WriteAll(writer io.Writer, tbln *TBLN) error {
 
 // WriteDefinition writes Definition (comment and extra) to w.
 func (w *Writer) WriteDefinition(d *Definition) error {
-	err := w.writeComment(d)
-	if err != nil {
+	if err := w.writeComment(d); err != nil {
 		return err
 	}
 	return w.writeExtra(d)
