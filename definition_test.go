@@ -160,7 +160,7 @@ func TestDefinition_ExtraValue(t *testing.T) {
 		name   string
 		fields fields
 		args   args
-		want   interface{}
+		want   any
 	}{
 		{
 			name: "test1",

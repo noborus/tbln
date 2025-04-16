@@ -151,11 +151,11 @@ func (cmp *Compare) getPK() ([]Pkey, error) {
 	// use all columns as primary keys.
 	if len(pos) == 0 {
 		t1Pos = make([]int, t1d.ColumnNum())
-		for i := 0; i < t1d.ColumnNum(); i++ {
+		for i := range t1d.ColumnNum() {
 			t1Pos[i] = i
 		}
 		t2Pos = make([]int, t2d.ColumnNum())
-		for i := 0; i < t2d.ColumnNum(); i++ {
+		for i := range t2d.ColumnNum() {
 			t2Pos[i] = i
 		}
 		pos = t1Pos
