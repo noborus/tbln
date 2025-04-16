@@ -8,17 +8,23 @@
 //
 // Data begins with "| " and ends with " |". Multiple fields are separated by " | ".
 // (Note that the delimiter contains spaces.)
+//
 //	| fields1 | fields2 | fields3 |
+//
 // White space is considered part of a field.
 // If "|" is included in the field, "|" must be duplicated.
-// 	| -> || , || -> |||
+//
+//	| -> || , || -> |||
 //
 // Comments begin with "# ". Comments are not interpreted.
+//
 //	# Comments
 //
 // Extras begin with ";". extras can be interpreted as a header.
 // Extras is basically written in the item name: value.
+//
 //	; ItemName: Value
+//
 // Extras is optional.
 // Extras has item names that are interpreted in some special ways.
 package tbln

@@ -34,12 +34,12 @@ func NewDefinition() *Definition {
 
 // Extra is table definition extra struct.
 type Extra struct {
-	value      interface{}
+	value      any
 	hashTarget bool
 }
 
 // NewExtra is return new extra struct.
-func NewExtra(value interface{}, hashTarget bool) Extra {
+func NewExtra(value any, hashTarget bool) Extra {
 	return Extra{
 		value:      value,
 		hashTarget: hashTarget,
@@ -47,12 +47,12 @@ func NewExtra(value interface{}, hashTarget bool) Extra {
 }
 
 // Value is return extra value.
-func (e *Extra) Value() interface{} {
+func (e *Extra) Value() any {
 	return e.value
 }
 
 // ExtraValue is return extra value.
-func (d *Definition) ExtraValue(key string) interface{} {
+func (d *Definition) ExtraValue(key string) any {
 	ext := d.Extras[key]
 	return ext.Value()
 }

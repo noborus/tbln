@@ -3,6 +3,8 @@ package tbln
 import (
 	"fmt"
 	"io"
+	"maps"
+	"slices"
 )
 
 // MergeMode represents the mode of merge.
@@ -75,9 +77,7 @@ func MergeDefinition(t1d, t2d *Definition) (*Definition, error) {
 	d := NewDefinition()
 	d.Comments = mergeComment(t1d, t2d)
 	d.Extras = t1d.Extras
-	for k, v := range t2d.Extras {
-		d.Extras[k] = v
-	}
+	maps.Copy(d.Extras, t2d.Extras)
 	return d, nil
 }
 
@@ -87,11 +87,8 @@ func mergeComment(t1d, t2d *Definition) []string {
 
 	for _, dc := range t2d.Comments {
 		appFlag := true
-		for _, sc := range t1d.Comments {
-			if dc == sc {
-				appFlag = false
-				break
-			}
+		if slices.Contains(t1d.Comments, dc) {
+			appFlag = false
 		}
 		if appFlag {
 			comments = append(comments, dc)
